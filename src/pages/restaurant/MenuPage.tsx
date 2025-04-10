@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import RestaurantLayout from "@/components/layout/RestaurantLayout";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -819,4 +820,45 @@ export default function MenuPage() {
                   control={categoryForm.control}
                   name="isActive"
                   render={({ field }) => (
-                    <FormItem className="flex flex-row items-center justify-
+                    <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3">
+                      <div className="space-y-0.5">
+                        <FormLabel>Active Status</FormLabel>
+                        <FormDescription>Inactive categories won't appear in menus</FormDescription>
+                      </div>
+                      <FormControl>
+                        <Switch
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                        />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+                <DialogFooter>
+                  <Button type="submit">{editingCategory ? "Save Changes" : "Create Category"}</Button>
+                </DialogFooter>
+              </form>
+            </Form>
+          </DialogContent>
+        </Dialog>
+
+        <Dialog open={showNewItemDialog} onOpenChange={setShowNewItemDialog}>
+          <DialogContent className="sm:max-w-[600px]">
+            <DialogHeader>
+              <DialogTitle>{editingItem ? "Edit Menu Item" : "Add New Menu Item"}</DialogTitle>
+              <DialogDescription>
+                {editingItem ? "Edit your menu item details." : "Create a new menu item."}
+              </DialogDescription>
+            </DialogHeader>
+            
+            <AddMenuItemForm 
+              onSubmit={handleItemSubmit}
+              initialData={editingItem}
+              categories={categories}
+            />
+          </DialogContent>
+        </Dialog>
+      </div>
+    </RestaurantLayout>
+  );
+}
