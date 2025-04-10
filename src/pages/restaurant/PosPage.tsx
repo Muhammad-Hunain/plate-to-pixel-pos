@@ -1,27 +1,17 @@
 
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import {
-  BarChart,
-  Clock,
   Filter,
-  History,
   Layers,
   MapPin,
   MoreVertical,
-  Plus,
+  Printer,
   Search,
   ShoppingCart,
   Utensils,
@@ -29,6 +19,7 @@ import {
 
 import RestaurantLayout from "@/components/layout/RestaurantLayout";
 import { useToast } from "@/hooks/use-toast";
+import { useReactToPrint } from "react-to-print";
 
 // Menu items data
 const menuItems = [
@@ -104,15 +95,39 @@ const menuItems = [
   },
 ];
 
+interface MenuItem {
+  id: number;
+  name: string;
+  price: number;
+  category: string;
+  image: string;
+}
+
+interface CartItem extends MenuItem {
+  quantity: number;
+}
+
 const PosPage = () => {
   const { toast } = useToast();
-  const [cart, setCart] = useState([]);
+  const [cart, setCart] = useState<CartItem[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [orderType, setOrderType] = useState("dine-in");
   const [tableNumber, setTableNumber] = useState("");
   const [deliveryAddress, setDeliveryAddress] = useState("");
+  const receiptRef = useRef<HTMLDivElement>(null);
 
-  const handleAddToCart = (item) => {
+  const handlePrint = useReactToPrint({
+    content: () => receiptRef.current,
+    documentTitle: "Order Receipt",
+    onAfterPrint: () => {
+      toast({
+        title: "Receipt printed",
+        description: "The order receipt has been sent to the printer.",
+      });
+    }
+  });
+
+  const handleAddToCart = (item: MenuItem) => {
     const existingItem = cart.find((cartItem) => cartItem.id === item.id);
     if (existingItem) {
       setCart(
@@ -132,9 +147,9 @@ const PosPage = () => {
     });
   };
 
-  const handleRemoveFromCart = (id) => {
+  const handleRemoveFromCart = (id: number) => {
     const itemToRemove = cart.find((item) => item.id === id);
-    if (itemToRemove.quantity === 1) {
+    if (itemToRemove && itemToRemove.quantity === 1) {
       setCart(cart.filter((item) => item.id !== id));
     } else {
       setCart(
@@ -197,15 +212,17 @@ const PosPage = () => {
     );
   };
 
-  const filteredItems = menuItems.filter((item) => {
-    return item.name
-      .toLowerCase()
-      .includes(searchQuery.toLowerCase());
-  });
+  const filteredItems = useMemo(() => {
+    return menuItems.filter((item) => {
+      return item.name
+        .toLowerCase()
+        .includes(searchQuery.toLowerCase());
+    });
+  }, [searchQuery]);
 
   // Group items by category
   const itemsByCategory = useMemo(() => {
-    const groups = {};
+    const groups: Record<string, MenuItem[]> = {};
     filteredItems.forEach(item => {
       if (!groups[item.category]) {
         groups[item.category] = [];
@@ -217,7 +234,7 @@ const PosPage = () => {
 
   // Group cart items by category
   const cartByCategory = useMemo(() => {
-    const groups = {};
+    const groups: Record<string, CartItem[]> = {};
     cart.forEach(item => {
       if (!groups[item.category]) {
         groups[item.category] = [];
@@ -228,10 +245,12 @@ const PosPage = () => {
   }, [cart]);
 
   // Transform categories for display
-  const categories = Object.keys(itemsByCategory).map(category => ({
-    id: category,
-    name: category.charAt(0).toUpperCase() + category.slice(1)
-  }));
+  const categories = useMemo(() => {
+    return Object.keys(itemsByCategory).map(category => ({
+      id: category,
+      name: category.charAt(0).toUpperCase() + category.slice(1)
+    }));
+  }, [itemsByCategory]);
 
   return (
     <RestaurantLayout>
@@ -266,42 +285,44 @@ const PosPage = () => {
               </div>
             </div>
 
-            {/* Show all categories */}
-            <div className="space-y-6">
-              {categories.map((category) => (
-                <div key={category.id} className="space-y-3">
-                  <div className="flex items-center gap-2">
-                    <Layers className="h-4 w-4 text-muted-foreground" />
-                    <h2 className="text-lg font-semibold">{category.name}</h2>
-                  </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-                    {itemsByCategory[category.id].map((item) => (
-                      <div
-                        key={item.id}
-                        className="cursor-pointer rounded-lg border bg-card text-card-foreground shadow-sm overflow-hidden hover:shadow-md transition-all"
-                        onClick={() => handleAddToCart(item)}
-                      >
-                        <div className="relative">
-                          <img
-                            src={item.image}
-                            alt={item.name}
-                            className="w-full h-[120px] object-cover"
-                          />
-                        </div>
-                        <div className="p-4">
-                          <h3 className="font-medium">{item.name}</h3>
-                          <div className="flex justify-between items-center mt-1">
-                            <span className="text-muted-foreground text-sm">
-                              {item.category}
-                            </span>
-                            <span className="font-bold">${item.price}</span>
+            {/* Scrollable menu */}
+            <div className="overflow-y-auto pr-2" style={{ maxHeight: "calc(100vh - 220px)" }}>
+              <div className="space-y-6">
+                {categories.map((category) => (
+                  <div key={category.id} className="space-y-3">
+                    <div className="flex items-center gap-2">
+                      <Layers className="h-4 w-4 text-muted-foreground" />
+                      <h2 className="text-lg font-semibold">{category.name}</h2>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+                      {itemsByCategory[category.id].map((item) => (
+                        <div
+                          key={item.id}
+                          className="cursor-pointer rounded-lg border bg-card text-card-foreground shadow-sm overflow-hidden hover:shadow-md transition-all"
+                          onClick={() => handleAddToCart(item)}
+                        >
+                          <div className="relative">
+                            <img
+                              src={item.image}
+                              alt={item.name}
+                              className="w-full h-[120px] object-cover"
+                            />
+                          </div>
+                          <div className="p-4">
+                            <h3 className="font-medium">{item.name}</h3>
+                            <div className="flex justify-between items-center mt-1">
+                              <span className="text-muted-foreground text-sm">
+                                {item.category}
+                              </span>
+                              <span className="font-bold">${item.price.toFixed(2)}</span>
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    ))}
+                      ))}
+                    </div>
                   </div>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
           </div>
 
@@ -312,26 +333,19 @@ const PosPage = () => {
                 <ShoppingCart className="h-5 w-5 mr-2" />
                 <h2 className="text-xl font-bold">Current Order</h2>
               </div>
-              <div className="flex items-center gap-2">
-                <Select 
-                  defaultValue="dine-in" 
-                  value={orderType}
-                  onValueChange={setOrderType}
-                >
-                  <SelectTrigger className="w-[120px]">
-                    <SelectValue placeholder="Order Type" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="dine-in">Dine In</SelectItem>
-                    <SelectItem value="takeout">Takeout</SelectItem>
-                    <SelectItem value="delivery">Delivery</SelectItem>
-                  </SelectContent>
-                </Select>
-                <Button variant="ghost" size="icon">
-                  <MoreVertical className="h-4 w-4" />
-                </Button>
-              </div>
+              <Button variant="ghost" size="icon">
+                <MoreVertical className="h-4 w-4" />
+              </Button>
             </div>
+            
+            {/* Order type tabs */}
+            <Tabs value={orderType} onValueChange={setOrderType} className="mb-4">
+              <TabsList className="grid grid-cols-3 w-full">
+                <TabsTrigger value="dine-in">Dine In</TabsTrigger>
+                <TabsTrigger value="takeout">Takeout</TabsTrigger>
+                <TabsTrigger value="delivery">Delivery</TabsTrigger>
+              </TabsList>
+            </Tabs>
             
             {/* Order type specific inputs */}
             {orderType === "dine-in" && (
@@ -451,9 +465,14 @@ const PosPage = () => {
               </div>
 
               <div className="grid grid-cols-2 gap-3 mt-4">
-                <Button variant="outline" className="gap-1" disabled={cart.length === 0}>
-                  <History className="h-4 w-4 mr-1" />
-                  Save Order
+                <Button 
+                  variant="outline" 
+                  className="gap-1" 
+                  disabled={cart.length === 0}
+                  onClick={handlePrint}
+                >
+                  <Printer className="h-4 w-4 mr-1" />
+                  Print Receipt
                 </Button>
                 <Button 
                   className="gap-1"
@@ -463,6 +482,55 @@ const PosPage = () => {
                   <ShoppingCart className="h-4 w-4 mr-1" />
                   Place Order
                 </Button>
+              </div>
+            </div>
+
+            {/* Hidden Receipt for printing */}
+            <div className="hidden">
+              <div ref={receiptRef} className="p-6 max-w-[300px]">
+                <div className="text-center mb-4">
+                  <h2 className="font-bold text-xl">Restaurant Name</h2>
+                  <p className="text-sm text-muted-foreground">123 Main Street, City</p>
+                  <p className="text-sm text-muted-foreground">Tel: (123) 456-7890</p>
+                </div>
+
+                <div className="mb-4">
+                  <p><strong>Order Type:</strong> {orderType === 'dine-in' ? `Dine In (Table ${tableNumber})` : orderType === 'delivery' ? 'Delivery' : 'Takeout'}</p>
+                  <p><strong>Date:</strong> {new Date().toLocaleDateString()}</p>
+                  <p><strong>Time:</strong> {new Date().toLocaleTimeString()}</p>
+                </div>
+
+                <div className="border-t border-b py-2 mb-4">
+                  <table className="w-full">
+                    <thead>
+                      <tr className="text-left">
+                        <th>Item</th>
+                        <th className="text-right">Qty</th>
+                        <th className="text-right">Price</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {cart.map((item) => (
+                        <tr key={item.id}>
+                          <td>{item.name}</td>
+                          <td className="text-right">{item.quantity}</td>
+                          <td className="text-right">${(item.price * item.quantity).toFixed(2)}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+
+                <div className="space-y-1 text-right">
+                  <p><strong>Subtotal:</strong> ${calculateTotal().toFixed(2)}</p>
+                  <p><strong>Tax (10%):</strong> ${(calculateTotal() * 0.1).toFixed(2)}</p>
+                  <p className="text-lg font-bold"><strong>Total:</strong> ${(calculateTotal() * 1.1).toFixed(2)}</p>
+                </div>
+
+                <div className="mt-6 text-center text-sm">
+                  <p>Thank you for your order!</p>
+                  <p>Please come again</p>
+                </div>
               </div>
             </div>
           </div>

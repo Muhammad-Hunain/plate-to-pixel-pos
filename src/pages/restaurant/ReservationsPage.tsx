@@ -35,6 +35,7 @@ import {
 } from "lucide-react";
 import ReservationDialog from '@/components/reservations/ReservationDialog';
 import ReservationDetails from '@/components/reservations/ReservationDetails';
+import ReservationCalendar from '@/components/reservations/ReservationCalendar';
 import { useToast } from "@/hooks/use-toast";
 
 // Mock data for reservations
@@ -146,6 +147,7 @@ const ReservationsPage = () => {
   const [statusFilter, setStatusFilter] = useState("all");
   const [selectedReservation, setSelectedReservation] = useState(null);
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
+  const [isCalendarOpen, setIsCalendarOpen] = useState(false);
   const [reservations, setReservations] = useState(reservationsData);
 
   const filteredReservations = reservations.filter(reservation => {
@@ -239,7 +241,10 @@ const ReservationsPage = () => {
             <Button variant="outline" size="icon">
               <Filter className="h-4 w-4" />
             </Button>
-            <Button variant="outline">
+            <Button 
+              variant="outline"
+              onClick={() => setIsCalendarOpen(true)}
+            >
               <CalendarIcon className="mr-2 h-4 w-4" />
               View Calendar
             </Button>
@@ -382,12 +387,20 @@ const ReservationsPage = () => {
         </Tabs>
       </div>
       
+      {/* Reservation Details Modal */}
       <ReservationDetails 
         reservation={selectedReservation}
         isOpen={isDetailsOpen}
         onClose={() => setIsDetailsOpen(false)}
         onConfirm={handleConfirmReservation}
         onCancel={handleCancelReservation}
+      />
+      
+      {/* Calendar View Modal */}
+      <ReservationCalendar 
+        reservations={reservations}
+        isOpen={isCalendarOpen}
+        onClose={() => setIsCalendarOpen(false)}
       />
     </RestaurantLayout>
   );
