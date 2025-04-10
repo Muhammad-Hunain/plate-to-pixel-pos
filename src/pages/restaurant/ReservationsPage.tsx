@@ -20,7 +20,7 @@ import {
   CheckCircle,
   AlertCircle,
   Check,
-  XMark
+  X as XMark
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -213,7 +213,7 @@ export default function ReservationsPage() {
 
   useEffect(() => {
     form.setValue("date", selectedDate ? format(selectedDate, "yyyy-MM-dd") : "");
-  }, [selectedDate, form.setValue]);
+  }, [selectedDate, form]);
 
   const filteredReservations = reservations.filter((reservation) => {
     const matchesSearch =
@@ -239,10 +239,10 @@ export default function ReservationsPage() {
       date: data.date,
       time: data.time,
       guests: data.guests,
-      status: data.status,
+      status: data.status as "confirmed" | "pending" | "cancelled" | "completed",
       notes: data.notes || "",
       specialRequests: data.specialRequests || "",
-      source: data.source,
+      source: data.source as "online" | "phone" | "in-person",
       staffAssigned: "Unassigned",
       timeCreated: new Date().toISOString(),
       lastUpdated: new Date().toISOString(),
@@ -291,10 +291,10 @@ export default function ReservationsPage() {
 
   return (
     <RestaurantLayout>
-      <div className="space-y-6 animate-fade-in">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div className="space-y-8 p-6 animate-fade-in">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">Reservation Management</h1>
+            <h1 className="text-3xl font-bold tracking-tight mb-2">Reservation Management</h1>
             <p className="text-muted-foreground">
               Manage restaurant reservations and table bookings
             </p>
@@ -316,8 +316,8 @@ export default function ReservationsPage() {
                 </DialogDescription>
               </DialogHeader>
               <Form {...form}>
-                <form onSubmit={form.handleSubmit(handleAddReservation)} className="space-y-4">
-                  <div className="grid grid-cols-2 gap-4">
+                <form onSubmit={form.handleSubmit(handleAddReservation)} className="space-y-6">
+                  <div className="grid grid-cols-2 gap-6">
                     <FormField
                       control={form.control}
                       name="customerName"
@@ -518,9 +518,9 @@ export default function ReservationsPage() {
           </Dialog>
         </div>
 
-        <div className="flex flex-col lg:flex-row gap-4">
+        <div className="flex flex-col lg:flex-row gap-8">
           <div className="w-full lg:w-2/3">
-            <Card className="animate-fade-in [animation-delay:100ms]">
+            <Card className="animate-fade-in [animation-delay:100ms] shadow-sm">
               <CardHeader className="flex flex-col md:flex-row md:items-center md:justify-between space-y-2 md:space-y-0 pb-2">
                 <CardTitle>Reservation List</CardTitle>
                 <div className="flex items-center space-x-2">
@@ -541,7 +541,7 @@ export default function ReservationsPage() {
               </CardHeader>
               <CardContent>
                 <Tabs onValueChange={setActiveTab} value={activeTab} className="w-full">
-                  <TabsList className="grid w-full grid-cols-4 mb-4">
+                  <TabsList className="grid w-full grid-cols-5 mb-6">
                     <TabsTrigger value="all">All</TabsTrigger>
                     <TabsTrigger value="pending">Pending</TabsTrigger>
                     <TabsTrigger value="confirmed">Confirmed</TabsTrigger>
@@ -554,7 +554,7 @@ export default function ReservationsPage() {
                       <Table>
                         <TableHeader>
                           <TableRow>
-                            <TableHead>Customer</TableHead>
+                            <TableHead className="w-[35%]">Customer</TableHead>
                             <TableHead>Table</TableHead>
                             <TableHead>Date/Time</TableHead>
                             <TableHead>Guests</TableHead>
@@ -635,60 +635,73 @@ export default function ReservationsPage() {
             </Card>
           </div>
 
-          <div className="w-full lg:w-1/3 space-y-4">
-            <Card className="animate-fade-in [animation-delay:200ms]">
+          <div className="w-full lg:w-1/3 space-y-8">
+            <Card className="animate-fade-in [animation-delay:200ms] shadow-sm">
               <CardHeader>
-                <CardTitle>Upcoming Reservations</CardTitle>
-                <CardTitle>
-                  <CalendarIcon className="mr-2 h-4 w-4" />
-                  {format(selectedDate || new Date(), "PP")}
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {reservations.filter(r => r.date === format(selectedDate || new Date(), "yyyy-MM-dd")).length === 0 ? (
-                    <div className="text-center py-4 text-muted-foreground">
-                      No reservations for this date
-                    </div>
-                  ) : (
-                    reservations.filter(r => r.date === format(selectedDate || new Date(), "yyyy-MM-dd")).map((reservation) => (
-                      <div key={reservation.id} className="border rounded-md p-3">
-                        <div className="flex items-center justify-between">
-                          <div className="font-medium">{reservation.customerName}</div>
-                          <Badge variant={
-                            reservation.status === "confirmed" ? "default" :
-                            reservation.status === "pending" ? "secondary" :
-                            reservation.status === "cancelled" ? "destructive" : "outline"
-                          }>
-                            {reservation.status === "confirmed" ? "Confirmed" :
-                              reservation.status === "pending" ? "Pending" :
-                                reservation.status === "cancelled" ? "Cancelled" : "Completed"}
-                          </Badge>
-                        </div>
-                        <div className="text-sm text-muted-foreground">
-                          {reservation.time} - Table {reservation.table} ({reservation.guests} guests)
-                        </div>
-                      </div>
-                    ))
-                  )}
+                <div className="flex items-center justify-between">
+                  <CardTitle>Upcoming Reservations</CardTitle>
+                  <div className="flex items-center text-sm text-muted-foreground">
+                    <CalendarIcon className="mr-1 h-4 w-4" />
+                    {format(selectedDate || new Date(), "PP")}
+                  </div>
                 </div>
+              </CardHeader>
+              <CardContent className="space-y-4 pt-2">
+                {reservations.filter(r => r.date === format(selectedDate || new Date(), "yyyy-MM-dd")).length === 0 ? (
+                  <div className="text-center py-8 text-muted-foreground">
+                    No reservations for this date
+                  </div>
+                ) : (
+                  reservations.filter(r => r.date === format(selectedDate || new Date(), "yyyy-MM-dd")).map((reservation) => (
+                    <div key={reservation.id} className="border rounded-lg p-4 hover:bg-muted/50 transition-colors">
+                      <div className="flex items-center justify-between mb-1">
+                        <div className="font-medium">{reservation.customerName}</div>
+                        <Badge variant={
+                          reservation.status === "confirmed" ? "default" :
+                          reservation.status === "pending" ? "secondary" :
+                          reservation.status === "cancelled" ? "destructive" : "outline"
+                        }>
+                          {reservation.status === "confirmed" ? "Confirmed" :
+                            reservation.status === "pending" ? "Pending" :
+                              reservation.status === "cancelled" ? "Cancelled" : "Completed"}
+                        </Badge>
+                      </div>
+                      <div className="text-sm text-muted-foreground space-y-1">
+                        <div className="flex items-center">
+                          <Clock className="mr-2 h-3 w-3" />
+                          {reservation.time}
+                        </div>
+                        <div className="flex items-center">
+                          <TableIcon className="mr-2 h-3 w-3" />
+                          {reservation.table} ({reservation.guests} guests)
+                        </div>
+                        {reservation.specialRequests && (
+                          <div className="flex items-start mt-1">
+                            <AlertCircle className="mr-2 h-3 w-3 mt-0.5" />
+                            <span className="text-xs">{reservation.specialRequests}</span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  ))
+                )}
               </CardContent>
             </Card>
 
-            <Card className="animate-fade-in [animation-delay:300ms]">
+            <Card className="animate-fade-in [animation-delay:300ms] shadow-sm">
               <CardHeader>
                 <CardTitle>Quick Actions</CardTitle>
               </CardHeader>
               <CardContent className="grid gap-4">
-                <Button variant="outline" className="flex items-center">
+                <Button variant="outline" className="flex items-center justify-start">
                   <User className="mr-2 h-4 w-4" />
                   View Customer Details
                 </Button>
-                <Button variant="outline" className="flex items-center">
+                <Button variant="outline" className="flex items-center justify-start">
                   <TableIcon className="mr-2 h-4 w-4" />
                   Check Table Availability
                 </Button>
-                <Button variant="outline" className="flex items-center">
+                <Button variant="outline" className="flex items-center justify-start">
                   <Utensils className="mr-2 h-4 w-4" />
                   Update Menu
                 </Button>

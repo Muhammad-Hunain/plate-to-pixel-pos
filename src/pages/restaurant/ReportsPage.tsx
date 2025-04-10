@@ -30,8 +30,6 @@ import {
   Legend,
   ResponsiveContainer,
   Cell,
-  PieChart,
-  Pie,
 } from "recharts";
 import {
   ArrowDown,
@@ -59,7 +57,6 @@ import AnimatedDashboardCard from "@/components/dashboard/AnimatedDashboardCard"
 import AreaChart from '@/components/charts/AreaChart';
 import PieChart from '@/components/charts/PieChart';
 
-// Sample data for reports
 const salesTrendData = [
   { date: "Jan", Downtown: 4000, Uptown: 2400, Westside: 1800 },
   { date: "Feb", Downtown: 3000, Uptown: 1398, Westside: 2000 },
@@ -220,15 +217,15 @@ export default function ReportsPage() {
 
   return (
     <RestaurantLayout>
-      <div className="space-y-6">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div className="space-y-8 p-6">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">Reports & Analytics</h1>
+            <h1 className="text-3xl font-bold tracking-tight mb-2">Reports & Analytics</h1>
             <p className="text-muted-foreground">
               View detailed reports and insights about your restaurant
             </p>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-3">
             <Select defaultValue={dateRange} onValueChange={setDateRange}>
               <SelectTrigger className="w-[180px]">
                 <SelectValue placeholder="Select date range" />
@@ -256,18 +253,18 @@ export default function ReportsPage() {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           <AnimatedDashboardCard delay={1}>
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Total Revenue</p>
-                <h3 className="text-2xl font-bold">$12,450.75</h3>
+                <h3 className="text-2xl font-bold mt-1">$12,450.75</h3>
               </div>
-              <div className="p-2 bg-primary/10 rounded-full">
+              <div className="p-3 bg-primary/10 rounded-full">
                 <Wallet className="h-5 w-5 text-primary" />
               </div>
             </div>
-            <div className="flex items-center mt-2 text-sm">
+            <div className="flex items-center mt-3 text-sm">
               <div className="flex items-center text-green-500">
                 <TrendingUp className="h-3 w-3 mr-1" />
                 <span>8.5%</span>
@@ -280,13 +277,13 @@ export default function ReportsPage() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Total Orders</p>
-                <h3 className="text-2xl font-bold">542</h3>
+                <h3 className="text-2xl font-bold mt-1">542</h3>
               </div>
-              <div className="p-2 bg-blue-500/10 rounded-full">
+              <div className="p-3 bg-blue-500/10 rounded-full">
                 <Utensils className="h-5 w-5 text-blue-500" />
               </div>
             </div>
-            <div className="flex items-center mt-2 text-sm">
+            <div className="flex items-center mt-3 text-sm">
               <div className="flex items-center text-green-500">
                 <TrendingUp className="h-3 w-3 mr-1" />
                 <span>12.3%</span>
@@ -299,13 +296,13 @@ export default function ReportsPage() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Avg. Order Value</p>
-                <h3 className="text-2xl font-bold">$22.97</h3>
+                <h3 className="text-2xl font-bold mt-1">$22.97</h3>
               </div>
-              <div className="p-2 bg-amber-500/10 rounded-full">
+              <div className="p-3 bg-amber-500/10 rounded-full">
                 <TrendingUp className="h-5 w-5 text-amber-500" />
               </div>
             </div>
-            <div className="flex items-center mt-2 text-sm">
+            <div className="flex items-center mt-3 text-sm">
               <div className="flex items-center text-green-500">
                 <TrendingUp className="h-3 w-3 mr-1" />
                 <span>3.2%</span>
@@ -318,13 +315,13 @@ export default function ReportsPage() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Total Customers</p>
-                <h3 className="text-2xl font-bold">387</h3>
+                <h3 className="text-2xl font-bold mt-1">387</h3>
               </div>
-              <div className="p-2 bg-green-500/10 rounded-full">
+              <div className="p-3 bg-green-500/10 rounded-full">
                 <Users className="h-5 w-5 text-green-500" />
               </div>
             </div>
-            <div className="flex items-center mt-2 text-sm">
+            <div className="flex items-center mt-3 text-sm">
               <div className="flex items-center text-red-500">
                 <TrendingDown className="h-3 w-3 mr-1" />
                 <span>2.1%</span>
@@ -334,17 +331,17 @@ export default function ReportsPage() {
           </AnimatedDashboardCard>
         </div>
 
-        <Tabs defaultValue="overview" className="space-y-4">
-          <TabsList>
+        <Tabs defaultValue="overview" className="space-y-6">
+          <TabsList className="mb-2">
             <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="sales">Sales</TabsTrigger>
             <TabsTrigger value="items">Menu Items</TabsTrigger>
             <TabsTrigger value="customers">Customers</TabsTrigger>
           </TabsList>
           
-          <TabsContent value="overview" className="space-y-4">
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-              <Card className="lg:col-span-2">
+          <TabsContent value="overview" className="space-y-6">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              <Card className="lg:col-span-2 shadow-sm">
                 <CardHeader>
                   <CardTitle>Sales Trend</CardTitle>
                   <CardDescription>Revenue by branch over time</CardDescription>
@@ -355,11 +352,12 @@ export default function ReportsPage() {
                     dataKeys={["Downtown", "Uptown", "Westside"]}
                     colors={["#0088FE", "#00C49F", "#FF8042"]}
                     xAxisKey="date"
+                    height={350}
                   />
                 </CardContent>
               </Card>
               
-              <Card>
+              <Card className="shadow-sm">
                 <CardHeader>
                   <CardTitle>Top Selling Items</CardTitle>
                   <CardDescription>By quantity sold</CardDescription>
@@ -367,14 +365,14 @@ export default function ReportsPage() {
                 <CardContent>
                   <PieChart
                     data={menuItemsData}
-                    height={250}
+                    height={300}
                   />
                 </CardContent>
               </Card>
             </div>
             
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-              <Card>
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              <Card className="shadow-sm">
                 <CardHeader>
                   <CardTitle>Sales by Time of Day</CardTitle>
                   <CardDescription>Hourly distribution</CardDescription>
@@ -392,7 +390,7 @@ export default function ReportsPage() {
                 </CardContent>
               </Card>
               
-              <Card className="lg:col-span-2">
+              <Card className="lg:col-span-2 shadow-sm">
                 <CardHeader className="flex flex-row items-center justify-between">
                   <div>
                     <CardTitle>Recent Transactions</CardTitle>
@@ -435,15 +433,15 @@ export default function ReportsPage() {
             </div>
           </TabsContent>
           
-          <TabsContent value="sales" className="space-y-4">
-            <Card>
+          <TabsContent value="sales" className="space-y-6">
+            <Card className="shadow-sm">
               <CardHeader>
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6">
                   <div>
-                    <CardTitle>Sales Report</CardTitle>
+                    <CardTitle className="text-xl">Sales Report</CardTitle>
                     <CardDescription>Detailed sales analysis by branch and time period</CardDescription>
                   </div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex flex-wrap items-center gap-3">
                     <Button variant="outline" size="sm">
                       <Filter className="mr-2 h-4 w-4" />
                       Filter
@@ -459,10 +457,10 @@ export default function ReportsPage() {
                   </div>
                 </div>
               </CardHeader>
-              <CardContent className="space-y-8">
+              <CardContent className="space-y-10">
                 <div>
-                  <h3 className="text-lg font-medium mb-4">Revenue by Branch</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <h3 className="text-lg font-medium mb-6">Revenue by Branch</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                     {branchPerformance.map((branch) => (
                       <div key={branch.name} className="border rounded-lg p-4">
                         <div className="flex items-center justify-between mb-2">
@@ -483,7 +481,7 @@ export default function ReportsPage() {
                 </div>
                 
                 <div>
-                  <h3 className="text-lg font-medium mb-4">Sales Trend</h3>
+                  <h3 className="text-lg font-medium mb-6">Sales Trend</h3>
                   <AreaChart
                     data={salesTrendData}
                     dataKeys={["Downtown", "Uptown", "Westside"]}
@@ -494,18 +492,18 @@ export default function ReportsPage() {
                 </div>
                 
                 <div>
-                  <h3 className="text-lg font-medium mb-4">Revenue by Category</h3>
+                  <h3 className="text-lg font-medium mb-6">Revenue by Category</h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                     <div>
                       <PieChart
                         data={revenueByCategory}
-                        height={250}
+                        height={300}
                       />
                     </div>
-                    <div className="space-y-4">
+                    <div className="space-y-6 flex flex-col justify-center">
                       {revenueByCategory.map((category, index) => (
                         <div key={category.name}>
-                          <div className="flex items-center justify-between mb-1">
+                          <div className="flex items-center justify-between mb-2">
                             <span className="font-medium">{category.name}</span>
                             <span>{category.value}{category.unit}</span>
                           </div>
@@ -521,12 +519,12 @@ export default function ReportsPage() {
                   </div>
                 </div>
                 
-                <Separator />
+                <Separator className="my-8" />
                 
                 <div>
-                  <div className="flex items-center justify-between mb-4">
+                  <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
                     <h3 className="text-lg font-medium">Transaction Details</h3>
-                    <div className="relative w-64">
+                    <div className="relative w-full md:w-64">
                       <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
                       <Input
                         type="search"
@@ -570,15 +568,15 @@ export default function ReportsPage() {
             </Card>
           </TabsContent>
           
-          <TabsContent value="items" className="space-y-4">
-            <Card>
+          <TabsContent value="items" className="space-y-6">
+            <Card className="shadow-sm">
               <CardHeader>
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6">
                   <div>
                     <CardTitle>Menu Item Performance</CardTitle>
                     <CardDescription>Analysis of menu item sales and popularity</CardDescription>
                   </div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-3">
                     <Select defaultValue="quantity">
                       <SelectTrigger className="w-[150px]">
                         <SelectValue placeholder="Sort by" />
@@ -595,7 +593,7 @@ export default function ReportsPage() {
               <CardContent className="space-y-8">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                   <div>
-                    <h3 className="text-lg font-medium mb-4">Top Selling Items</h3>
+                    <h3 className="text-lg font-medium mb-6">Top Selling Items</h3>
                     <div className="rounded-md border">
                       <Table>
                         <TableHeader>
@@ -627,7 +625,7 @@ export default function ReportsPage() {
                     </div>
                   </div>
                   <div>
-                    <h3 className="text-lg font-medium mb-4">Sales Distribution</h3>
+                    <h3 className="text-lg font-medium mb-6">Sales Distribution</h3>
                     <PieChart
                       data={menuItemsData}
                       height={300}
@@ -636,7 +634,7 @@ export default function ReportsPage() {
                 </div>
                 
                 <div>
-                  <h3 className="text-lg font-medium mb-4">Item Performance Metrics</h3>
+                  <h3 className="text-lg font-medium mb-6">Item Performance Metrics</h3>
                   <div className="space-y-4">
                     {topSellingItems.map((item) => (
                       <div key={item.name} className="border rounded-lg p-4">
@@ -675,16 +673,16 @@ export default function ReportsPage() {
             </Card>
           </TabsContent>
           
-          <TabsContent value="customers" className="space-y-4">
-            <Card>
+          <TabsContent value="customers" className="space-y-6">
+            <Card className="shadow-sm">
               <CardHeader>
                 <CardTitle>Customer Analytics</CardTitle>
                 <CardDescription>Customer behavior and spending patterns</CardDescription>
               </CardHeader>
-              <CardContent>
-                <div className="text-center py-8">
+              <CardContent className="py-10">
+                <div className="text-center">
                   <p className="text-muted-foreground">Customer analytics data is being processed.</p>
-                  <p className="text-muted-foreground">This section will be available soon.</p>
+                  <p className="text-muted-foreground mt-2">This section will be available soon.</p>
                 </div>
               </CardContent>
             </Card>

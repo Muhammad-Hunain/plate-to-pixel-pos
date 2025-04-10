@@ -369,7 +369,6 @@ export default function EmployeesPage() {
   });
 
   const filteredEmployees = employees.filter((employee) => {
-    // Filter by search term
     const matchesSearch =
       searchTerm === "" ||
       employee.firstName.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -377,7 +376,6 @@ export default function EmployeesPage() {
       employee.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
       employee.role.toLowerCase().includes(searchTerm.toLowerCase());
 
-    // Filter by tab
     const matchesTab =
       activeTab === "all" || employee.status.toLowerCase() === activeTab.toLowerCase();
 
@@ -400,7 +398,7 @@ export default function EmployeesPage() {
       address: data.address || "",
       emergencyContact: data.emergencyContact || "",
       notes: data.notes || "",
-      permissions: [], // Default permissions based on role would be set here
+      permissions: [],
       hourlyRate: data.hourlyRate || 0,
       education: data.education || "",
       socialSecurity: data.socialSecurity || "",
@@ -408,14 +406,12 @@ export default function EmployeesPage() {
     };
 
     if (currentEmployee) {
-      // Edit existing employee
       const updatedEmployees = employees.map((emp) =>
         emp.id === currentEmployee.id ? { ...emp, ...newEmployee, id: emp.id } : emp
       );
       setEmployees(updatedEmployees);
       toast.success(`Employee ${newEmployee.firstName} updated successfully!`);
     } else {
-      // Add new employee
       setEmployees([...employees, newEmployee]);
       toast.success(`Employee ${newEmployee.firstName} added successfully!`);
     }
@@ -459,10 +455,10 @@ export default function EmployeesPage() {
 
   return (
     <RestaurantLayout>
-      <div className="space-y-6 animate-fade-in">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div className="space-y-8 p-6 animate-fade-in">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">Employee Management</h1>
+            <h1 className="text-3xl font-bold tracking-tight mb-2">Employee Management</h1>
             <p className="text-muted-foreground">
               Manage restaurant staff and their permissions
             </p>
@@ -733,9 +729,9 @@ export default function EmployeesPage() {
           </Dialog>
         </div>
 
-        <div className="flex flex-col lg:flex-row gap-4">
+        <div className="flex flex-col lg:flex-row gap-8">
           <div className="w-full lg:w-2/3">
-            <Card className="animate-fade-in [animation-delay:100ms]">
+            <Card className="animate-fade-in [animation-delay:100ms] shadow-sm">
               <CardHeader className="flex flex-col md:flex-row md:items-center md:justify-between space-y-2 md:space-y-0 pb-2">
                 <CardTitle>Employee Directory</CardTitle>
                 <div className="flex items-center space-x-2">
@@ -756,7 +752,7 @@ export default function EmployeesPage() {
               </CardHeader>
               <CardContent>
                 <Tabs onValueChange={setActiveTab} value={activeTab} className="w-full">
-                  <TabsList className="grid w-full grid-cols-4 mb-4">
+                  <TabsList className="grid w-full grid-cols-4 mb-6">
                     <TabsTrigger value="all">All</TabsTrigger>
                     <TabsTrigger value="active">Active</TabsTrigger>
                     <TabsTrigger value="on-leave">On Leave</TabsTrigger>
@@ -768,7 +764,7 @@ export default function EmployeesPage() {
                       <Table>
                         <TableHeader>
                           <TableRow>
-                            <TableHead>Employee</TableHead>
+                            <TableHead className="w-[40%]">Employee</TableHead>
                             <TableHead>Role</TableHead>
                             <TableHead>Branch</TableHead>
                             <TableHead>Status</TableHead>
@@ -832,4 +828,69 @@ export default function EmployeesPage() {
                                         <FileText className="mr-2 h-4 w-4" />
                                         Documents
                                       </DropdownMenuItem>
-                                      <DropdownMenuItem onClick={() => view
+                                      <DropdownMenuItem onClick={() => viewEmployeeDetails(employee, "activity")}>
+                                        <Activity className="mr-2 h-4 w-4" />
+                                        Activity
+                                      </DropdownMenuItem>
+                                      <DropdownMenuSeparator />
+                                      <DropdownMenuItem onClick={() => handleEditEmployee(employee)}>
+                                        <Edit className="mr-2 h-4 w-4" />
+                                        Edit
+                                      </DropdownMenuItem>
+                                      <DropdownMenuItem
+                                        className="text-destructive"
+                                        onClick={() => handleDeleteEmployee(employee.id)}
+                                      >
+                                        <Trash2 className="mr-2 h-4 w-4" />
+                                        Delete
+                                      </DropdownMenuItem>
+                                    </DropdownMenuContent>
+                                  </DropdownMenu>
+                                </TableCell>
+                              </TableRow>
+                            ))
+                          )}
+                        </TableBody>
+                      </Table>
+                    </div>
+                  </TabsContent>
+                </Tabs>
+              </CardContent>
+            </Card>
+          </div>
+
+          <div className="w-full lg:w-1/3 space-y-8">
+            {currentEmployee && currentView ? (
+              <Card className="animate-fade-in shadow-sm">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-lg font-medium">
+                    {currentView === "profile" && "Employee Profile"}
+                    {currentView === "availability" && "Schedule & Availability"}
+                    {currentView === "documents" && "Documents & Certifications"}
+                    {currentView === "activity" && "Activity Log"}
+                  </CardTitle>
+                  <Button variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={() => setCurrentView(null)}>
+                    <XMark className="h-4 w-4" />
+                  </Button>
+                </CardHeader>
+                <CardContent className="pt-4">
+                  {/* Employee details based on current view */}
+                </CardContent>
+              </Card>
+            ) : (
+              <Card className="animate-fade-in [animation-delay:200ms] shadow-sm">
+                <CardHeader>
+                  <CardTitle>Quick Stats</CardTitle>
+                  <CardDescription>Employee performance at a glance</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  {/* Stats content */}
+                </CardContent>
+              </Card>
+            )}
+          </div>
+        </div>
+      </div>
+    </RestaurantLayout>
+  );
+}
