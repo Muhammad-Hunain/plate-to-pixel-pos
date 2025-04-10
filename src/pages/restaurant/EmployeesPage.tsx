@@ -454,9 +454,34 @@ export default function EmployeesPage() {
     setCurrentView(view);
   };
 
+  const getStatusBadge = (status: string) => {
+    switch (status) {
+      case "verified":
+        return <Badge className="bg-green-100 text-green-800">Verified</Badge>;
+      case "pending":
+        return <Badge className="bg-yellow-100 text-yellow-800">Pending</Badge>;
+      case "expired":
+        return <Badge className="bg-red-100 text-red-800">Expired</Badge>;
+      default:
+        return <Badge className="bg-gray-100 text-gray-800">{status}</Badge>;
+    }
+  };
+
+  const formatDateString = (dateString: string) => {
+    if (!dateString) return "-";
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+  };
+
+  const formatTimeString = (dateTimeString: string) => {
+    if (!dateTimeString) return "-";
+    const date = new Date(dateTimeString);
+    return date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+  };
+
   return (
     <RestaurantLayout>
-      <div className="space-y-8 p-6 animate-fade-in">
+      <div className="space-y-8 p-8 animate-fade-in">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6">
           <div>
             <h1 className="text-3xl font-bold tracking-tight mb-2">Employee Management</h1>
@@ -875,8 +900,276 @@ export default function EmployeesPage() {
                   </Button>
                 </CardHeader>
                 <CardContent className="pt-4">
-                  {/* Employee details based on current view */}
+                  {currentView === "profile" && (
+                    <div className="space-y-6">
+                      <div className="flex flex-col items-center text-center space-y-2 pb-4">
+                        <Avatar className="h-20 w-20 mb-2">
+                          <AvatarImage src={currentEmployee.avatar} alt={currentEmployee.firstName} />
+                          <AvatarFallback className="text-xl">
+                            {currentEmployee.firstName[0] + currentEmployee.lastName[0]}
+                          </AvatarFallback>
+                        </Avatar>
+                        <h3 className="text-xl font-semibold">{currentEmployee.firstName} {currentEmployee.lastName}</h3>
+                        <Badge className="mt-1">{currentEmployee.role}</Badge>
+                      </div>
+                      
+                      <Separator />
+                      
+                      <div className="space-y-4">
+                        <h4 className="text-sm font-medium text-muted-foreground">Contact Information</h4>
+                        
+                        <div className="grid grid-cols-[20px_1fr] gap-x-2 gap-y-3 items-center">
+                          <Mail className="h-4 w-4 text-muted-foreground" />
+                          <span className="text-sm">{currentEmployee.email}</span>
+                          
+                          <Phone className="h-4 w-4 text-muted-foreground" />
+                          <span className="text-sm">{currentEmployee.phone}</span>
+                          
+                          <MapPin className="h-4 w-4 text-muted-foreground" />
+                          <span className="text-sm">{currentEmployee.address}</span>
+                          
+                          <AlertCircle className="h-4 w-4 text-muted-foreground" />
+                          <span className="text-sm">{currentEmployee.emergencyContact}</span>
+                        </div>
+                      </div>
+                      
+                      <Separator />
+                      
+                      <div className="space-y-4">
+                        <h4 className="text-sm font-medium text-muted-foreground">Employment Details</h4>
+                        
+                        <div className="grid grid-cols-[20px_1fr] gap-x-2 gap-y-3 items-center">
+                          <Building className="h-4 w-4 text-muted-foreground" />
+                          <span className="text-sm">{currentEmployee.branch}</span>
+                          
+                          <Calendar className="h-4 w-4 text-muted-foreground" />
+                          <span className="text-sm">Hired: {formatDateString(currentEmployee.hireDate)}</span>
+                          
+                          <Clock className="h-4 w-4 text-muted-foreground" />
+                          <span className="text-sm">Last active: {formatDateString(currentEmployee.lastActive)}</span>
+                          
+                          {currentEmployee.hourlyRate !== undefined && (
+                            <>
+                              <CreditCard className="h-4 w-4 text-muted-foreground" />
+                              <span className="text-sm">${currentEmployee.hourlyRate.toFixed(2)}/hr</span>
+                            </>
+                          )}
+                        </div>
+                      </div>
+                      
+                      {currentEmployee.performance && (
+                        <>
+                          <Separator />
+                          
+                          <div className="space-y-4">
+                            <h4 className="text-sm font-medium text-muted-foreground">Performance Metrics</h4>
+                            
+                            <div className="grid grid-cols-2 gap-4">
+                              {currentEmployee.performance.orders !== undefined && (
+                                <div className="bg-primary/10 p-3 rounded-lg text-center">
+                                  <div className="text-xs text-muted-foreground">Orders</div>
+                                  <div className="text-xl font-bold">{currentEmployee.performance.orders}</div>
+                                </div>
+                              )}
+                              
+                              {currentEmployee.performance.rating !== undefined && (
+                                <div className="bg-green-100 p-3 rounded-lg text-center">
+                                  <div className="text-xs text-muted-foreground">Rating</div>
+                                  <div className="text-xl font-bold">{currentEmployee.performance.rating.toFixed(1)}</div>
+                                </div>
+                              )}
+                              
+                              {currentEmployee.performance.avgTime !== undefined && (
+                                <div className="bg-blue-100 p-3 rounded-lg text-center">
+                                  <div className="text-xs text-muted-foreground">Avg Time</div>
+                                  <div className="text-xl font-bold">{currentEmployee.performance.avgTime.toFixed(1)} min</div>
+                                </div>
+                              )}
+                              
+                              {currentEmployee.performance.feedbacks !== undefined && (
+                                <div className="bg-purple-100 p-3 rounded-lg text-center">
+                                  <div className="text-xs text-muted-foreground">Feedbacks</div>
+                                  <div className="text-xl font-bold">{currentEmployee.performance.feedbacks}</div>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        </>
+                      )}
+                      
+                      {currentEmployee.notes && (
+                        <>
+                          <Separator />
+                          <div>
+                            <h4 className="text-sm font-medium text-muted-foreground mb-2">Notes</h4>
+                            <p className="text-sm bg-muted/50 p-3 rounded-md">{currentEmployee.notes}</p>
+                          </div>
+                        </>
+                      )}
+                    </div>
+                  )}
+
+                  {currentView === "availability" && (
+                    <div className="space-y-6">
+                      <h3 className="text-base font-medium">Weekly Schedule</h3>
+                      
+                      {currentEmployee.availability ? (
+                        <div className="space-y-3">
+                          {Object.entries(currentEmployee.availability).map(([day, hours]) => (
+                            <div key={day} className="flex items-center justify-between">
+                              <div className="font-medium capitalize">{day}</div>
+                              <div>
+                                {hours && hours.length > 0 ? 
+                                  hours.map((hour, idx) => (
+                                    <Badge key={idx} variant="outline" className="ml-2">{hour}</Badge>
+                                  )) : 
+                                  <Badge variant="outline" className="bg-gray-100">Day Off</Badge>
+                                }
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <div className="text-center py-6 text-muted-foreground">
+                          No availability information found
+                        </div>
+                      )}
+
+                      <Separator />
+                      
+                      <div className="space-y-3">
+                        <h3 className="text-base font-medium">Skills & Languages</h3>
+                        
+                        {currentEmployee.certifications && currentEmployee.certifications.length > 0 && (
+                          <div className="space-y-2">
+                            <h4 className="text-sm text-muted-foreground">Certifications</h4>
+                            <div className="flex flex-wrap gap-2">
+                              {currentEmployee.certifications.map((cert, idx) => (
+                                <Badge key={idx} variant="secondary" className="bg-blue-100 text-blue-800 hover:bg-blue-200">
+                                  <CheckCircle2 className="mr-1 h-3 w-3" />
+                                  {cert}
+                                </Badge>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                        
+                        {currentEmployee.languages && currentEmployee.languages.length > 0 && (
+                          <div className="space-y-2 mt-4">
+                            <h4 className="text-sm text-muted-foreground">Languages</h4>
+                            <div className="flex flex-wrap gap-2">
+                              {currentEmployee.languages.map((lang, idx) => (
+                                <Badge key={idx} variant="outline" className="bg-purple-100 text-purple-800 hover:bg-purple-200">
+                                  {lang}
+                                </Badge>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                  {currentView === "documents" && (
+                    <div className="space-y-6">
+                      <h3 className="text-base font-medium">Documents & Certifications</h3>
+                      
+                      {currentEmployee.documents && currentEmployee.documents.length > 0 ? (
+                        <div className="space-y-4">
+                          {currentEmployee.documents.map((doc, idx) => (
+                            <div key={idx} className="flex items-center justify-between bg-muted/30 p-3 rounded-lg">
+                              <div className="flex items-center">
+                                <FileText className="h-5 w-5 text-muted-foreground mr-3" />
+                                <div>
+                                  <div className="font-medium text-sm">{doc.name}</div>
+                                  <div className="text-xs text-muted-foreground">
+                                    {doc.type} • {formatDateString(doc.date)}
+                                  </div>
+                                </div>
+                              </div>
+                              <div>
+                                {getStatusBadge(doc.status)}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <div className="text-center py-6 text-muted-foreground">
+                          No documents found
+                        </div>
+                      )}
+                      
+                      <Separator />
+                      
+                      <div>
+                        <h3 className="text-base font-medium mb-3">Access & Permissions</h3>
+                        
+                        {currentEmployee.permissions && currentEmployee.permissions.length > 0 ? (
+                          <div className="space-y-3">
+                            {currentEmployee.permissions.map((permission, idx) => {
+                              const [module, action] = permission.split(".");
+                              return (
+                                <div key={idx} className="flex justify-between items-center">
+                                  <div className="flex items-center">
+                                    {action === "edit" ? (
+                                      <Unlock className="h-4 w-4 text-amber-500 mr-2" />
+                                    ) : (
+                                      <Lock className="h-4 w-4 text-blue-500 mr-2" />
+                                    )}
+                                    <span className="text-sm capitalize">{module}</span>
+                                  </div>
+                                  <Badge variant={action === "edit" ? "default" : "outline"} className="capitalize">
+                                    {action}
+                                  </Badge>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        ) : (
+                          <div className="text-center py-3 text-muted-foreground">
+                            No permissions defined
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                  {currentView === "activity" && (
+                    <div className="space-y-6">
+                      <h3 className="text-base font-medium">Recent Activity</h3>
+                      
+                      {currentEmployee.activityLog && currentEmployee.activityLog.length > 0 ? (
+                        <div className="space-y-4 relative before:absolute before:inset-0 before:ml-5 before:-translate-x-px before:h-full before:w-0.5 before:bg-border">
+                          {currentEmployee.activityLog.map((log, idx) => (
+                            <div key={idx} className="relative flex items-start gap-3 pb-4">
+                              <div className="absolute left-0 top-0 flex items-center justify-center size-10 rounded-full bg-muted">
+                                <Activity className="h-5 w-5 text-muted-foreground" />
+                              </div>
+                              
+                              <div className="ml-10 grow">
+                                <div className="font-semibold">{log.action}</div>
+                                <div className="flex flex-wrap items-center justify-between gap-2">
+                                  <span className="text-sm text-muted-foreground">{formatDateString(log.date)} at {formatTimeString(log.date)}</span>
+                                </div>
+                                <div className="text-sm mt-1">{log.details}</div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <div className="text-center py-6 text-muted-foreground">
+                          No activity records found
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </CardContent>
+                <CardFooter className="border-t pt-4">
+                  <Button variant="outline" size="sm" className="w-full" onClick={() => handleEditEmployee(currentEmployee)}>
+                    <Edit className="h-4 w-4 mr-2" />
+                    Edit Employee
+                  </Button>
+                </CardFooter>
               </Card>
             ) : (
               <Card className="animate-fade-in [animation-delay:200ms] shadow-sm">
@@ -885,7 +1178,74 @@ export default function EmployeesPage() {
                   <CardDescription>Employee performance at a glance</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-6">
-                  {/* Stats content */}
+                  <div className="grid gap-4">
+                    <div className="flex justify-between items-center">
+                      <div className="flex items-center">
+                        <div className="bg-primary/10 p-2 rounded-full mr-2">
+                          <User className="h-4 w-4 text-primary" />
+                        </div>
+                        <span className="text-sm">Total Employees</span>
+                      </div>
+                      <span className="text-xl font-semibold">{employees.length}</span>
+                    </div>
+                    
+                    <div className="flex justify-between items-center">
+                      <div className="flex items-center">
+                        <div className="bg-green-100 p-2 rounded-full mr-2">
+                          <CheckCircle2 className="h-4 w-4 text-green-600" />
+                        </div>
+                        <span className="text-sm">Active</span>
+                      </div>
+                      <span className="text-xl font-semibold">
+                        {employees.filter(e => e.status === "active").length}
+                      </span>
+                    </div>
+                    
+                    <div className="flex justify-between items-center">
+                      <div className="flex items-center">
+                        <div className="bg-amber-100 p-2 rounded-full mr-2">
+                          <Clock className="h-4 w-4 text-amber-600" />
+                        </div>
+                        <span className="text-sm">On Leave</span>
+                      </div>
+                      <span className="text-xl font-semibold">
+                        {employees.filter(e => e.status === "on-leave").length}
+                      </span>
+                    </div>
+                    
+                    <div className="flex justify-between items-center">
+                      <div className="flex items-center">
+                        <div className="bg-gray-100 p-2 rounded-full mr-2">
+                          <X className="h-4 w-4 text-gray-600" />
+                        </div>
+                        <span className="text-sm">Inactive</span>
+                      </div>
+                      <span className="text-xl font-semibold">
+                        {employees.filter(e => e.status === "inactive").length}
+                      </span>
+                    </div>
+                  </div>
+                  
+                  <Separator />
+                  
+                  <div className="space-y-4">
+                    <h3 className="text-sm font-medium text-muted-foreground">Branch Distribution</h3>
+                    
+                    {branches.slice(0, 4).map(branch => {
+                      const count = employees.filter(e => e.branch === branch).length;
+                      const percentage = employees.length > 0 ? (count / employees.length) * 100 : 0;
+                      
+                      return (
+                        <div key={branch} className="space-y-1">
+                          <div className="flex justify-between text-sm">
+                            <span>{branch}</span>
+                            <span className="text-muted-foreground">{count} employees</span>
+                          </div>
+                          <Progress value={percentage} className="h-2" />
+                        </div>
+                      );
+                    })}
+                  </div>
                 </CardContent>
               </Card>
             )}

@@ -18,6 +18,9 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import AddBranchForm from "@/components/branches/AddBranchForm";
+import BranchDetailsView from "@/components/branches/BranchDetailsView";
 
 // Sample branch data
 const branches = [
@@ -168,15 +171,21 @@ const salesDistribution = [
 const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042"];
 
 export default function BranchesPage() {
+  const [branchList, setBranchList] = useState(branches);
   const [selectedBranch, setSelectedBranch] = useState<number | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [viewMode, setViewMode] = useState("grid");
+  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [isViewingBranch, setIsViewingBranch] = useState(false);
+  const [isEditingBranch, setIsEditingBranch] = useState(false);
+  const [currentBranchId, setCurrentBranchId] = useState<number | null>(null);
+  const [selectedBranchFilter, setSelectedBranchFilter] = useState<string>("all");
   
   const handleBranchSelect = (branchId: number) => {
     setSelectedBranch(branchId === selectedBranch ? null : branchId);
   };
   
-  const filteredBranches = branches.filter(branch => 
+  const filteredBranches = branchList.filter(branch => 
     branch.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
   
@@ -194,23 +203,77 @@ export default function BranchesPage() {
   };
 
   const handleAddBranch = () => {
-    toast.success("Navigate to add branch form");
+    setCurrentBranchId(null);
+    setIsAddDialogOpen(true);
   };
 
   const handleEditBranch = (id: number) => {
-    toast.success(`Edit branch ${id}`);
+    setCurrentBranchId(id);
+    setIsEditingBranch(true);
+    setIsAddDialogOpen(true);
+  };
+
+  const handleViewBranchDetails = (id: number) => {
+    setCurrentBranchId(id);
+    setIsViewingBranch(true);
   };
 
   const handleDeleteBranch = (id: number) => {
-    toast.error(`Delete branch ${id}`);
+    setBranchList(branchList.filter(branch => branch.id !== id));
+    toast.success("Branch deleted successfully");
+  };
+
+  const handleBranchFormSubmit = (data: any) => {
+    if (currentBranchId) {
+      // Edit existing branch
+      setBranchList(branchList.map(branch => 
+        branch.id === currentBranchId ? { 
+          ...branch, 
+          name: data.name,
+          address: data.address,
+          manager: data.manager,
+          contact: data.contact,
+          status: data.status,
+          openHours: `${data.openingTime} - ${data.closingTime}`,
+          notes: data.notes
+        } : branch
+      ));
+      toast.success(`Branch "${data.name}" updated successfully!`);
+    } else {
+      // Add new branch
+      const newBranch = {
+        id: branchList.length + 1,
+        name: data.name,
+        address: data.address,
+        manager: data.manager,
+        contact: data.contact,
+        status: data.status,
+        openHours: `${data.openingTime} - ${data.closingTime}`,
+        employees: 0,
+        todayOrders: 0,
+        todayRevenue: 0,
+        lowStockItems: 0
+      };
+      
+      setBranchList([...branchList, newBranch]);
+      toast.success(`Branch "${data.name}" added successfully!`);
+    }
+    
+    setIsAddDialogOpen(false);
+    setIsEditingBranch(false);
+    setCurrentBranchId(null);
+  };
+
+  const getCurrentBranch = () => {
+    return branchList.find(branch => branch.id === currentBranchId) || null;
   };
 
   return (
     <RestaurantLayout>
-      <div className="space-y-6">
+      <div className="space-y-8 p-8">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">Branch Management</h1>
+            <h1 className="text-3xl font-bold tracking-tight mb-2">Branch Management</h1>
             <p className="text-muted-foreground">
               Monitor and manage all your restaurant branches
             </p>
@@ -264,7 +327,7 @@ export default function BranchesPage() {
 
         {/* Branch Grid View */}
         {viewMode === "grid" && (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredBranches.map((branch) => (
               <Card 
                 key={branch.id} 
@@ -285,7 +348,7 @@ export default function BranchesPage() {
                   </div>
                 </CardHeader>
                 <CardContent>
-                  <div className="space-y-4">
+                  <div className="space-y-6">
                     <div className="text-sm">
                       <div className="flex justify-between py-1">
                         <span className="text-muted-foreground">Manager:</span>
@@ -301,7 +364,7 @@ export default function BranchesPage() {
                       </div>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-2 pt-2">
+                    <div className="grid grid-cols-2 gap-4 pt-2">
                       <div className="flex flex-col items-center justify-center bg-primary/10 p-3 rounded-lg">
                         <Users className="h-5 w-5 text-primary mb-1" />
                         <span className="text-xs text-muted-foreground">Staff</span>
@@ -325,15 +388,24 @@ export default function BranchesPage() {
                     </div>
 
                     <div className="flex justify-between pt-2">
-                      <Button variant="outline" size="sm" onClick={() => handleEditBranch(branch.id)}>
+                      <Button variant="outline" size="sm" onClick={(e) => {e.stopPropagation(); handleEditBranch(branch.id);}}>
                         <Edit className="h-4 w-4 mr-1" />
                         Edit
                       </Button>
-                      <Button variant="outline" size="sm" className="text-destructive hover:bg-destructive/10">
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        className="text-destructive hover:bg-destructive/10"
+                        onClick={(e) => {e.stopPropagation(); handleDeleteBranch(branch.id);}}
+                      >
                         <Trash2 className="h-4 w-4 mr-1" />
                         Delete
                       </Button>
-                      <Button variant="outline" size="sm">
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={(e) => {e.stopPropagation(); handleViewBranchDetails(branch.id);}}
+                      >
                         <Eye className="h-4 w-4 mr-1" />
                         View
                       </Button>
@@ -353,19 +425,19 @@ export default function BranchesPage() {
                 <table className="w-full">
                   <thead>
                     <tr className="border-b">
-                      <th className="px-4 py-3 text-left text-sm font-medium text-muted-foreground">Branch Name</th>
+                      <th className="px-6 py-3 text-left text-sm font-medium text-muted-foreground">Branch Name</th>
                       <th className="px-4 py-3 text-left text-sm font-medium text-muted-foreground">Manager</th>
                       <th className="px-4 py-3 text-left text-sm font-medium text-muted-foreground">Status</th>
                       <th className="px-4 py-3 text-left text-sm font-medium text-muted-foreground">Staff</th>
                       <th className="px-4 py-3 text-left text-sm font-medium text-muted-foreground">Orders Today</th>
                       <th className="px-4 py-3 text-left text-sm font-medium text-muted-foreground">Revenue Today</th>
-                      <th className="px-4 py-3 text-right text-sm font-medium text-muted-foreground">Actions</th>
+                      <th className="px-6 py-3 text-right text-sm font-medium text-muted-foreground">Actions</th>
                     </tr>
                   </thead>
                   <tbody>
                     {filteredBranches.map((branch) => (
                       <tr key={branch.id} className="border-b hover:bg-muted/50">
-                        <td className="px-4 py-3 text-sm font-medium">
+                        <td className="px-6 py-3 text-sm font-medium">
                           <div>
                             <div>{branch.name}</div>
                             <div className="text-xs text-muted-foreground">{branch.address}</div>
@@ -380,7 +452,7 @@ export default function BranchesPage() {
                         <td className="px-4 py-3 text-sm">{branch.employees}</td>
                         <td className="px-4 py-3 text-sm">{branch.todayOrders}</td>
                         <td className="px-4 py-3 text-sm">${branch.todayRevenue.toFixed(2)}</td>
-                        <td className="px-4 py-3 text-sm text-right">
+                        <td className="px-6 py-3 text-sm text-right">
                           <div className="flex justify-end gap-2">
                             <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleEditBranch(branch.id)}>
                               <Edit className="h-4 w-4" />
@@ -388,7 +460,7 @@ export default function BranchesPage() {
                             <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => handleDeleteBranch(branch.id)}>
                               <Trash2 className="h-4 w-4" />
                             </Button>
-                            <Button variant="ghost" size="icon" className="h-8 w-8">
+                            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleViewBranchDetails(branch.id)}>
                               <Eye className="h-4 w-4" />
                             </Button>
                           </div>
@@ -404,8 +476,23 @@ export default function BranchesPage() {
 
         {/* Performance Analytics */}
         <Card className="animate-slide-in">
-          <CardHeader>
+          <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle>Branch Performance Comparison</CardTitle>
+            <Select 
+              defaultValue="all"
+              onValueChange={setSelectedBranchFilter}
+            >
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="All Branches" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Branches</SelectItem>
+                <SelectItem value="downtown">Downtown</SelectItem>
+                <SelectItem value="uptown">Uptown</SelectItem>
+                <SelectItem value="westside">Westside</SelectItem>
+                <SelectItem value="northside">Northside</SelectItem>
+              </SelectContent>
+            </Select>
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={300}>
@@ -415,10 +502,18 @@ export default function BranchesPage() {
                 <YAxis />
                 <Tooltip />
                 <Legend />
-                <Line type="monotone" dataKey="downtown" stroke="#0088FE" activeDot={{ r: 8 }} />
-                <Line type="monotone" dataKey="uptown" stroke="#00C49F" />
-                <Line type="monotone" dataKey="westside" stroke="#FFBB28" />
-                <Line type="monotone" dataKey="northside" stroke="#FF8042" />
+                {(selectedBranchFilter === "all" || selectedBranchFilter === "downtown") && (
+                  <Line type="monotone" dataKey="downtown" stroke="#0088FE" activeDot={{ r: 8 }} />
+                )}
+                {(selectedBranchFilter === "all" || selectedBranchFilter === "uptown") && (
+                  <Line type="monotone" dataKey="uptown" stroke="#00C49F" />
+                )}
+                {(selectedBranchFilter === "all" || selectedBranchFilter === "westside") && (
+                  <Line type="monotone" dataKey="westside" stroke="#FFBB28" />
+                )}
+                {(selectedBranchFilter === "all" || selectedBranchFilter === "northside") && (
+                  <Line type="monotone" dataKey="northside" stroke="#FF8042" />
+                )}
               </LineChart>
             </ResponsiveContainer>
           </CardContent>
@@ -427,7 +522,7 @@ export default function BranchesPage() {
         {/* Branch Details Tabs */}
         <Card className="animate-slide-in">
           <CardHeader>
-            <CardTitle>Branch Details</CardTitle>
+            <CardTitle>Branch Insights</CardTitle>
           </CardHeader>
           <CardContent>
             <Tabs defaultValue="active-orders" className="w-full">
@@ -619,13 +714,13 @@ export default function BranchesPage() {
         </Card>
 
         {/* Quick Insight Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           <Card className="stat-card animate-fade-in hover-scale">
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium text-muted-foreground">Total Branches</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{branches.length}</div>
+              <div className="text-2xl font-bold">{branchList.length}</div>
               <div className="flex items-center text-xs text-success mt-1">
                 <TrendingUp className="h-3 w-3 mr-1" />
                 <span>1 new in last month</span>
@@ -672,6 +767,57 @@ export default function BranchesPage() {
             </CardContent>
           </Card>
         </div>
+
+        {/* Add/Edit Branch Dialog */}
+        <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>
+                {isEditingBranch ? "Edit Branch" : "Add New Branch"}
+              </DialogTitle>
+              <DialogDescription>
+                {isEditingBranch 
+                  ? "Update information for this branch location" 
+                  : "Fill in the details to add a new branch to your restaurant chain"}
+              </DialogDescription>
+            </DialogHeader>
+            
+            <AddBranchForm 
+              onSubmit={handleBranchFormSubmit} 
+              defaultValues={
+                isEditingBranch && currentBranchId ? {
+                  name: getCurrentBranch()?.name || "",
+                  address: getCurrentBranch()?.address || "",
+                  manager: getCurrentBranch()?.manager || "",
+                  contact: getCurrentBranch()?.contact || "",
+                  status: getCurrentBranch()?.status || "active",
+                  openingTime: getCurrentBranch()?.openHours.split(" - ")[0] || "08:00",
+                  closingTime: getCurrentBranch()?.openHours.split(" - ")[1] || "22:00",
+                  taxRate: 8.5, // Default value
+                  notes: ""
+                } : undefined
+              } 
+              title={isEditingBranch ? "Edit Branch Details" : "Add New Branch"}
+              submitLabel={isEditingBranch ? "Update Branch" : "Create Branch"}
+            />
+          </DialogContent>
+        </Dialog>
+
+        {/* Branch Details View Dialog */}
+        <Dialog open={isViewingBranch} onOpenChange={setIsViewingBranch}>
+          <DialogContent className="max-w-3xl max-h-[90vh] p-0">
+            {currentBranchId && getCurrentBranch() && (
+              <BranchDetailsView 
+                branch={getCurrentBranch()!}
+                onClose={() => setIsViewingBranch(false)} 
+                onEdit={(id) => {
+                  setIsViewingBranch(false);
+                  handleEditBranch(id);
+                }} 
+              />
+            )}
+          </DialogContent>
+        </Dialog>
       </div>
     </RestaurantLayout>
   );
