@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import RestaurantLayout from "@/components/layout/RestaurantLayout";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -31,8 +30,8 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { MenuItemDialog } from "@/components/menu/MenuItemDialog";
 
-// Mock data for categories and menu items
 const initialCategories = [
   { id: "1", name: "Main Course", description: "Primary dishes", itemCount: 12, isActive: true },
   { id: "2", name: "Appetizers", description: "Starters and small bites", itemCount: 8, isActive: true },
@@ -181,7 +180,6 @@ const initialItems = [
   }
 ];
 
-// Mock data for branches
 const branches = [
   { id: "1", name: "Downtown" },
   { id: "2", name: "Westside" },
@@ -189,7 +187,6 @@ const branches = [
   { id: "4", name: "Mall Location" },
 ];
 
-// Form schemas
 const categoryFormSchema = z.object({
   name: z.string().min(2, { message: "Category name must be at least 2 characters." }),
   description: z.string().optional(),
@@ -219,7 +216,6 @@ export default function MenuPage() {
   const [editingItem, setEditingItem] = useState<any>(null);
   const [editingCategory, setEditingCategory] = useState<any>(null);
   
-  // Category form
   const categoryForm = useForm<z.infer<typeof categoryFormSchema>>({
     resolver: zodResolver(categoryFormSchema),
     defaultValues: {
@@ -229,7 +225,6 @@ export default function MenuPage() {
     },
   });
 
-  // Menu item form
   const menuItemForm = useForm<z.infer<typeof menuItemFormSchema>>({
     resolver: zodResolver(menuItemFormSchema),
     defaultValues: {
@@ -243,7 +238,6 @@ export default function MenuPage() {
     },
   });
 
-  // Reset forms when dialogs close
   useEffect(() => {
     if (!showNewCategoryDialog && !editingCategory) {
       categoryForm.reset();
@@ -256,7 +250,6 @@ export default function MenuPage() {
     }
   }, [showNewItemDialog, editingItem, menuItemForm]);
 
-  // Set form values when editing
   useEffect(() => {
     if (editingCategory) {
       categoryForm.reset({
@@ -281,7 +274,6 @@ export default function MenuPage() {
     }
   }, [editingItem, menuItemForm]);
 
-  // Filter menu items
   const filteredItems = menuItems.filter(item => {
     const matchesSearch = item.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
                           item.description.toLowerCase().includes(searchQuery.toLowerCase());
@@ -291,17 +283,14 @@ export default function MenuPage() {
     return matchesSearch && matchesCategory && matchesActiveState;
   });
 
-  // Submit handlers
   const handleCategorySubmit = (values: z.infer<typeof categoryFormSchema>) => {
     if (editingCategory) {
-      // Update existing category
       const updatedCategories = categories.map(cat => 
         cat.id === editingCategory.id ? { ...cat, ...values } : cat
       );
       setCategories(updatedCategories);
       toast.success("Category updated successfully!");
     } else {
-      // Create new category
       const newCategory = {
         id: (categories.length + 1).toString(),
         name: values.name,
@@ -319,7 +308,6 @@ export default function MenuPage() {
 
   const handleItemSubmit = (values: z.infer<typeof menuItemFormSchema>) => {
     if (editingItem) {
-      // Update existing item
       const updatedItems = menuItems.map(item => 
         item.id === editingItem.id 
         ? { 
@@ -337,14 +325,13 @@ export default function MenuPage() {
       setMenuItems(updatedItems);
       toast.success("Menu item updated successfully!");
     } else {
-      // Create new item
       const newItem = {
         id: (menuItems.length + 1).toString(),
         name: values.name,
         category: values.category,
         description: values.description || "",
         price: values.price,
-        image: "https://via.placeholder.com/150",
+        image: values.imageUrl || "https://via.placeholder.com/150",
         isActive: values.isActive,
         isFeatured: values.isFeatured,
         branches: [values.branchAvailability],
@@ -366,9 +353,7 @@ export default function MenuPage() {
     menuItemForm.reset();
   };
 
-  // Delete handlers
   const handleDeleteCategory = (categoryId: string) => {
-    // Check if any items use this category
     const itemsUsingCategory = menuItems.filter(item => item.category === categoryId);
     if (itemsUsingCategory.length > 0) {
       toast.error(`Cannot delete category: ${itemsUsingCategory.length} menu items are using it.`);
@@ -382,6 +367,31 @@ export default function MenuPage() {
   const handleDeleteItem = (itemId: string) => {
     setMenuItems(menuItems.filter(item => item.id !== itemId));
     toast.success("Menu item deleted successfully!");
+  };
+
+  const handleAddMenuItem = (formData: any) => {
+    const newItem = {
+      id: (menuItems.length + 1).toString(),
+      name: formData.name,
+      category: formData.category,
+      description: formData.description || "",
+      price: formData.price,
+      image: formData.imageUrl || "https://via.placeholder.com/150",
+      isActive: formData.available,
+      isFeatured: false,
+      branches: formData.branches,
+      allergens: [],
+      nutrition: {
+        calories: 0,
+        protein: "0g",
+        carbs: "0g",
+        fat: "0g"
+      },
+      variants: [],
+      modifiers: []
+    };
+    setMenuItems([...menuItems, newItem]);
+    toast.success("Menu item created successfully!");
   };
 
   return (
@@ -399,10 +409,10 @@ export default function MenuPage() {
               <Plus className="mr-2 h-4 w-4" />
               Add Category
             </Button>
-            <Button className="hover-scale" onClick={() => setShowNewItemDialog(true)}>
-              <Plus className="mr-2 h-4 w-4" />
-              Add Menu Item
-            </Button>
+            <MenuItemDialog 
+              onAddItem={handleAddMenuItem}
+              triggerButtonText="Add Menu Item"
+            />
           </div>
         </div>
 
@@ -794,7 +804,6 @@ export default function MenuPage() {
           </TabsContent>
         </Tabs>
 
-        {/* New/Edit Category Dialog */}
         <Dialog open={showNewCategoryDialog} onOpenChange={setShowNewCategoryDialog}>
           <DialogContent className="sm:max-w-[425px]">
             <DialogHeader>
@@ -857,7 +866,6 @@ export default function MenuPage() {
           </DialogContent>
         </Dialog>
 
-        {/* New/Edit Menu Item Dialog */}
         <Dialog open={showNewItemDialog} onOpenChange={setShowNewItemDialog}>
           <DialogContent className="sm:max-w-[600px]">
             <DialogHeader>

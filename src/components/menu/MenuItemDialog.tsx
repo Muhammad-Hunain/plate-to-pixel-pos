@@ -17,9 +17,15 @@ interface MenuItemFormData {
 
 interface MenuItemDialogProps {
   onAddItem?: (data: MenuItemFormData) => void;
+  triggerButtonText?: string;
+  hideButton?: boolean;
 }
 
-export function MenuItemDialog({ onAddItem }: MenuItemDialogProps) {
+export function MenuItemDialog({ 
+  onAddItem, 
+  triggerButtonText = "Add Menu Item",
+  hideButton = false
+}: MenuItemDialogProps) {
   const [open, setOpen] = useState(false);
 
   const handleSubmit = (data: MenuItemFormData) => {
@@ -29,10 +35,12 @@ export function MenuItemDialog({ onAddItem }: MenuItemDialogProps) {
 
   return (
     <>
-      <Button onClick={() => setOpen(true)}>
-        <Plus className="mr-2 h-4 w-4" />
-        Add Menu Item
-      </Button>
+      {!hideButton && (
+        <Button onClick={() => setOpen(true)}>
+          <Plus className="mr-2 h-4 w-4" />
+          {triggerButtonText}
+        </Button>
+      )}
       
       <AddMenuItemForm
         open={open}

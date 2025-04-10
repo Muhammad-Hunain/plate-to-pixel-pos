@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import RestaurantLayout from "@/components/layout/RestaurantLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -9,7 +8,6 @@ import {
 } from "lucide-react";
 import { MenuItems } from "@/components/pos/MenuItems";
 import { OrderSummary } from "@/components/pos/OrderSummary";
-import { MenuItemDialog } from "@/components/menu/MenuItemDialog";
 
 // Sample menu categories and items
 const menuCategories = [
@@ -126,7 +124,6 @@ export default function PosPage() {
             <h1 className="text-3xl font-bold tracking-tight">POS System</h1>
             <p className="text-muted-foreground">Create and manage orders</p>
           </div>
-          <MenuItemDialog />
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
