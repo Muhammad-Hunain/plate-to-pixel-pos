@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import AdminLayout from "@/components/layout/AdminLayout";
 import { 
@@ -11,7 +11,7 @@ import { Button } from "@/components/ui/button";
 import { 
   ArrowUpDown, Ban, Check, CircleUser, Edit, MoreHorizontal, 
   Plus, Search, Shield, ShieldCheck, Trash2, User, UserPlus, Users,
-  Download, FileText, SlidersHorizontal, Eye
+  Download, FileText, SlidersHorizontal, Eye, Building2
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -70,14 +70,24 @@ type User = {
   id: number;
   name: string;
   email: string;
-  role: string;
+  role: "Admin" | "Restaurant Owner" | "Manager" | "Chef" | "Cashier";
   status: "active" | "inactive" | "pending";
   subscription: string;
   joinedDate: string;
   lastActive: string;
+  restaurant?: string; // Added restaurant field
 };
 
-// Sample user data
+// Mock restaurant data for the dropdown
+const restaurants = [
+  { id: "1", name: "Pizza Paradise" },
+  { id: "2", name: "Burger Zone" },
+  { id: "3", name: "Sushi Express" },
+  { id: "4", name: "Thai Delight" },
+  { id: "5", name: "Mexican Fiesta" },
+];
+
+// Sample user data updated with restaurant information
 const userData: User[] = [
   {
     id: 1,
@@ -93,11 +103,12 @@ const userData: User[] = [
     id: 2,
     name: "Sarah Miller",
     email: "sarah.miller@example.com",
-    role: "User",
+    role: "Restaurant Owner",
     status: "active",
     subscription: "Basic",
     joinedDate: "2023-02-20",
     lastActive: "2023-06-09",
+    restaurant: "Pizza Paradise",
   },
   {
     id: 3,
@@ -108,26 +119,29 @@ const userData: User[] = [
     subscription: "Standard",
     joinedDate: "2022-11-05",
     lastActive: "2023-05-28",
+    restaurant: "Burger Zone",
   },
   {
     id: 4,
     name: "Emma Davis",
     email: "emma.davis@example.com",
-    role: "User",
+    role: "Chef",
     status: "pending",
     subscription: "Pro",
     joinedDate: "2023-04-12",
     lastActive: "2023-06-08",
+    restaurant: "Sushi Express",
   },
   {
     id: 5,
     name: "Michael Brown",
     email: "michael.brown@example.com",
-    role: "User",
+    role: "Cashier",
     status: "active",
     subscription: "Growth",
     joinedDate: "2023-03-18",
     lastActive: "2023-06-11",
+    restaurant: "Thai Delight",
   },
 ];
 
@@ -138,12 +152,15 @@ const UsersPage = () => {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [userToDelete, setUserToDelete] = useState<number | null>(null);
   const [isFilterSheetOpen, setIsFilterSheetOpen] = useState(false);
-  const [isAddUserDialogOpen, setIsAddUserDialogOpen] = useState(false);
-  const [isEditUserDialogOpen, setIsEditUserDialogOpen] = useState(false);
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [statusFilter, setStatusFilter] = useState<string[]>([]);
   const [roleFilter, setRoleFilter] = useState<string[]>([]);
   const [subscriptionFilter, setSubscriptionFilter] = useState<string[]>([]);
+  const [restaurantFilter, setRestaurantFilter] = useState<string[]>([]);
+  const [sortConfig, setSortConfig] = useState<{
+    key: keyof User | null;
+    direction: 'ascending' | 'descending';
+  }>({ key: null, direction: 'ascending' });
 
   // Filter users based on search term and filters
   const filteredUsers = userData.filter(user => {
@@ -154,9 +171,43 @@ const UsersPage = () => {
     const matchesStatus = statusFilter.length === 0 || statusFilter.includes(user.status);
     const matchesRole = roleFilter.length === 0 || roleFilter.includes(user.role);
     const matchesSubscription = subscriptionFilter.length === 0 || subscriptionFilter.includes(user.subscription);
+    const matchesRestaurant = restaurantFilter.length === 0 || 
+      (user.restaurant && restaurantFilter.includes(user.restaurant));
     
-    return matchesSearch && matchesStatus && matchesRole && matchesSubscription;
+    return matchesSearch && matchesStatus && matchesRole && matchesSubscription && matchesRestaurant;
   });
+
+  // Sort the filtered users
+  const sortedUsers = [...filteredUsers].sort((a, b) => {
+    if (!sortConfig.key) return 0;
+    
+    // Handle special case for restaurant which might be undefined
+    if (sortConfig.key === 'restaurant') {
+      const aValue = a.restaurant || '';
+      const bValue = b.restaurant || '';
+      return sortConfig.direction === 'ascending'
+        ? aValue.localeCompare(bValue)
+        : bValue.localeCompare(aValue);
+    }
+    
+    // Handle regular string comparisons
+    if (typeof a[sortConfig.key] === 'string' && typeof b[sortConfig.key] === 'string') {
+      return sortConfig.direction === 'ascending'
+        ? (a[sortConfig.key] as string).localeCompare(b[sortConfig.key] as string)
+        : (b[sortConfig.key] as string).localeCompare(a[sortConfig.key] as string);
+    }
+    
+    return 0;
+  });
+
+  // Request sort handler
+  const requestSort = (key: keyof User) => {
+    let direction: 'ascending' | 'descending' = 'ascending';
+    if (sortConfig.key === key && sortConfig.direction === 'ascending') {
+      direction = 'descending';
+    }
+    setSortConfig({ key, direction });
+  };
 
   // Toggle user selection for bulk actions
   const toggleUserSelection = (userId: number) => {
@@ -169,10 +220,10 @@ const UsersPage = () => {
 
   // Toggle all users selection
   const toggleAllSelection = () => {
-    if (selectedUsers.length === filteredUsers.length) {
+    if (selectedUsers.length === sortedUsers.length) {
       setSelectedUsers([]);
     } else {
-      setSelectedUsers(filteredUsers.map(user => user.id));
+      setSelectedUsers(sortedUsers.map(user => user.id));
     }
   };
 
@@ -218,6 +269,14 @@ const UsersPage = () => {
     );
   };
 
+  const handleRestaurantFilterChange = (restaurant: string) => {
+    setRestaurantFilter(prev =>
+      prev.includes(restaurant)
+        ? prev.filter(r => r !== restaurant)
+        : [...prev, restaurant]
+    );
+  };
+
   // Apply filters
   const applyFilters = () => {
     setIsFilterSheetOpen(false);
@@ -229,6 +288,7 @@ const UsersPage = () => {
     setStatusFilter([]);
     setRoleFilter([]);
     setSubscriptionFilter([]);
+    setRestaurantFilter([]);
     setIsFilterSheetOpen(false);
     toast.success("Filters reset successfully");
   };
@@ -248,26 +308,7 @@ const UsersPage = () => {
 
   // Edit user
   const editUser = (userId: number) => {
-    const user = userData.find(u => u.id === userId);
-    if (user) {
-      setCurrentUser(user);
-      setIsEditUserDialogOpen(true);
-    }
-  };
-
-  // Save edited user
-  const saveEditedUser = () => {
-    // In a real app, this would call an API
-    toast.success("User updated successfully");
-    setIsEditUserDialogOpen(false);
-    setCurrentUser(null);
-  };
-
-  // Add new user
-  const addNewUser = () => {
-    // In a real app, this would call an API
-    toast.success("User added successfully");
-    setIsAddUserDialogOpen(false);
+    navigate(`/admin/users/edit/${userId}`);
   };
 
   // Get status badge
@@ -284,18 +325,49 @@ const UsersPage = () => {
     }
   };
 
+  // Get role badge
+  const getRoleBadge = (role: string) => {
+    switch (role) {
+      case "Admin":
+        return (
+          <div className="flex items-center gap-1">
+            <Shield className="h-3.5 w-3.5 text-primary" />
+            <span>{role}</span>
+          </div>
+        );
+      case "Restaurant Owner":
+        return <Badge variant="outline" className="bg-purple-100 text-purple-800">{role}</Badge>;
+      case "Manager":
+        return <Badge variant="outline" className="bg-blue-100 text-blue-800">{role}</Badge>;
+      case "Chef":
+        return <Badge variant="outline" className="bg-orange-100 text-orange-800">{role}</Badge>;
+      case "Cashier":
+        return <Badge variant="outline" className="bg-green-100 text-green-800">{role}</Badge>;
+      default:
+        return role;
+    }
+  };
+
+  // Animation classes for table rows
+  const getRowAnimationClass = (index: number) => {
+    return `animate-fade-in [animation-delay:${index * 50}ms]`;
+  };
+
   return (
     <AdminLayout>
       <div className="space-y-6">
         {/* Header and Stats Section */}
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 animate-fade-in">
           <div>
             <h1 className="text-3xl font-bold tracking-tight">Users</h1>
             <p className="text-muted-foreground">
               Manage users and their permissions
             </p>
           </div>
-          <Button onClick={() => setIsAddUserDialogOpen(true)}>
+          <Button 
+            onClick={() => navigate('/admin/users/add')} 
+            className="hover-scale"
+          >
             <Plus className="mr-2 h-4 w-4" />
             Add User
           </Button>
@@ -356,7 +428,7 @@ const UsersPage = () => {
                     variant="destructive" 
                     size="sm"
                     onClick={() => setIsDeleteDialogOpen(true)}
-                    className="mr-2"
+                    className="mr-2 hover-scale"
                   >
                     <Trash2 className="h-4 w-4 mr-1" />
                     Delete ({selectedUsers.length})
@@ -366,7 +438,7 @@ const UsersPage = () => {
                 <div className="flex gap-2">
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                      <Button variant="outline" size="sm">
+                      <Button variant="outline" size="sm" className="hover-scale">
                         <Download className="h-4 w-4 mr-1" />
                         Export
                       </Button>
@@ -388,6 +460,7 @@ const UsersPage = () => {
                     variant="outline" 
                     size="sm" 
                     onClick={() => setIsFilterSheetOpen(true)}
+                    className="hover-scale"
                   >
                     <SlidersHorizontal className="h-4 w-4 mr-1" />
                     Filter
@@ -413,32 +486,61 @@ const UsersPage = () => {
                 <TableRow>
                   <TableHead className="w-[40px]">
                     <Checkbox 
-                      checked={selectedUsers.length === filteredUsers.length && filteredUsers.length > 0} 
+                      checked={selectedUsers.length === sortedUsers.length && sortedUsers.length > 0} 
                       onCheckedChange={() => toggleAllSelection()}
                       aria-label="Select all users"
                     />
                   </TableHead>
                   <TableHead>
-                    <div className="flex items-center space-x-1">
+                    <div 
+                      className="flex items-center space-x-1 cursor-pointer"
+                      onClick={() => requestSort('name')}
+                    >
                       <span>User</span>
                       <ArrowUpDown className="h-3.5 w-3.5" />
                     </div>
                   </TableHead>
                   <TableHead>
-                    <div className="flex items-center space-x-1">
+                    <div 
+                      className="flex items-center space-x-1 cursor-pointer"
+                      onClick={() => requestSort('role')}
+                    >
                       <span>Role</span>
                       <ArrowUpDown className="h-3.5 w-3.5" />
                     </div>
                   </TableHead>
-                  <TableHead>Status</TableHead>
                   <TableHead>
-                    <div className="flex items-center space-x-1">
+                    <div 
+                      className="flex items-center space-x-1 cursor-pointer"
+                      onClick={() => requestSort('status')}
+                    >
+                      <span>Status</span>
+                      <ArrowUpDown className="h-3.5 w-3.5" />
+                    </div>
+                  </TableHead>
+                  <TableHead>
+                    <div 
+                      className="flex items-center space-x-1 cursor-pointer"
+                      onClick={() => requestSort('restaurant')}
+                    >
+                      <span>Restaurant</span>
+                      <ArrowUpDown className="h-3.5 w-3.5" />
+                    </div>
+                  </TableHead>
+                  <TableHead>
+                    <div 
+                      className="flex items-center space-x-1 cursor-pointer"
+                      onClick={() => requestSort('subscription')}
+                    >
                       <span>Subscription</span>
                       <ArrowUpDown className="h-3.5 w-3.5" />
                     </div>
                   </TableHead>
                   <TableHead>
-                    <div className="flex items-center space-x-1">
+                    <div 
+                      className="flex items-center space-x-1 cursor-pointer"
+                      onClick={() => requestSort('joinedDate')}
+                    >
                       <span>Joined</span>
                       <ArrowUpDown className="h-3.5 w-3.5" />
                     </div>
@@ -447,9 +549,9 @@ const UsersPage = () => {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredUsers.length > 0 ? (
-                  filteredUsers.map(user => (
-                    <TableRow key={user.id}>
+                {sortedUsers.length > 0 ? (
+                  sortedUsers.map((user, index) => (
+                    <TableRow key={user.id} className={getRowAnimationClass(index)}>
                       <TableCell>
                         <Checkbox 
                           checked={selectedUsers.includes(user.id)} 
@@ -468,17 +570,18 @@ const UsersPage = () => {
                           </div>
                         </div>
                       </TableCell>
+                      <TableCell>{getRoleBadge(user.role)}</TableCell>
+                      <TableCell>{getStatusBadge(user.status)}</TableCell>
                       <TableCell>
-                        {user.role === "Admin" ? (
+                        {user.restaurant ? (
                           <div className="flex items-center gap-1">
-                            <Shield className="h-3.5 w-3.5 text-primary" />
-                            <span>{user.role}</span>
+                            <Building2 className="h-3.5 w-3.5 text-muted-foreground" />
+                            <span>{user.restaurant}</span>
                           </div>
                         ) : (
-                          user.role
+                          <span className="text-muted-foreground italic">N/A</span>
                         )}
                       </TableCell>
-                      <TableCell>{getStatusBadge(user.status)}</TableCell>
                       <TableCell>
                         <SubscriptionPlanBadge plan={user.subscription} size="sm" />
                       </TableCell>
@@ -493,17 +596,17 @@ const UsersPage = () => {
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
                             <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                            <DropdownMenuItem onClick={() => viewUserDetails(user.id)}>
+                            <DropdownMenuItem onClick={() => viewUserDetails(user.id)} className="hover-scale">
                               <Eye className="h-4 w-4 mr-2" />
                               View Details
                             </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => editUser(user.id)}>
+                            <DropdownMenuItem onClick={() => editUser(user.id)} className="hover-scale">
                               <Edit className="h-4 w-4 mr-2" />
                               Edit User
                             </DropdownMenuItem>
                             <DropdownMenuSeparator />
                             <DropdownMenuItem 
-                              className="text-destructive focus:text-destructive"
+                              className="text-destructive focus:text-destructive hover-scale"
                               onClick={() => {
                                 setUserToDelete(user.id);
                                 setIsDeleteDialogOpen(true);
@@ -519,7 +622,7 @@ const UsersPage = () => {
                   ))
                 ) : (
                   <TableRow>
-                    <TableCell colSpan={7} className="text-center py-6">
+                    <TableCell colSpan={8} className="text-center py-6">
                       <div className="flex flex-col items-center justify-center">
                         <CircleUser className="h-10 w-10 text-muted-foreground mb-2" />
                         <h3 className="font-medium mb-1">No users found</h3>
@@ -536,22 +639,22 @@ const UsersPage = () => {
               <Pagination>
                 <PaginationContent>
                   <PaginationItem>
-                    <PaginationPrevious href="#" />
+                    <PaginationPrevious href="#" className="hover-scale" />
                   </PaginationItem>
                   <PaginationItem>
-                    <PaginationLink href="#" isActive>1</PaginationLink>
+                    <PaginationLink href="#" isActive className="hover-scale">1</PaginationLink>
                   </PaginationItem>
                   <PaginationItem>
-                    <PaginationLink href="#">2</PaginationLink>
+                    <PaginationLink href="#" className="hover-scale">2</PaginationLink>
                   </PaginationItem>
                   <PaginationItem>
-                    <PaginationLink href="#">3</PaginationLink>
+                    <PaginationLink href="#" className="hover-scale">3</PaginationLink>
                   </PaginationItem>
                   <PaginationItem>
                     <PaginationEllipsis />
                   </PaginationItem>
                   <PaginationItem>
-                    <PaginationNext href="#" />
+                    <PaginationNext href="#" className="hover-scale" />
                   </PaginationItem>
                 </PaginationContent>
               </Pagination>
@@ -561,7 +664,7 @@ const UsersPage = () => {
 
         {/* Delete User Alert Dialog */}
         <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
-          <AlertDialogContent>
+          <AlertDialogContent className="animate-scale-in">
             <AlertDialogHeader>
               <AlertDialogTitle>Are you sure?</AlertDialogTitle>
               <AlertDialogDescription>
@@ -572,9 +675,9 @@ const UsersPage = () => {
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
-              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogCancel className="hover-scale">Cancel</AlertDialogCancel>
               <AlertDialogAction
-                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                className="bg-destructive text-destructive-foreground hover:bg-destructive/90 hover-scale"
                 onClick={() => {
                   if (userToDelete) {
                     handleDeleteUser(userToDelete);
@@ -591,7 +694,7 @@ const UsersPage = () => {
 
         {/* Filter Sheet */}
         <Sheet open={isFilterSheetOpen} onOpenChange={setIsFilterSheetOpen}>
-          <SheetContent className="w-[300px] sm:w-[400px]">
+          <SheetContent className="w-[300px] sm:w-[400px] animate-slide-in-right">
             <SheetHeader>
               <SheetTitle>Filter Users</SheetTitle>
               <SheetDescription>
@@ -618,7 +721,7 @@ const UsersPage = () => {
               <div className="space-y-4">
                 <h3 className="font-medium">Role</h3>
                 <div className="space-y-2">
-                  {["Admin", "User", "Manager"].map((role) => (
+                  {["Admin", "Restaurant Owner", "Manager", "Chef", "Cashier"].map((role) => (
                     <div key={role} className="flex items-center space-x-2">
                       <Checkbox 
                         id={`role-${role}`} 
@@ -626,6 +729,22 @@ const UsersPage = () => {
                         onCheckedChange={() => handleRoleFilterChange(role)}
                       />
                       <Label htmlFor={`role-${role}`}>{role}</Label>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                <h3 className="font-medium">Restaurant</h3>
+                <div className="space-y-2">
+                  {restaurants.map((restaurant) => (
+                    <div key={restaurant.id} className="flex items-center space-x-2">
+                      <Checkbox 
+                        id={`restaurant-${restaurant.id}`} 
+                        checked={restaurantFilter.includes(restaurant.name)}
+                        onCheckedChange={() => handleRestaurantFilterChange(restaurant.name)}
+                      />
+                      <Label htmlFor={`restaurant-${restaurant.id}`}>{restaurant.name}</Label>
                     </div>
                   ))}
                 </div>
@@ -650,141 +769,11 @@ const UsersPage = () => {
               </div>
             </div>
             <SheetFooter>
-              <Button variant="outline" onClick={resetFilters}>Reset Filters</Button>
-              <Button onClick={applyFilters}>Apply Filters</Button>
+              <Button variant="outline" onClick={resetFilters} className="hover-scale">Reset Filters</Button>
+              <Button onClick={applyFilters} className="hover-scale">Apply Filters</Button>
             </SheetFooter>
           </SheetContent>
         </Sheet>
-
-        {/* Add User Dialog */}
-        <Dialog open={isAddUserDialogOpen} onOpenChange={setIsAddUserDialogOpen}>
-          <DialogContent className="sm:max-w-[425px]">
-            <DialogHeader>
-              <DialogTitle>Add New User</DialogTitle>
-              <DialogDescription>
-                Create a new user account. They will receive an email with account details.
-              </DialogDescription>
-            </DialogHeader>
-            <div className="grid gap-4 py-4">
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="name" className="text-right">
-                  Name
-                </Label>
-                <Input id="name" className="col-span-3" />
-              </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="email" className="text-right">
-                  Email
-                </Label>
-                <Input id="email" type="email" className="col-span-3" />
-              </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="role" className="text-right">
-                  Role
-                </Label>
-                <select id="role" className="col-span-3 flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm">
-                  <option value="User">User</option>
-                  <option value="Admin">Admin</option>
-                  <option value="Manager">Manager</option>
-                </select>
-              </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="subscription" className="text-right">
-                  Subscription
-                </Label>
-                <select id="subscription" className="col-span-3 flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm">
-                  <option value="Basic">Basic</option>
-                  <option value="Standard">Standard</option>
-                  <option value="Premium">Premium</option>
-                  <option value="Pro">Pro</option>
-                  <option value="Growth">Growth</option>
-                </select>
-              </div>
-            </div>
-            <DialogFooter>
-              <DialogClose asChild>
-                <Button variant="outline">Cancel</Button>
-              </DialogClose>
-              <Button onClick={addNewUser}>Create User</Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
-
-        {/* Edit User Dialog */}
-        <Dialog open={isEditUserDialogOpen} onOpenChange={setIsEditUserDialogOpen}>
-          <DialogContent className="sm:max-w-[425px]">
-            <DialogHeader>
-              <DialogTitle>Edit User</DialogTitle>
-              <DialogDescription>
-                Update user information and permissions.
-              </DialogDescription>
-            </DialogHeader>
-            <div className="grid gap-4 py-4">
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="edit-name" className="text-right">
-                  Name
-                </Label>
-                <Input id="edit-name" defaultValue={currentUser?.name} className="col-span-3" />
-              </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="edit-email" className="text-right">
-                  Email
-                </Label>
-                <Input id="edit-email" type="email" defaultValue={currentUser?.email} className="col-span-3" />
-              </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="edit-role" className="text-right">
-                  Role
-                </Label>
-                <select 
-                  id="edit-role" 
-                  defaultValue={currentUser?.role}
-                  className="col-span-3 flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-                >
-                  <option value="User">User</option>
-                  <option value="Admin">Admin</option>
-                  <option value="Manager">Manager</option>
-                </select>
-              </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="edit-status" className="text-right">
-                  Status
-                </Label>
-                <select 
-                  id="edit-status" 
-                  defaultValue={currentUser?.status}
-                  className="col-span-3 flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-                >
-                  <option value="active">Active</option>
-                  <option value="inactive">Inactive</option>
-                  <option value="pending">Pending</option>
-                </select>
-              </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="edit-subscription" className="text-right">
-                  Subscription
-                </Label>
-                <select 
-                  id="edit-subscription" 
-                  defaultValue={currentUser?.subscription}
-                  className="col-span-3 flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-                >
-                  <option value="Basic">Basic</option>
-                  <option value="Standard">Standard</option>
-                  <option value="Premium">Premium</option>
-                  <option value="Pro">Pro</option>
-                  <option value="Growth">Growth</option>
-                </select>
-              </div>
-            </div>
-            <DialogFooter>
-              <DialogClose asChild>
-                <Button variant="outline">Cancel</Button>
-              </DialogClose>
-              <Button onClick={saveEditedUser}>Save Changes</Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
       </div>
     </AdminLayout>
   );

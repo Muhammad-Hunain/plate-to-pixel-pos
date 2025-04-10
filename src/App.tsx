@@ -22,6 +22,9 @@ import SettingsPage from "./pages/admin/SettingsPage";
 import ProfilePage from "./pages/admin/ProfilePage";
 import AddRestaurantPage from "./pages/admin/AddRestaurantPage";
 import AddUserPage from "./pages/admin/AddUserPage";
+import EditUserPage from "./pages/admin/EditUserPage";
+import AddSubscriptionPlanPage from "./pages/admin/subscription/AddSubscriptionPlanPage";
+import EditSubscriptionPlanPage from "./pages/admin/subscription/EditSubscriptionPlanPage";
 
 // Restaurant Pages
 import RestaurantDashboard from "./pages/restaurant/RestaurantDashboard";
@@ -52,9 +55,14 @@ const App = () => {
               <Route path="/admin/restaurants/add" element={<AddRestaurantPage />} />
               <Route path="/admin/users" element={<UsersPage />} />
               <Route path="/admin/users/add" element={<AddUserPage />} />
+              <Route path="/admin/users/edit/:id" element={<EditUserPage />} />
               <Route path="/admin/reports" element={<ReportsPage />} />
               <Route path="/admin/settings" element={<SettingsPage />} />
               <Route path="/admin/profile" element={<ProfilePage />} />
+              
+              {/* Subscription Routes */}
+              <Route path="/admin/subscription/add" element={<AddSubscriptionPlanPage />} />
+              <Route path="/admin/subscription/edit/:id" element={<EditSubscriptionPlanPage />} />
               
               {/* Restaurant Routes */}
               <Route path="/restaurant/dashboard" element={<RestaurantDashboard />} />
