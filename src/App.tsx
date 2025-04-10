@@ -29,6 +29,15 @@ import EditSubscriptionPlanPage from "./pages/admin/subscription/EditSubscriptio
 // Restaurant Pages
 import RestaurantDashboard from "./pages/restaurant/RestaurantDashboard";
 import PosPage from "./pages/restaurant/PosPage";
+import BranchesPage from "./pages/restaurant/BranchesPage";
+import MenuPage from "./pages/restaurant/MenuPage";
+import OrdersPage from "./pages/restaurant/OrdersPage";
+import KitchenPage from "./pages/restaurant/KitchenPage";
+import EmployeesPage from "./pages/restaurant/EmployeesPage";
+import ReservationsPage from "./pages/restaurant/ReservationsPage";
+import InventoryPage from "./pages/restaurant/InventoryPage";
+import RestaurantReportsPage from "./pages/restaurant/ReportsPage";
+import RestaurantSettingsPage from "./pages/restaurant/SettingsPage";
 
 const queryClient = new QueryClient();
 
@@ -67,6 +76,15 @@ const App = () => {
               {/* Restaurant Routes */}
               <Route path="/restaurant/dashboard" element={<RestaurantDashboard />} />
               <Route path="/restaurant/pos" element={<PosPage />} />
+              <Route path="/restaurant/branches" element={<BranchesPage />} />
+              <Route path="/restaurant/menu" element={<MenuPage />} />
+              <Route path="/restaurant/orders" element={<OrdersPage />} />
+              <Route path="/restaurant/kitchen" element={<KitchenPage />} />
+              <Route path="/restaurant/employees" element={<EmployeesPage />} />
+              <Route path="/restaurant/reservations" element={<ReservationsPage />} />
+              <Route path="/restaurant/inventory" element={<InventoryPage />} />
+              <Route path="/restaurant/reports" element={<RestaurantReportsPage />} />
+              <Route path="/restaurant/settings" element={<RestaurantSettingsPage />} />
               
               {/* Catch-all route for 404 */}
               <Route path="*" element={<NotFound />} />

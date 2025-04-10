@@ -1,21 +1,21 @@
+
 import { useState } from "react";
 import RestaurantLayout from "@/components/layout/RestaurantLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
-import { Utensils, Search, Filter, FileDown, Clock, Coffee } from "lucide-react";
+import { BarChart, FileDown, Coffee } from "lucide-react";
 
-// Placeholder for Orders page - to be completed with full implementation
-export default function OrdersPage() {
+// Placeholder for Reports page - to be completed with full implementation
+export default function RestaurantReportsPage() {
   return (
     <RestaurantLayout>
       <div className="space-y-6">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">Order Management</h1>
+            <h1 className="text-3xl font-bold tracking-tight">Performance Reports</h1>
             <p className="text-muted-foreground">
-              View and manage all your restaurant orders
+              View detailed analytics and reports for your restaurant
             </p>
           </div>
           <div className="flex items-center gap-2">
@@ -28,14 +28,14 @@ export default function OrdersPage() {
 
         <Card>
           <CardHeader>
-            <CardTitle>Order History</CardTitle>
+            <CardTitle>Reports Dashboard</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-center py-8">
-              <Utensils className="mx-auto h-12 w-12 text-muted-foreground opacity-50 mb-4" />
-              <h3 className="text-lg font-medium">Order Management Coming Soon</h3>
+              <BarChart className="mx-auto h-12 w-12 text-muted-foreground opacity-50 mb-4" />
+              <h3 className="text-lg font-medium">Reports Coming Soon</h3>
               <p className="text-muted-foreground mt-2 max-w-md mx-auto">
-                This page is under development. Soon you'll be able to view and manage all your restaurant orders.
+                This page is under development. Soon you'll be able to view detailed analytics and reports for your restaurant.
               </p>
             </div>
           </CardContent>

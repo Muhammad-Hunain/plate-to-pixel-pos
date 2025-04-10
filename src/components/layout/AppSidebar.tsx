@@ -2,7 +2,7 @@
 import { useLocation, Link } from "react-router-dom";
 import { 
   Users, Settings, BarChart3, Store, Home, CreditCard, 
-  Calendar, ChefHat, Coffee, Utensils, Menu
+  Calendar, ChefHat, Coffee, Utensils, Menu, Map, GitBranch
 } from "lucide-react";
 
 type SidebarNavigationItem = {
@@ -25,6 +25,7 @@ export default function AppSidebar({ role = "restaurant" }) {
   const restaurantNavigation: SidebarNavigationItem[] = [
     { name: "Dashboard", href: "/restaurant/dashboard", icon: Home },
     { name: "POS", href: "/restaurant/pos", icon: CreditCard },
+    { name: "Branches", href: "/restaurant/branches", icon: GitBranch },
     { name: "Menu", href: "/restaurant/menu", icon: Menu },
     { name: "Orders", href: "/restaurant/orders", icon: Utensils },
     { name: "Kitchen", href: "/restaurant/kitchen", icon: ChefHat },
