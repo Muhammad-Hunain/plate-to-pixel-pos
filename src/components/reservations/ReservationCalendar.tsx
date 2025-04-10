@@ -10,7 +10,7 @@ import {
   DialogClose,
 } from "@/components/ui/dialog";
 import { Calendar } from "@/components/ui/calendar";
-import { format, parseISO, isSameDay } from 'date-fns';
+import { format, parseISO, isSameDay, isValid } from 'date-fns';
 import { Badge } from "@/components/ui/badge";
 
 interface Reservation {
@@ -46,25 +46,46 @@ const ReservationCalendar: React.FC<ReservationCalendarProps> = ({
   }, {});
   
   // Calculate date with reservation counts for the calendar
-  const reservationDates = Object.keys(reservationsByDate).map(dateStr => ({
-    date: parseISO(dateStr),
-    count: reservationsByDate[dateStr].length
-  }));
+  const reservationDates = Object.keys(reservationsByDate).map(dateStr => {
+    // Safely parse the date string
+    let date;
+    try {
+      date = parseISO(dateStr);
+      // Check if the date is valid
+      if (!isValid(date)) {
+        console.error(`Invalid date string: ${dateStr}`);
+        return null;
+      }
+    } catch (error) {
+      console.error(`Error parsing date: ${dateStr}`, error);
+      return null;
+    }
+    
+    return {
+      date,
+      count: reservationsByDate[dateStr].length
+    };
+  }).filter(Boolean); // Remove null values
 
   // Get reservations for the selected date
-  const selectedDateStr = selectedDate ? format(selectedDate, 'yyyy-MM-dd') : '';
+  const selectedDateStr = selectedDate && isValid(selectedDate) ? format(selectedDate, 'yyyy-MM-dd') : '';
   const selectedDateReservations = reservationsByDate[selectedDateStr] || [];
   
   // Custom renderer for calendar days to show reservation count badges
-  const renderDay = (day: Date) => {
+  const renderDay = (date: Date) => {
+    // Ensure we're working with a valid date
+    if (!isValid(date)) {
+      return <div>Invalid</div>;
+    }
+    
     const dateReservation = reservationDates.find(d => 
-      isSameDay(d.date, day)
+      d && d.date && isSameDay(d.date, date)
     );
     
     if (dateReservation) {
       return (
         <div className="relative flex items-center justify-center w-full h-full">
-          <div>{format(day, 'd')}</div>
+          <div>{format(date, 'd')}</div>
           <Badge
             variant="secondary"
             className="absolute -top-1 -right-1 h-5 w-5 p-0 flex items-center justify-center text-[10px]"
@@ -75,7 +96,7 @@ const ReservationCalendar: React.FC<ReservationCalendarProps> = ({
       );
     }
     
-    return <div>{format(day, 'd')}</div>;
+    return <div>{format(date, 'd')}</div>;
   };
 
   return (
@@ -94,17 +115,17 @@ const ReservationCalendar: React.FC<ReservationCalendarProps> = ({
               mode="single"
               selected={selectedDate}
               onSelect={setSelectedDate}
-              className="rounded-md border"
+              className="rounded-md border pointer-events-auto"
               components={{
-                Day: ({ day, ...props }) => (
+                Day: ({ date, ...props }) => (
                   <Button
                     variant="ghost"
                     {...props}
                     className={`h-9 w-9 p-0 font-normal aria-selected:opacity-100 ${
-                      props.selected ? 'bg-primary text-primary-foreground' : ''
+                      props['aria-selected'] ? 'bg-primary text-primary-foreground' : ''
                     }`}
                   >
-                    {renderDay(day)}
+                    {renderDay(date)}
                   </Button>
                 ),
               }}
@@ -113,7 +134,7 @@ const ReservationCalendar: React.FC<ReservationCalendarProps> = ({
           
           <div className="md:w-1/2 border-t md:border-t-0 md:border-l pt-4 md:pt-0 md:pl-6">
             <h3 className="text-lg font-semibold mb-3">
-              {selectedDate ? (
+              {selectedDate && isValid(selectedDate) ? (
                 <>Reservations on {format(selectedDate, 'MMMM d, yyyy')}</>
               ) : (
                 <>Select a date</>
