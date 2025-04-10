@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import RestaurantLayout from "@/components/layout/RestaurantLayout";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
@@ -876,4 +877,146 @@ const ReservationsPage = () => {
                                               onClick={() => handleStatusChange(reservation.id, "completed")}
                                               disabled={status === "completed"}
                                             >
-                                              <CheckCircle className="mr-2 h-4 w
+                                              <CheckCircle className="mr-2 h-4 w-4 text-blue-600" />
+                                              Mark as Completed
+                                            </DropdownMenuItem>
+                                            <DropdownMenuItem
+                                              onClick={() => handleStatusChange(reservation.id, "cancelled")}
+                                              disabled={status === "cancelled"}
+                                            >
+                                              <X className="mr-2 h-4 w-4 text-red-600" />
+                                              Cancel
+                                            </DropdownMenuItem>
+                                            <DropdownMenuSeparator />
+                                            <DropdownMenuItem
+                                              className="text-red-600"
+                                              onClick={() => handleDeleteReservation(reservation.id)}
+                                            >
+                                              <Trash2 className="mr-2 h-4 w-4" />
+                                              Delete
+                                            </DropdownMenuItem>
+                                          </DropdownMenuContent>
+                                        </DropdownMenu>
+                                      </TableCell>
+                                    </TableRow>
+                                  ))
+                              )}
+                            </TableBody>
+                          </Table>
+                        </div>
+                      ) : (
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                          {filteredReservations.filter(r => r.status === status).length === 0 ? (
+                            <div className="col-span-full h-32 flex items-center justify-center text-muted-foreground">
+                              No {status} reservations found for the selected date
+                            </div>
+                          ) : (
+                            filteredReservations
+                              .filter(r => r.status === status)
+                              .map((reservation) => (
+                                <Card key={reservation.id} className={`hover:shadow-md transition-shadow ${
+                                  reservation.status === "cancelled" ? "opacity-60" : ""
+                                }`}>
+                                  <CardHeader className="pb-2">
+                                    <div className="flex justify-between items-start">
+                                      <div>
+                                        <CardTitle className="text-base">{reservation.customerName}</CardTitle>
+                                        <CardDescription>{reservation.phone}</CardDescription>
+                                      </div>
+                                      <Badge className={getStatusBadgeColor(status)}>
+                                        {status.charAt(0).toUpperCase() + status.slice(1)}
+                                      </Badge>
+                                    </div>
+                                  </CardHeader>
+                                  <CardContent className="pb-2">
+                                    <div className="grid grid-cols-2 gap-2 text-sm">
+                                      <div className="flex items-center">
+                                        <Clock className="h-4 w-4 mr-2 text-muted-foreground" />
+                                        <span>{reservation.time}</span>
+                                      </div>
+                                      <div className="flex items-center">
+                                        <Users className="h-4 w-4 mr-2 text-muted-foreground" />
+                                        <span>{reservation.partySize} guests</span>
+                                      </div>
+                                      <div className="flex items-center">
+                                        <MapPin className="h-4 w-4 mr-2 text-muted-foreground" />
+                                        <span>{reservation.branch}</span>
+                                      </div>
+                                      <div className="flex items-center">
+                                        <Calendar className="h-4 w-4 mr-2 text-muted-foreground" />
+                                        <span>Table {reservation.tableNumber || "—"}</span>
+                                      </div>
+                                    </div>
+                                    {reservation.specialRequests && (
+                                      <div className="mt-3 text-sm">
+                                        <p className="text-muted-foreground">Notes:</p>
+                                        <p className="italic">{reservation.specialRequests}</p>
+                                      </div>
+                                    )}
+                                  </CardContent>
+                                  <CardFooter className="flex justify-end pt-2">
+                                    <Button 
+                                      variant="ghost" 
+                                      size="sm"
+                                      onClick={() => handleEditReservation(reservation)}
+                                    >
+                                      <Edit className="h-4 w-4 mr-2" />
+                                      Edit
+                                    </Button>
+                                    <DropdownMenu>
+                                      <DropdownMenuTrigger asChild>
+                                        <Button variant="ghost" size="sm">
+                                          <MoreVertical className="h-4 w-4" />
+                                        </Button>
+                                      </DropdownMenuTrigger>
+                                      <DropdownMenuContent align="end">
+                                        <DropdownMenuItem
+                                          onClick={() => handleStatusChange(reservation.id, "confirmed")}
+                                          disabled={status === "confirmed"}
+                                        >
+                                          <Check className="mr-2 h-4 w-4 text-green-600" />
+                                          Confirm
+                                        </DropdownMenuItem>
+                                        <DropdownMenuItem
+                                          onClick={() => handleStatusChange(reservation.id, "completed")}
+                                          disabled={status === "completed"}
+                                        >
+                                          <CheckCircle className="mr-2 h-4 w-4 text-blue-600" />
+                                          Mark as Completed
+                                        </DropdownMenuItem>
+                                        <DropdownMenuItem
+                                          onClick={() => handleStatusChange(reservation.id, "cancelled")}
+                                          disabled={status === "cancelled"}
+                                        >
+                                          <X className="mr-2 h-4 w-4 text-red-600" />
+                                          Cancel
+                                        </DropdownMenuItem>
+                                        <DropdownMenuSeparator />
+                                        <DropdownMenuItem
+                                          className="text-red-600"
+                                          onClick={() => handleDeleteReservation(reservation.id)}
+                                        >
+                                          <Trash2 className="mr-2 h-4 w-4" />
+                                          Delete
+                                        </DropdownMenuItem>
+                                      </DropdownMenuContent>
+                                    </DropdownMenu>
+                                  </CardFooter>
+                                </Card>
+                              ))
+                          )}
+                        </div>
+                      )}
+                    </TabsContent>
+                  ))}
+                </Tabs>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      </div>
+    </RestaurantLayout>
+  );
+};
+
+export default ReservationsPage;
