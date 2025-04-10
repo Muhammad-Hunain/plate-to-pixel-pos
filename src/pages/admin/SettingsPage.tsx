@@ -1,101 +1,26 @@
-
+import React from "react";
 import { useState } from "react";
 import AdminLayout from "@/components/layout/AdminLayout";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Switch } from "@/components/ui/switch";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
-  Form,
-  FormControl,
-  FormDescription,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
-import { 
-  Bell, CreditCard, Globe, Mail, Moon, Palette, 
-  Shield, Sun, User, Wallet, Zap 
-} from "lucide-react";
-import { zodResolver } from "@hookform/resolvers/zod";
-import * as z from "zod";
-import { useForm } from "react-hook-form";
-import { toast } from "sonner";
+import { Input } from "@/components/ui/input";
+import { Switch } from "@/components/ui/switch";
+import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Separator } from "@/components/ui/separator";
-
-const generalFormSchema = z.object({
-  siteName: z.string().min(2, {
-    message: "Site name must be at least 2 characters.",
-  }),
-  siteDescription: z.string().min(10, {
-    message: "Site description must be at least 10 characters.",
-  }),
-  supportEmail: z.string().email({
-    message: "Please enter a valid email address.",
-  }),
-  defaultCurrency: z.string({
-    required_error: "Please select a default currency.",
-  }),
-  defaultLanguage: z.string({
-    required_error: "Please select a default language.",
-  }),
-  timezone: z.string({
-    required_error: "Please select a timezone.",
-  }),
-});
-
-type GeneralFormValues = z.infer<typeof generalFormSchema>;
-
-const defaultGeneralValues: Partial<GeneralFormValues> = {
-  siteName: "POS System",
-  siteDescription: "Modern point-of-sale system for restaurants",
-  supportEmail: "support@possystem.com",
-  defaultCurrency: "USD",
-  defaultLanguage: "en",
-  timezone: "UTC-5",
-};
+import { Badge } from "@/components/ui/badge";
+import { toast } from "@/hooks/use-toast";
+import { 
+  Settings, Save, GraduationCap, Mail, Bell, CreditCard, Lock, User, Shield, 
+  ExternalLink, Check, X, Palette, SunMoon, Info, FileText, Database, Download as DownloadIcon
+} from "lucide-react";
 
 export default function SettingsPage() {
-  const [appearance, setAppearance] = useState("light");
-  const [emailNotifications, setEmailNotifications] = useState(true);
-  const [pushNotifications, setPushNotifications] = useState(true);
-  const [marketingEmails, setMarketingEmails] = useState(false);
-  
-  const generalForm = useForm<GeneralFormValues>({
-    resolver: zodResolver(generalFormSchema),
-    defaultValues: defaultGeneralValues,
-  });
-
-  function onGeneralSubmit(data: GeneralFormValues) {
-    toast.success("General settings saved successfully");
-    console.log(data);
-  }
-  
-  function onAppearanceSubmit() {
-    toast.success("Appearance settings saved successfully");
-  }
-  
-  function onNotificationsSubmit() {
-    toast.success("Notification preferences saved successfully");
-  }
-  
-  function onBillingSubmit() {
-    toast.success("Billing settings saved successfully");
-  }
-  
-  function onSecuritySubmit() {
-    toast.success("Security settings saved successfully");
-  }
+  const [activeTab, setActiveTab] = useState("general");
 
   return (
     <AdminLayout>
@@ -103,766 +28,632 @@ export default function SettingsPage() {
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Settings</h1>
           <p className="text-muted-foreground">
-            Manage your platform preferences and configuration
+            Manage your platform settings and preferences
           </p>
         </div>
-
-        <Tabs defaultValue="general" className="space-y-6">
-          <TabsList className="grid grid-cols-5 h-auto">
-            <TabsTrigger value="general" className="flex flex-col py-2 px-4 items-center gap-1">
-              <Globe className="h-4 w-4" />
-              General
+        
+        <Tabs defaultValue="general" className="space-y-4">
+          <TabsList className="grid w-full md:w-auto grid-cols-2 md:grid-cols-4 gap-2">
+            <TabsTrigger value="general" className="flex items-center gap-2">
+              <Settings className="h-4 w-4" />
+              <span>General</span>
             </TabsTrigger>
-            <TabsTrigger value="appearance" className="flex flex-col py-2 px-4 items-center gap-1">
+            <TabsTrigger value="appearance" className="flex items-center gap-2">
               <Palette className="h-4 w-4" />
-              Appearance
+              <span>Appearance</span>
             </TabsTrigger>
-            <TabsTrigger value="notifications" className="flex flex-col py-2 px-4 items-center gap-1">
+            <TabsTrigger value="notifications" className="flex items-center gap-2">
               <Bell className="h-4 w-4" />
-              Notifications
+              <span>Notifications</span>
             </TabsTrigger>
-            <TabsTrigger value="billing" className="flex flex-col py-2 px-4 items-center gap-1">
-              <CreditCard className="h-4 w-4" />
-              Billing
-            </TabsTrigger>
-            <TabsTrigger value="security" className="flex flex-col py-2 px-4 items-center gap-1">
+            <TabsTrigger value="advanced" className="flex items-center gap-2">
               <Shield className="h-4 w-4" />
-              Security
+              <span>Advanced</span>
             </TabsTrigger>
           </TabsList>
 
-          <TabsContent value="general">
+          {/* General Settings */}
+          <TabsContent value="general" className="space-y-4">
             <Card>
               <CardHeader>
-                <CardTitle>General Settings</CardTitle>
+                <CardTitle>Platform Information</CardTitle>
                 <CardDescription>
-                  Configure general settings for your POS system platform
+                  Basic information about your POS platform.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-2">
+                    <Label htmlFor="platform-name">Platform Name</Label>
+                    <Input id="platform-name" defaultValue="Restaurant POS System" />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="platform-domain">Domain</Label>
+                    <Input id="platform-domain" defaultValue="https://restaurant-pos.example.com" />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="platform-description">Description</Label>
+                    <Textarea id="platform-description" defaultValue="Modern POS system for restaurant management." />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="timezone">Default Timezone</Label>
+                    <Select defaultValue="utc">
+                      <SelectTrigger id="timezone">
+                        <SelectValue placeholder="Select timezone" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="utc">UTC (Coordinated Universal Time)</SelectItem>
+                        <SelectItem value="est">EST (Eastern Standard Time)</SelectItem>
+                        <SelectItem value="cst">CST (Central Standard Time)</SelectItem>
+                        <SelectItem value="mst">MST (Mountain Standard Time)</SelectItem>
+                        <SelectItem value="pst">PST (Pacific Standard Time)</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+              </CardContent>
+              <CardFooter className="flex justify-end">
+                <Button variant="outline" className="mr-2">Reset</Button>
+                <Button onClick={() => toast({ title: "Settings saved", description: "Your platform settings have been saved successfully." })}>
+                  <Save className="mr-2 h-4 w-4" />
+                  Save Changes
+                </Button>
+              </CardFooter>
+            </Card>
+            
+            <Card>
+              <CardHeader>
+                <CardTitle>Subscription Plans</CardTitle>
+                <CardDescription>
+                  Configure the subscription plans available to restaurants.
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <Form {...generalForm}>
-                  <form onSubmit={generalForm.handleSubmit(onGeneralSubmit)} className="space-y-6">
-                    <div className="grid gap-4">
-                      <div className="grid gap-2">
-                        <FormField
-                          control={generalForm.control}
-                          name="siteName"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Site Name</FormLabel>
-                              <FormControl>
-                                <Input placeholder="POS System" {...field} />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
+                <div className="space-y-4">
+                  {[
+                    { 
+                      name: "Basic Plan", 
+                      price: "$19.99/month", 
+                      features: ["1 Branch", "5 Staff Members", "Basic Reports", "Email Support"],
+                      active: true 
+                    },
+                    { 
+                      name: "Standard Plan", 
+                      price: "$49.99/month", 
+                      features: ["Up to 3 Branches", "15 Staff Members", "Advanced Reports", "Priority Support"],
+                      active: true
+                    },
+                    { 
+                      name: "Premium Plan", 
+                      price: "$99.99/month", 
+                      features: ["Unlimited Branches", "Unlimited Staff", "Custom Reports", "24/7 Support", "API Access"],
+                      active: true
+                    }
+                  ].map((plan, index) => (
+                    <div key={index} className="flex items-start space-x-4 pb-4 border-b last:border-0 last:pb-0">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2">
+                          <h4 className="font-semibold">{plan.name}</h4>
+                          {plan.active ? 
+                            <Badge variant="success">Active</Badge> : 
+                            <Badge variant="secondary">Inactive</Badge>
+                          }
+                        </div>
+                        <p className="text-muted-foreground">{plan.price}</p>
+                        <div className="mt-2">
+                          {plan.features.map((feature, i) => (
+                            <div key={i} className="flex items-center text-sm gap-1.5 mt-1">
+                              <Check className="h-3.5 w-3.5 text-green-500" />
+                              <span>{feature}</span>
+                            </div>
+                          ))}
+                        </div>
                       </div>
-                      
-                      <div className="grid gap-2">
-                        <FormField
-                          control={generalForm.control}
-                          name="siteDescription"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Site Description</FormLabel>
-                              <FormControl>
-                                <Input placeholder="Modern point-of-sale system for restaurants" {...field} />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                      </div>
-                      
-                      <div className="grid gap-2">
-                        <FormField
-                          control={generalForm.control}
-                          name="supportEmail"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Support Email</FormLabel>
-                              <FormControl>
-                                <Input placeholder="support@possystem.com" {...field} />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                      </div>
-                      
-                      <div className="grid gap-2 grid-cols-1 md:grid-cols-3">
-                        <FormField
-                          control={generalForm.control}
-                          name="defaultCurrency"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Default Currency</FormLabel>
-                              <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                <FormControl>
-                                  <SelectTrigger>
-                                    <SelectValue placeholder="Select a currency" />
-                                  </SelectTrigger>
-                                </FormControl>
-                                <SelectContent>
-                                  <SelectItem value="USD">USD ($)</SelectItem>
-                                  <SelectItem value="EUR">EUR (€)</SelectItem>
-                                  <SelectItem value="GBP">GBP (£)</SelectItem>
-                                  <SelectItem value="JPY">JPY (¥)</SelectItem>
-                                  <SelectItem value="CAD">CAD (C$)</SelectItem>
-                                  <SelectItem value="AUD">AUD (A$)</SelectItem>
-                                </SelectContent>
-                              </Select>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                        
-                        <FormField
-                          control={generalForm.control}
-                          name="defaultLanguage"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Default Language</FormLabel>
-                              <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                <FormControl>
-                                  <SelectTrigger>
-                                    <SelectValue placeholder="Select a language" />
-                                  </SelectTrigger>
-                                </FormControl>
-                                <SelectContent>
-                                  <SelectItem value="en">English</SelectItem>
-                                  <SelectItem value="es">Spanish</SelectItem>
-                                  <SelectItem value="fr">French</SelectItem>
-                                  <SelectItem value="de">German</SelectItem>
-                                  <SelectItem value="it">Italian</SelectItem>
-                                  <SelectItem value="zh">Chinese</SelectItem>
-                                </SelectContent>
-                              </Select>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                        
-                        <FormField
-                          control={generalForm.control}
-                          name="timezone"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Timezone</FormLabel>
-                              <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                <FormControl>
-                                  <SelectTrigger>
-                                    <SelectValue placeholder="Select timezone" />
-                                  </SelectTrigger>
-                                </FormControl>
-                                <SelectContent>
-                                  <SelectItem value="UTC-12">UTC-12</SelectItem>
-                                  <SelectItem value="UTC-11">UTC-11</SelectItem>
-                                  <SelectItem value="UTC-10">UTC-10</SelectItem>
-                                  <SelectItem value="UTC-9">UTC-9</SelectItem>
-                                  <SelectItem value="UTC-8">UTC-8</SelectItem>
-                                  <SelectItem value="UTC-7">UTC-7</SelectItem>
-                                  <SelectItem value="UTC-6">UTC-6</SelectItem>
-                                  <SelectItem value="UTC-5">UTC-5</SelectItem>
-                                  <SelectItem value="UTC-4">UTC-4</SelectItem>
-                                  <SelectItem value="UTC-3">UTC-3</SelectItem>
-                                  <SelectItem value="UTC-2">UTC-2</SelectItem>
-                                  <SelectItem value="UTC-1">UTC-1</SelectItem>
-                                  <SelectItem value="UTC">UTC</SelectItem>
-                                  <SelectItem value="UTC+1">UTC+1</SelectItem>
-                                  <SelectItem value="UTC+2">UTC+2</SelectItem>
-                                  <SelectItem value="UTC+3">UTC+3</SelectItem>
-                                  <SelectItem value="UTC+4">UTC+4</SelectItem>
-                                  <SelectItem value="UTC+5">UTC+5</SelectItem>
-                                </SelectContent>
-                              </Select>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
+                      <div className="flex space-x-2">
+                        <Button variant="outline" size="sm">Edit</Button>
+                        <Button variant={plan.active ? "destructive" : "default"} size="sm">
+                          {plan.active ? "Disable" : "Enable"}
+                        </Button>
                       </div>
                     </div>
-                    
-                    <Separator />
-                    
-                    <div className="grid gap-2">
-                      <h3 className="text-lg font-medium">Platform Features</h3>
-                      <div className="grid gap-4 grid-cols-1 md:grid-cols-2 mt-4">
-                        {[
-                          { id: "online-ordering", label: "Online Ordering", description: "Allow customers to place orders online", defaultChecked: true },
-                          { id: "reservations", label: "Reservations", description: "Enable table reservations feature", defaultChecked: true },
-                          { id: "loyalty", label: "Loyalty Program", description: "Enable customer loyalty programs", defaultChecked: false },
-                          { id: "analytics", label: "Advanced Analytics", description: "Enable detailed analytics and reports", defaultChecked: true },
-                          { id: "inventory", label: "Inventory Management", description: "Enable inventory tracking features", defaultChecked: true },
-                          { id: "marketing", label: "Marketing Tools", description: "Enable email marketing features", defaultChecked: false },
-                        ].map((feature) => (
-                          <div key={feature.id} className="flex items-center justify-between space-x-2">
-                            <div className="space-y-0.5">
-                              <Label htmlFor={feature.id} className="font-medium">{feature.label}</Label>
-                              <p className="text-[0.8rem] text-muted-foreground">{feature.description}</p>
-                            </div>
-                            <Switch id={feature.id} defaultChecked={feature.defaultChecked} />
-                          </div>
+                  ))}
+                  
+                  <Button variant="outline" className="w-full mt-2">
+                    <Plus className="h-4 w-4 mr-2" />
+                    Add New Plan
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+            
+            <Card>
+              <CardHeader>
+                <CardTitle>Payment Gateways</CardTitle>
+                <CardDescription>
+                  Configure available payment methods and gateways.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {[
+                    { name: "Stripe", connected: true, logo: "stripe.svg" },
+                    { name: "PayPal", connected: true, logo: "paypal.svg" },
+                    { name: "Square", connected: false, logo: "square.svg" },
+                    { name: "Authorize.net", connected: false, logo: "authorize.svg" }
+                  ].map((gateway, index) => (
+                    <div key={index} className="flex justify-between items-center border-b pb-3 last:border-0 last:pb-0">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-md bg-accent flex items-center justify-center">
+                          <CreditCard className="h-5 w-5" />
+                        </div>
+                        <div>
+                          <h4 className="font-medium">{gateway.name}</h4>
+                          <p className="text-sm text-muted-foreground">
+                            {gateway.connected ? 
+                              <span className="flex items-center gap-1.5">
+                                <Badge variant="success">Connected</Badge>
+                                Last transaction: 2 hours ago
+                              </span> : 
+                              <span className="flex items-center gap-1.5">
+                                <Badge variant="outline">Not Connected</Badge>
+                              </span>
+                            }
+                          </p>
+                        </div>
+                      </div>
+                      <Button variant={gateway.connected ? "outline" : "default"} size="sm">
+                        {gateway.connected ? "Configure" : "Connect"}
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+          
+          {/* Appearance Settings */}
+          <TabsContent value="appearance" className="space-y-4">
+            <Card>
+              <CardHeader>
+                <CardTitle>Theme Settings</CardTitle>
+                <CardDescription>
+                  Customize the appearance of your platform.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="space-y-2">
+                      <Label>Color Theme</Label>
+                      <div className="flex flex-wrap gap-3">
+                        {["#0ea5e9", "#8b5cf6", "#10b981", "#ef4444", "#f59e0b", "#64748b"].map((color, index) => (
+                          <div 
+                            key={index}
+                            className="w-8 h-8 rounded-full cursor-pointer hover:ring-2 ring-offset-2 ring-offset-background"
+                            style={{ backgroundColor: color }}
+                          />
                         ))}
                       </div>
                     </div>
-                    
-                    <Button type="submit">Save General Settings</Button>
-                  </form>
-                </Form>
+                    <div className="space-y-2">
+                      <Label htmlFor="default-theme-mode">Default Theme Mode</Label>
+                      <Select defaultValue="system">
+                        <SelectTrigger id="default-theme-mode">
+                          <SelectValue placeholder="Select theme mode" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="light">Light</SelectItem>
+                          <SelectItem value="dark">Dark</SelectItem>
+                          <SelectItem value="system">System</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                  
+                  <Separator className="my-4" />
+                  
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <Label htmlFor="allow-theme-toggle">Allow Users to Change Theme</Label>
+                      <Switch id="allow-theme-toggle" defaultChecked />
+                    </div>
+                    <p className="text-sm text-muted-foreground">
+                      Enable this to allow users to toggle between light and dark mode.
+                    </p>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <Label htmlFor="custom-branding">Custom Branding</Label>
+                      <Switch id="custom-branding" defaultChecked />
+                    </div>
+                    <p className="text-sm text-muted-foreground">
+                      Allow restaurants to customize their colors and logos.
+                    </p>
+                  </div>
+                </div>
               </CardContent>
+              <CardFooter className="flex justify-end">
+                <Button variant="outline" className="mr-2">Reset</Button>
+                <Button onClick={() => toast({ title: "Theme settings saved", description: "Your appearance settings have been updated." })}>
+                  <Save className="mr-2 h-4 w-4" />
+                  Save Changes
+                </Button>
+              </CardFooter>
             </Card>
-          </TabsContent>
-          
-          <TabsContent value="appearance">
+            
             <Card>
               <CardHeader>
-                <CardTitle>Appearance Settings</CardTitle>
+                <CardTitle>Custom CSS</CardTitle>
                 <CardDescription>
-                  Customize how the platform looks and feels
+                  Add custom CSS for additional customization.
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <form onSubmit={(e) => {e.preventDefault(); onAppearanceSubmit();}} className="space-y-6">
-                  <div className="space-y-4">
-                    <div>
-                      <h3 className="text-lg font-medium mb-2">Theme Mode</h3>
-                      <div className="grid grid-cols-2 gap-4">
-                        <div 
-                          className={`border rounded-lg p-4 cursor-pointer flex items-center ${appearance === 'light' ? 'border-primary bg-primary/5' : 'border-border'}`}
-                          onClick={() => setAppearance('light')}
-                        >
-                          <div className="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center mr-4">
-                            <Sun className="h-7 w-7 text-primary" />
-                          </div>
-                          <div>
-                            <p className="font-medium">Light Mode</p>
-                            <p className="text-sm text-muted-foreground">Light background with dark text</p>
-                          </div>
+                <div className="space-y-4">
+                  <div className="bg-gray-100 dark:bg-gray-800 rounded-md p-4 font-mono text-xs h-48 overflow-auto">
+                    <pre className="text-gray-800 dark:text-gray-200">
+                      {`/* Custom CSS */
+:root {
+  --primary-color: #0ea5e9;
+  --secondary-color: #f59e0b;
+  --accent-color: #8b5cf6;
+  --success-color: #10b981;
+  --warning-color: #f59e0b;
+  --error-color: #ef4444;
+  --info-color: #64748b;
+}
+
+/* Custom button styles */
+.custom-button {
+  border-radius: 4px;
+  transition: all 0.2s ease;
+}
+
+.custom-button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}`}
+                    </pre>
+                  </div>
+                </div>
+              </CardContent>
+              <CardFooter className="flex justify-end">
+                <Button variant="outline" className="mr-2">Reset</Button>
+                <Button onClick={() => toast({ title: "CSS saved", description: "Your custom CSS has been applied." })}>
+                  <Save className="mr-2 h-4 w-4" />
+                  Save Changes
+                </Button>
+              </CardFooter>
+            </Card>
+          </TabsContent>
+          
+          {/* Notification Settings */}
+          <TabsContent value="notifications" className="space-y-4">
+            <Card>
+              <CardHeader>
+                <CardTitle>Email Notifications</CardTitle>
+                <CardDescription>
+                  Configure the email notifications sent to admins and restaurants.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div className="space-y-3">
+                    {[
+                      { id: "new-restaurant", title: "New Restaurant Registration", description: "When a new restaurant signs up on the platform" },
+                      { id: "subscription-change", title: "Subscription Changes", description: "When a restaurant upgrades or downgrades their subscription" },
+                      { id: "payment-failed", title: "Payment Failures", description: "When a payment from a restaurant fails" },
+                      { id: "system-updates", title: "System Updates", description: "Notifications about platform updates and maintenance" }
+                    ].map((notification) => (
+                      <div key={notification.id} className="flex justify-between items-start pb-2 last:pb-0">
+                        <div className="space-y-1">
+                          <Label className="text-base font-medium">{notification.title}</Label>
+                          <p className="text-sm text-muted-foreground">{notification.description}</p>
                         </div>
-                        
-                        <div 
-                          className={`border rounded-lg p-4 cursor-pointer flex items-center ${appearance === 'dark' ? 'border-primary bg-primary/5' : 'border-border'}`}
-                          onClick={() => setAppearance('dark')}
-                        >
-                          <div className="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center mr-4">
-                            <Moon className="h-7 w-7 text-primary" />
-                          </div>
-                          <div>
-                            <p className="font-medium">Dark Mode</p>
-                            <p className="text-sm text-muted-foreground">Dark background with light text</p>
-                          </div>
-                        </div>
+                        <Switch id={notification.id} defaultChecked />
                       </div>
+                    ))}
+                  </div>
+                  
+                  <Separator className="my-4" />
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="admin-email">Admin Notification Email</Label>
+                    <div className="flex items-center space-x-2">
+                      <Mail className="h-4 w-4 text-muted-foreground" />
+                      <Input id="admin-email" defaultValue="admin@restaurantpos.com" className="flex-1" />
                     </div>
-                    
-                    <Separator />
-                    
-                    <div>
-                      <h3 className="text-lg font-medium mb-2">Colors</h3>
-                      <div className="grid gap-4 grid-cols-2 md:grid-cols-4">
-                        <div className="space-y-2">
-                          <Label htmlFor="primary-color">Primary Color</Label>
-                          <div className="flex items-center gap-2">
-                            <div className="w-6 h-6 rounded-full bg-primary"></div>
-                            <Input id="primary-color" defaultValue="#3b82f6" />
-                          </div>
+                    <p className="text-xs text-muted-foreground">All admin notifications will be sent to this email address.</p>
+                  </div>
+                </div>
+              </CardContent>
+              <CardFooter className="flex justify-end">
+                <Button variant="outline" className="mr-2">Reset</Button>
+                <Button onClick={() => toast({ title: "Email settings saved", description: "Your email notification preferences have been updated." })}>
+                  <Save className="mr-2 h-4 w-4" />
+                  Save Changes
+                </Button>
+              </CardFooter>
+            </Card>
+            
+            <Card>
+              <CardHeader>
+                <CardTitle>Email Templates</CardTitle>
+                <CardDescription>
+                  Manage the email templates for various notifications.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {[
+                      { title: "Welcome Email", description: "Sent to new restaurants upon registration", updated: "2 weeks ago" },
+                      { title: "Payment Receipt", description: "Sent when a subscription payment is processed", updated: "1 week ago" },
+                      { title: "Password Reset", description: "Sent when a user requests a password reset", updated: "3 days ago" },
+                      { title: "Account Verification", description: "Used to verify new user accounts", updated: "5 days ago" },
+                    ].map((template, index) => (
+                      <Card key={index} className="border shadow-sm">
+                        <CardHeader className="py-3 px-4">
+                          <CardTitle className="text-base flex items-center justify-between">
+                            {template.title}
+                            <Badge variant="outline" className="font-normal">
+                              Updated {template.updated}
+                            </Badge>
+                          </CardTitle>
+                        </CardHeader>
+                        <CardFooter className="py-2 px-4 border-t">
+                          <p className="text-xs text-muted-foreground flex-1">{template.description}</p>
+                          <Button variant="ghost" size="sm">
+                            <FileText className="h-3.5 w-3.5 mr-1" />
+                            Edit
+                          </Button>
+                        </CardFooter>
+                      </Card>
+                    ))}
+                  </div>
+                  
+                  <div className="flex justify-center">
+                    <Button variant="outline" className="w-full max-w-sm">
+                      <Plus className="h-4 w-4 mr-2" />
+                      Create New Template
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+            
+            <Card>
+              <CardHeader>
+                <CardTitle>System Alerts</CardTitle>
+                <CardDescription>
+                  Configure automatic system alerts and notifications.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div className="space-y-3">
+                    {[
+                      { id: "critical-errors", title: "Critical System Errors", description: "Send alerts for critical system failures" },
+                      { id: "performance-issues", title: "Performance Issues", description: "Alerts for system slowdowns and performance problems" },
+                      { id: "security-alerts", title: "Security Alerts", description: "Notifications for suspicious activities or login attempts" },
+                      { id: "maintenance-reminders", title: "Scheduled Maintenance", description: "Reminders before scheduled maintenance periods" },
+                    ].map((alert) => (
+                      <div key={alert.id} className="flex justify-between items-start pb-2 last:pb-0">
+                        <div className="space-y-1">
+                          <Label className="text-base font-medium">{alert.title}</Label>
+                          <p className="text-sm text-muted-foreground">{alert.description}</p>
                         </div>
-                        
-                        <div className="space-y-2">
-                          <Label htmlFor="secondary-color">Secondary Color</Label>
-                          <div className="flex items-center gap-2">
-                            <div className="w-6 h-6 rounded-full bg-secondary"></div>
-                            <Input id="secondary-color" defaultValue="#f3f4f6" />
-                          </div>
-                        </div>
-                        
-                        <div className="space-y-2">
-                          <Label htmlFor="accent-color">Accent Color</Label>
-                          <div className="flex items-center gap-2">
-                            <div className="w-6 h-6 rounded-full bg-accent"></div>
-                            <Input id="accent-color" defaultValue="#e5e7eb" />
-                          </div>
-                        </div>
-                        
-                        <div className="space-y-2">
-                          <Label htmlFor="text-color">Text Color</Label>
-                          <div className="flex items-center gap-2">
-                            <div className="w-6 h-6 rounded-full bg-foreground"></div>
-                            <Input id="text-color" defaultValue="#111827" />
-                          </div>
-                        </div>
+                        <Switch id={alert.id} defaultChecked />
                       </div>
-                    </div>
-                    
-                    <Separator />
-                    
-                    <div className="space-y-4">
-                      <h3 className="text-lg font-medium">Branding</h3>
-                      
-                      <div className="grid gap-6 grid-cols-1 md:grid-cols-2">
-                        <div className="space-y-2">
-                          <Label htmlFor="logo">Logo Image</Label>
-                          <div className="flex items-center gap-4">
-                            <div className="w-16 h-16 rounded-lg bg-muted flex items-center justify-center">
-                              <img src="/placeholder.svg" alt="Logo placeholder" className="max-w-full max-h-full" />
-                            </div>
-                            <Button variant="outline" size="sm">Upload New</Button>
-                            <Button variant="ghost" size="sm">Remove</Button>
-                          </div>
-                          <p className="text-xs text-muted-foreground">Recommended size: 256x256px</p>
-                        </div>
-                        
-                        <div className="space-y-2">
-                          <Label htmlFor="favicon">Favicon</Label>
-                          <div className="flex items-center gap-4">
-                            <div className="w-10 h-10 rounded bg-muted flex items-center justify-center">
-                              <img src="/favicon.ico" alt="Favicon" className="max-w-full max-h-full" />
-                            </div>
-                            <Button variant="outline" size="sm">Upload New</Button>
-                            <Button variant="ghost" size="sm">Remove</Button>
-                          </div>
-                          <p className="text-xs text-muted-foreground">Recommended size: 32x32px</p>
-                        </div>
-                      </div>
-                    </div>
-                    
-                    <Separator />
-                    
-                    <div>
-                      <h3 className="text-lg font-medium mb-2">Layout</h3>
+                    ))}
+                  </div>
+                </div>
+              </CardContent>
+              <CardFooter className="flex justify-end">
+                <Button variant="outline" className="mr-2">Reset</Button>
+                <Button onClick={() => toast({ title: "Alert settings saved", description: "Your system alert settings have been updated." })}>
+                  <Save className="mr-2 h-4 w-4" />
+                  Save Changes
+                </Button>
+              </CardFooter>
+            </Card>
+          </TabsContent>
+          
+          {/* Advanced Settings */}
+          <TabsContent value="advanced" className="space-y-4">
+            <Card>
+              <CardHeader>
+                <CardTitle>System Maintenance</CardTitle>
+                <CardDescription>
+                  Advanced system maintenance controls.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="maintenance-mode" className="flex items-center justify-between">
+                      <span>Maintenance Mode</span>
+                      <Switch id="maintenance-mode" />
+                    </Label>
+                    <p className="text-sm text-muted-foreground">
+                      Enable to temporarily put the system in maintenance mode. All users will see a maintenance message.
+                    </p>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="debug-mode" className="flex items-center justify-between">
+                      <span>Debug Mode</span>
+                      <Switch id="debug-mode" />
+                    </Label>
+                    <p className="text-sm text-muted-foreground">
+                      Enable advanced logging and debugging information. May impact system performance.
+                    </p>
+                  </div>
+                </div>
+                
+                <Separator className="my-4" />
+                
+                <div className="space-y-2">
+                  <Label>System Backup</Label>
+                  <div className="flex flex-col sm:flex-row gap-2 items-start sm:items-center">
+                    <Button variant="outline">
+                      <Database className="h-4 w-4 mr-2" />
+                      Run Manual Backup
+                    </Button>
+                    <Button variant="secondary">
+                      <DownloadIcon className="h-4 w-4 mr-2" />
+                      Download Latest Backup
+                    </Button>
+                    <p className="text-xs text-muted-foreground">Last automated backup: 6 hours ago</p>
+                  </div>
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="backup-frequency">Automatic Backup Frequency</Label>
+                  <Select defaultValue="daily">
+                    <SelectTrigger id="backup-frequency">
+                      <SelectValue placeholder="Select backup frequency" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="hourly">Every Hour</SelectItem>
+                      <SelectItem value="daily">Once Daily</SelectItem>
+                      <SelectItem value="weekly">Once Weekly</SelectItem>
+                      <SelectItem value="monthly">Once Monthly</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+                <Separator className="my-4" />
+                
+                <div className="space-y-2">
+                  <Label className="text-base">Danger Zone</Label>
+                  <Card className="border-destructive/30 bg-destructive/10">
+                    <CardContent className="pt-4">
                       <div className="space-y-4">
-                        <div className="flex items-center justify-between">
-                          <div className="space-y-0.5">
-                            <Label className="font-medium">Compact Mode</Label>
-                            <p className="text-[0.8rem] text-muted-foreground">Reduce spacing to fit more content</p>
-                          </div>
-                          <Switch id="compact-mode" />
-                        </div>
-                        
-                        <div className="flex items-center justify-between">
-                          <div className="space-y-0.5">
-                            <Label className="font-medium">Animated Transitions</Label>
-                            <p className="text-[0.8rem] text-muted-foreground">Enable animated page transitions</p>
-                          </div>
-                          <Switch id="animated-transitions" defaultChecked />
-                        </div>
-                        
-                        <div className="flex items-center justify-between">
-                          <div className="space-y-0.5">
-                            <Label className="font-medium">Reduced Motion</Label>
-                            <p className="text-[0.8rem] text-muted-foreground">Minimize animations for accessibility</p>
-                          </div>
-                          <Switch id="reduced-motion" />
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  
-                  <Button type="submit">Save Appearance Settings</Button>
-                </form>
-              </CardContent>
-            </Card>
-          </TabsContent>
-          
-          <TabsContent value="notifications">
-            <Card>
-              <CardHeader>
-                <CardTitle>Notification Preferences</CardTitle>
-                <CardDescription>
-                  Configure how and when you receive notifications
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <form onSubmit={(e) => {e.preventDefault(); onNotificationsSubmit();}} className="space-y-6">
-                  <div className="space-y-4">
-                    <h3 className="text-lg font-medium">Email Notifications</h3>
-                    <div className="grid gap-4">
-                      <div className="flex items-center justify-between space-x-2">
-                        <div className="space-y-0.5">
-                          <Label htmlFor="email-notifications" className="font-medium">
-                            Email Notifications
-                          </Label>
-                          <p className="text-[0.8rem] text-muted-foreground">
-                            Receive email notifications for important events
-                          </p>
-                        </div>
-                        <Switch 
-                          id="email-notifications" 
-                          checked={emailNotifications}
-                          onCheckedChange={setEmailNotifications}
-                        />
-                      </div>
-                      
-                      <div className="ml-6 space-y-3">
-                        <div className="flex items-center justify-between space-x-2">
-                          <Label htmlFor="new-restaurant">New restaurant registrations</Label>
-                          <Switch id="new-restaurant" defaultChecked disabled={!emailNotifications} />
-                        </div>
-                        <div className="flex items-center justify-between space-x-2">
-                          <Label htmlFor="billing-updates">Billing updates</Label>
-                          <Switch id="billing-updates" defaultChecked disabled={!emailNotifications} />
-                        </div>
-                        <div className="flex items-center justify-between space-x-2">
-                          <Label htmlFor="system-alerts">System alerts</Label>
-                          <Switch id="system-alerts" defaultChecked disabled={!emailNotifications} />
-                        </div>
-                      </div>
-                    </div>
-                    
-                    <Separator />
-                    
-                    <h3 className="text-lg font-medium">Push Notifications</h3>
-                    <div className="grid gap-4">
-                      <div className="flex items-center justify-between space-x-2">
-                        <div className="space-y-0.5">
-                          <Label htmlFor="push-notifications" className="font-medium">
-                            Push Notifications
-                          </Label>
-                          <p className="text-[0.8rem] text-muted-foreground">
-                            Receive push notifications in your browser
-                          </p>
-                        </div>
-                        <Switch 
-                          id="push-notifications" 
-                          checked={pushNotifications}
-                          onCheckedChange={setPushNotifications}
-                        />
-                      </div>
-                      
-                      <div className="ml-6 space-y-3">
-                        <div className="flex items-center justify-between space-x-2">
-                          <Label htmlFor="push-new-users">New user registrations</Label>
-                          <Switch id="push-new-users" defaultChecked disabled={!pushNotifications} />
-                        </div>
-                        <div className="flex items-center justify-between space-x-2">
-                          <Label htmlFor="push-system-alerts">System alerts</Label>
-                          <Switch id="push-system-alerts" defaultChecked disabled={!pushNotifications} />
-                        </div>
-                      </div>
-                    </div>
-                    
-                    <Separator />
-                    
-                    <h3 className="text-lg font-medium">Marketing Communications</h3>
-                    <div className="grid gap-4">
-                      <div className="flex items-center justify-between space-x-2">
-                        <div className="space-y-0.5">
-                          <Label htmlFor="marketing-emails" className="font-medium">
-                            Marketing Emails
-                          </Label>
-                          <p className="text-[0.8rem] text-muted-foreground">
-                            Receive emails about new features and offers
-                          </p>
-                        </div>
-                        <Switch 
-                          id="marketing-emails" 
-                          checked={marketingEmails}
-                          onCheckedChange={setMarketingEmails}
-                        />
-                      </div>
-                    </div>
-                  </div>
-                  
-                  <Button type="submit">Save Notification Preferences</Button>
-                </form>
-              </CardContent>
-            </Card>
-          </TabsContent>
-          
-          <TabsContent value="billing">
-            <Card>
-              <CardHeader>
-                <CardTitle>Billing Settings</CardTitle>
-                <CardDescription>
-                  Manage your subscription plans and payment methods
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <form onSubmit={(e) => {e.preventDefault(); onBillingSubmit();}} className="space-y-6">
-                  <div className="space-y-4">
-                    <h3 className="text-lg font-medium">Subscription Plans</h3>
-                    
-                    <div className="bg-muted/50 rounded-lg p-4">
-                      <div className="flex items-start justify-between">
-                        <div>
-                          <h4 className="font-semibold flex items-center">
-                            <Zap className="h-4 w-4 mr-1 text-primary" />
-                            Enterprise Plan
-                          </h4>
-                          <p className="text-sm text-muted-foreground mt-1">
-                            Unlimited restaurants, support, and features
-                          </p>
-                        </div>
-                        <Badge className="bg-primary text-primary-foreground">Current Plan</Badge>
-                      </div>
-                      
-                      <div className="mt-4 flex justify-between items-center">
-                        <div>
-                          <p className="text-sm text-muted-foreground">
-                            Renews on <strong>April 15, 2025</strong>
-                          </p>
-                        </div>
-                        <Button size="sm" variant="outline">Change Plan</Button>
-                      </div>
-                    </div>
-                    
-                    <Separator />
-                    
-                    <h3 className="text-lg font-medium">Payment Methods</h3>
-                    
-                    <div className="bg-card rounded-lg border p-4">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center space-x-4">
-                          <div className="w-12 h-8 bg-muted rounded flex items-center justify-center">
-                            <CreditCard className="h-5 w-5 text-primary" />
-                          </div>
+                        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
                           <div>
-                            <p className="font-medium">Visa ending in 4242</p>
-                            <p className="text-sm text-muted-foreground">Expires 09/2026</p>
+                            <h4 className="font-medium text-sm">Reset All System Settings</h4>
+                            <p className="text-xs text-muted-foreground">
+                              Restore all settings to their default values. This cannot be undone.
+                            </p>
                           </div>
+                          <Button variant="outline" size="sm" className="border-red-200 bg-background hover:bg-red-50">
+                            Reset Settings
+                          </Button>
                         </div>
                         
-                        <Badge>Default</Badge>
-                      </div>
-                    </div>
-                    
-                    <div className="flex items-center">
-                      <Button variant="ghost" size="sm" className="gap-1">
-                        <CreditCard className="h-4 w-4" />
-                        <span>Add Payment Method</span>
-                      </Button>
-                    </div>
-                    
-                    <Separator />
-                    
-                    <h3 className="text-lg font-medium">Billing Information</h3>
-                    
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="billing-name">Name</Label>
-                        <Input id="billing-name" defaultValue="POS Admin Inc." />
-                      </div>
-                      
-                      <div className="space-y-2">
-                        <Label htmlFor="billing-email">Email</Label>
-                        <Input id="billing-email" defaultValue="billing@posadmin.com" />
-                      </div>
-                      
-                      <div className="space-y-2">
-                        <Label htmlFor="billing-address">Address</Label>
-                        <Input id="billing-address" defaultValue="123 Main St." />
-                      </div>
-                      
-                      <div className="space-y-2">
-                        <Label htmlFor="billing-city">City</Label>
-                        <Input id="billing-city" defaultValue="New York" />
-                      </div>
-                      
-                      <div className="space-y-2">
-                        <Label htmlFor="billing-state">State / Province</Label>
-                        <Input id="billing-state" defaultValue="NY" />
-                      </div>
-                      
-                      <div className="space-y-2">
-                        <Label htmlFor="billing-zip">ZIP / Postal Code</Label>
-                        <Input id="billing-zip" defaultValue="10001" />
-                      </div>
-                      
-                      <div className="space-y-2 md:col-span-2">
-                        <Label htmlFor="billing-country">Country</Label>
-                        <Select defaultValue="US">
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select country" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="US">United States</SelectItem>
-                            <SelectItem value="CA">Canada</SelectItem>
-                            <SelectItem value="UK">United Kingdom</SelectItem>
-                            <SelectItem value="AU">Australia</SelectItem>
-                            <SelectItem value="DE">Germany</SelectItem>
-                            <SelectItem value="FR">France</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                    </div>
-                    
-                    <Separator />
-                    
-                    <h3 className="text-lg font-medium">Billing History</h3>
-                    
-                    <div className="overflow-x-auto rounded-md border">
-                      <table className="w-full">
-                        <thead>
-                          <tr className="bg-muted/50">
-                            <th className="px-4 py-3 text-left text-sm font-medium text-muted-foreground">Date</th>
-                            <th className="px-4 py-3 text-left text-sm font-medium text-muted-foreground">Description</th>
-                            <th className="px-4 py-3 text-left text-sm font-medium text-muted-foreground">Amount</th>
-                            <th className="px-4 py-3 text-left text-sm font-medium text-muted-foreground">Status</th>
-                            <th className="px-4 py-3 text-right text-sm font-medium text-muted-foreground">Actions</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {[
-                            { date: "Apr 1, 2024", description: "Enterprise Plan - Monthly", amount: "$499.00", status: "Paid" },
-                            { date: "Mar 1, 2024", description: "Enterprise Plan - Monthly", amount: "$499.00", status: "Paid" },
-                            { date: "Feb 1, 2024", description: "Enterprise Plan - Monthly", amount: "$499.00", status: "Paid" },
-                          ].map((invoice, i) => (
-                            <tr key={i} className="border-t">
-                              <td className="px-4 py-3 text-sm">{invoice.date}</td>
-                              <td className="px-4 py-3 text-sm">{invoice.description}</td>
-                              <td className="px-4 py-3 text-sm">{invoice.amount}</td>
-                              <td className="px-4 py-3 text-sm">
-                                <Badge variant="outline" className="bg-success/10 text-success border-success/20">
-                                  {invoice.status}
-                                </Badge>
-                              </td>
-                              <td className="px-4 py-3 text-sm text-right">
-                                <Button variant="ghost" size="sm">
-                                  <Download className="h-3.5 w-3.5 mr-1" />
-                                  PDF
-                                </Button>
-                              </td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
-                  </div>
-                  
-                  <Button type="submit">Save Billing Settings</Button>
-                </form>
-              </CardContent>
-            </Card>
-          </TabsContent>
-          
-          <TabsContent value="security">
-            <Card>
-              <CardHeader>
-                <CardTitle>Security Settings</CardTitle>
-                <CardDescription>
-                  Manage your account security and privacy
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <form onSubmit={(e) => {e.preventDefault(); onSecuritySubmit();}} className="space-y-6">
-                  <div className="space-y-4">
-                    <h3 className="text-lg font-medium">Password</h3>
-                    
-                    <div className="grid gap-4">
-                      <div className="grid gap-2">
-                        <Label htmlFor="current-password">Current Password</Label>
-                        <Input id="current-password" type="password" />
-                      </div>
-                      
-                      <div className="grid gap-2">
-                        <Label htmlFor="new-password">New Password</Label>
-                        <Input id="new-password" type="password" />
-                      </div>
-                      
-                      <div className="grid gap-2">
-                        <Label htmlFor="confirm-password">Confirm New Password</Label>
-                        <Input id="confirm-password" type="password" />
-                      </div>
-                      
-                      <Button className="w-fit">Update Password</Button>
-                    </div>
-                    
-                    <Separator />
-                    
-                    <h3 className="text-lg font-medium">Two-Factor Authentication</h3>
-                    
-                    <div className="flex items-center justify-between">
-                      <div className="space-y-0.5">
-                        <Label className="font-medium">Two-Factor Authentication</Label>
-                        <p className="text-[0.8rem] text-muted-foreground">
-                          Add an extra layer of security to your account
-                        </p>
-                      </div>
-                      <Switch id="2fa" />
-                    </div>
-                    
-                    <Separator />
-                    
-                    <h3 className="text-lg font-medium">Session Management</h3>
-                    
-                    <div className="overflow-x-auto rounded-md border">
-                      <table className="w-full">
-                        <thead>
-                          <tr className="bg-muted/50">
-                            <th className="px-4 py-3 text-left text-sm font-medium text-muted-foreground">Device</th>
-                            <th className="px-4 py-3 text-left text-sm font-medium text-muted-foreground">Location</th>
-                            <th className="px-4 py-3 text-left text-sm font-medium text-muted-foreground">IP Address</th>
-                            <th className="px-4 py-3 text-left text-sm font-medium text-muted-foreground">Last Active</th>
-                            <th className="px-4 py-3 text-right text-sm font-medium text-muted-foreground">Actions</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {[
-                            { device: "Chrome on Windows", location: "New York, USA", ip: "192.168.1.1", lastActive: "Currently active" },
-                            { device: "Safari on MacOS", location: "Los Angeles, USA", ip: "192.168.1.2", lastActive: "2 days ago" },
-                            { device: "Firefox on Windows", location: "Chicago, USA", ip: "192.168.1.3", lastActive: "1 week ago" },
-                          ].map((session, i) => (
-                            <tr key={i} className="border-t">
-                              <td className="px-4 py-3 text-sm">{session.device}</td>
-                              <td className="px-4 py-3 text-sm">{session.location}</td>
-                              <td className="px-4 py-3 text-sm">{session.ip}</td>
-                              <td className="px-4 py-3 text-sm">
-                                {session.lastActive === "Currently active" ? (
-                                  <Badge variant="outline" className="bg-success/10 text-success border-success/20">
-                                    {session.lastActive}
-                                  </Badge>
-                                ) : (
-                                  session.lastActive
-                                )}
-                              </td>
-                              <td className="px-4 py-3 text-sm text-right">
-                                <Button variant="ghost" size="sm" className="text-destructive hover:text-destructive hover:bg-destructive/10">
-                                  Revoke
-                                </Button>
-                              </td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
-                    
-                    <Separator />
-                    
-                    <h3 className="text-lg font-medium">API Access</h3>
-                    
-                    <div className="flex items-center justify-between">
-                      <div className="space-y-0.5">
-                        <Label className="font-medium">API Access</Label>
-                        <p className="text-[0.8rem] text-muted-foreground">
-                          Enable API access for third-party integrations
-                        </p>
-                      </div>
-                      <Switch id="api-access" defaultChecked />
-                    </div>
-                    
-                    <div className="mt-4 grid gap-4">
-                      <div className="grid gap-2">
-                        <Label htmlFor="api-key">API Key</Label>
-                        <div className="flex">
-                          <Input id="api-key" defaultValue="sk_test_4eC39HqLyjWDarjtT1zdp7dc" readOnly className="rounded-r-none" />
-                          <Button variant="secondary" className="rounded-l-none">
-                            Copy
+                        <Separator className="my-2" />
+                        
+                        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+                          <div>
+                            <h4 className="font-medium text-sm">Purge System Cache</h4>
+                            <p className="text-xs text-muted-foreground">
+                              Clear all system caches. May temporarily affect performance.
+                            </p>
+                          </div>
+                          <Button variant="outline" size="sm" className="border-red-200 bg-background hover:bg-red-50">
+                            Purge Cache
                           </Button>
                         </div>
                       </div>
-                      
-                      <div className="flex gap-2">
-                        <Button variant="outline">Regenerate Key</Button>
-                        <Button variant="outline">View Documentation</Button>
-                      </div>
-                    </div>
-                  </div>
-                  
-                  <Button type="submit">Save Security Settings</Button>
-                </form>
+                    </CardContent>
+                  </Card>
+                </div>
               </CardContent>
+              <CardFooter className="flex justify-end">
+                <Button variant="outline" className="mr-2">Cancel</Button>
+                <Button onClick={() => toast({ title: "Advanced settings saved", description: "Your system settings have been updated." })}>
+                  Save Changes
+                </Button>
+              </CardFooter>
+            </Card>
+            
+            <Card>
+              <CardHeader>
+                <CardTitle>API Settings</CardTitle>
+                <CardDescription>
+                  Configure API access and integrations.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="api-access">Enable API Access</Label>
+                    <Switch id="api-access" defaultChecked />
+                  </div>
+                  <p className="text-sm text-muted-foreground">
+                    Allow third-party applications to access your system via API.
+                  </p>
+                </div>
+                
+                <div className="space-y-2">
+                  <Label>API Keys</Label>
+                  <div className="space-y-3">
+                    {[
+                      { name: "Production Key", value: "••••••••••••••••••••••••••", status: "active" },
+                      { name: "Development Key", value: "••••••••••••••••••••••••••", status: "active" },
+                      { name: "Test Key", value: "••••••••••••••••••••••••••", status: "inactive" }
+                    ].map((apiKey, index) => (
+                      <div key={index} className="flex items-center justify-between py-2 border-b last:border-0">
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <h4 className="text-sm font-medium">{apiKey.name}</h4>
+                            {apiKey.status === "active" ? 
+                              <Badge variant="success">Active</Badge> : 
+                              <Badge variant="outline">Inactive</Badge>
+                            }
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <code className="text-xs bg-secondary/30 px-2 py-1 rounded">{apiKey.value}</code>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Button variant="ghost" size="sm">
+                            <CopyIcon className="h-3.5 w-3.5 mr-1" />
+                            Copy
+                          </Button>
+                          <Button variant="ghost" size="sm">
+                            <Info className="h-3.5 w-3.5 mr-1" />
+                            Details
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  <Button variant="outline" size="sm" className="mt-2">
+                    <PlusIcon className="h-4 w-4 mr-2" />
+                    Generate New API Key
+                  </Button>
+                </div>
+                
+                <Separator className="my-4" />
+                
+                <div className="space-y-2">
+                  <Label>Rate Limiting</Label>
+                  <Select defaultValue="moderate">
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select rate limit policy" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="low">Low (100 requests/minute)</SelectItem>
+                      <SelectItem value="moderate">Moderate (1000 requests/minute)</SelectItem>
+                      <SelectItem value="high">High (5000 requests/minute)</SelectItem>
+                      <SelectItem value="unlimited">Unlimited</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <p className="text-xs text-muted-foreground">
+                    Set the maximum number of API requests allowed per minute.
+                  </p>
+                </div>
+              </CardContent>
+              <CardFooter className="flex justify-end">
+                <Button variant="outline" className="mr-2">Reset</Button>
+                <Button onClick={() => toast({ title: "API settings saved", description: "Your API configuration has been updated." })}>
+                  <Save className="mr-2 h-4 w-4" />
+                  Save Changes
+                </Button>
+              </CardFooter>
             </Card>
           </TabsContent>
         </Tabs>
@@ -870,3 +661,58 @@ export default function SettingsPage() {
     </AdminLayout>
   );
 }
+
+// Missing components import
+const Plus = ({ className }) => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width="24"
+    height="24"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    className={className}
+  >
+    <path d="M5 12h14" />
+    <path d="M12 5v14" />
+  </svg>
+);
+
+const CopyIcon = ({ className }) => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width="24"
+    height="24"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    className={className}
+  >
+    <rect width="14" height="14" x="8" y="8" rx="2" ry="2" />
+    <path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2" />
+  </svg>
+);
+
+const PlusIcon = ({ className }) => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width="24"
+    height="24"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    className={className}
+  >
+    <path d="M5 12h14" />
+    <path d="M12 5v14" />
+  </svg>
+);
