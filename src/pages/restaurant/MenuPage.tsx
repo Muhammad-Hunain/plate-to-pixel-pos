@@ -1,11 +1,10 @@
-
 import { useState, useEffect } from "react";
 import RestaurantLayout from "@/components/layout/RestaurantLayout";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { 
   Menu as MenuIcon, Search, Plus, Edit, Trash2, ImagePlus, 
   DollarSign, Tag, AlertTriangle, Filter, SlidersHorizontal, 
@@ -31,8 +30,8 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import AddMenuItemForm from "@/components/menu/AddMenuItemForm";
 
-// Mock data for categories and menu items
 const initialCategories = [
   { id: "1", name: "Main Course", description: "Primary dishes", itemCount: 12, isActive: true },
   { id: "2", name: "Appetizers", description: "Starters and small bites", itemCount: 8, isActive: true },
@@ -181,7 +180,6 @@ const initialItems = [
   }
 ];
 
-// Mock data for branches
 const branches = [
   { id: "1", name: "Downtown" },
   { id: "2", name: "Westside" },
@@ -189,7 +187,6 @@ const branches = [
   { id: "4", name: "Mall Location" },
 ];
 
-// Form schemas
 const categoryFormSchema = z.object({
   name: z.string().min(2, { message: "Category name must be at least 2 characters." }),
   description: z.string().optional(),
@@ -219,7 +216,6 @@ export default function MenuPage() {
   const [editingItem, setEditingItem] = useState<any>(null);
   const [editingCategory, setEditingCategory] = useState<any>(null);
   
-  // Category form
   const categoryForm = useForm<z.infer<typeof categoryFormSchema>>({
     resolver: zodResolver(categoryFormSchema),
     defaultValues: {
@@ -229,7 +225,6 @@ export default function MenuPage() {
     },
   });
 
-  // Menu item form
   const menuItemForm = useForm<z.infer<typeof menuItemFormSchema>>({
     resolver: zodResolver(menuItemFormSchema),
     defaultValues: {
@@ -243,7 +238,6 @@ export default function MenuPage() {
     },
   });
 
-  // Reset forms when dialogs close
   useEffect(() => {
     if (!showNewCategoryDialog && !editingCategory) {
       categoryForm.reset();
@@ -256,7 +250,6 @@ export default function MenuPage() {
     }
   }, [showNewItemDialog, editingItem, menuItemForm]);
 
-  // Set form values when editing
   useEffect(() => {
     if (editingCategory) {
       categoryForm.reset({
@@ -281,7 +274,6 @@ export default function MenuPage() {
     }
   }, [editingItem, menuItemForm]);
 
-  // Filter menu items
   const filteredItems = menuItems.filter(item => {
     const matchesSearch = item.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
                           item.description.toLowerCase().includes(searchQuery.toLowerCase());
@@ -291,17 +283,14 @@ export default function MenuPage() {
     return matchesSearch && matchesCategory && matchesActiveState;
   });
 
-  // Submit handlers
   const handleCategorySubmit = (values: z.infer<typeof categoryFormSchema>) => {
     if (editingCategory) {
-      // Update existing category
       const updatedCategories = categories.map(cat => 
         cat.id === editingCategory.id ? { ...cat, ...values } : cat
       );
       setCategories(updatedCategories);
       toast.success("Category updated successfully!");
     } else {
-      // Create new category
       const newCategory = {
         id: (categories.length + 1).toString(),
         name: values.name,
@@ -317,9 +306,8 @@ export default function MenuPage() {
     categoryForm.reset();
   };
 
-  const handleItemSubmit = (values: z.infer<typeof menuItemFormSchema>) => {
+  const handleItemSubmit = (values: any) => {
     if (editingItem) {
-      // Update existing item
       const updatedItems = menuItems.map(item => 
         item.id === editingItem.id 
         ? { 
@@ -328,47 +316,47 @@ export default function MenuPage() {
             category: values.category,
             description: values.description || "",
             price: values.price,
-            branches: [values.branchAvailability],
+            image: values.image || item.image,
+            branches: [values.branchAvailability || "all"],
             isActive: values.isActive,
             isFeatured: values.isFeatured,
+            nutritionalInfo: values.nutritionalInfo || item.nutritionalInfo,
+            preparationTime: values.preparationTime || item.preparationTime,
           } 
         : item
       );
       setMenuItems(updatedItems);
       toast.success("Menu item updated successfully!");
     } else {
-      // Create new item
       const newItem = {
         id: (menuItems.length + 1).toString(),
         name: values.name,
         category: values.category,
         description: values.description || "",
         price: values.price,
-        image: "https://via.placeholder.com/150",
+        image: values.image || "https://via.placeholder.com/150",
         isActive: values.isActive,
         isFeatured: values.isFeatured,
-        branches: [values.branchAvailability],
-        allergens: [],
+        branches: [values.branchAvailability || "all"],
+        allergens: values.nutritionalInfo?.allergens ? [values.nutritionalInfo.allergens] : [],
         nutrition: {
-          calories: 0,
+          calories: values.nutritionalInfo?.calories || "0",
           protein: "0g",
           carbs: "0g",
           fat: "0g"
         },
         variants: [],
-        modifiers: []
+        modifiers: [],
+        preparationTime: values.preparationTime || ""
       };
       setMenuItems([...menuItems, newItem]);
       toast.success("Menu item created successfully!");
     }
     setShowNewItemDialog(false);
     setEditingItem(null);
-    menuItemForm.reset();
   };
 
-  // Delete handlers
   const handleDeleteCategory = (categoryId: string) => {
-    // Check if any items use this category
     const itemsUsingCategory = menuItems.filter(item => item.category === categoryId);
     if (itemsUsingCategory.length > 0) {
       toast.error(`Cannot delete category: ${itemsUsingCategory.length} menu items are using it.`);
@@ -794,7 +782,6 @@ export default function MenuPage() {
           </TabsContent>
         </Tabs>
 
-        {/* New/Edit Category Dialog */}
         <Dialog open={showNewCategoryDialog} onOpenChange={setShowNewCategoryDialog}>
           <DialogContent className="sm:max-w-[425px]">
             <DialogHeader>
@@ -857,7 +844,6 @@ export default function MenuPage() {
           </DialogContent>
         </Dialog>
 
-        {/* New/Edit Menu Item Dialog */}
         <Dialog open={showNewItemDialog} onOpenChange={setShowNewItemDialog}>
           <DialogContent className="sm:max-w-[600px]">
             <DialogHeader>
@@ -866,146 +852,12 @@ export default function MenuPage() {
                 {editingItem ? "Edit your menu item details." : "Create a new menu item."}
               </DialogDescription>
             </DialogHeader>
-            <Form {...menuItemForm}>
-              <form onSubmit={menuItemForm.handleSubmit(handleItemSubmit)} className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <FormField
-                    control={menuItemForm.control}
-                    name="name"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Item Name</FormLabel>
-                        <FormControl>
-                          <Input {...field} placeholder="e.g., Classic Burger" />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={menuItemForm.control}
-                    name="category"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Category</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Select a category" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            {categories.map((category) => (
-                              <SelectItem key={category.id} value={category.id}>
-                                {category.name}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-                <FormField
-                  control={menuItemForm.control}
-                  name="description"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Description</FormLabel>
-                      <FormControl>
-                        <Textarea {...field} placeholder="Brief description of this menu item" />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <FormField
-                    control={menuItemForm.control}
-                    name="price"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Price</FormLabel>
-                        <div className="relative">
-                          <DollarSign className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                          <FormControl>
-                            <Input type="number" step="0.01" className="pl-9" {...field} />
-                          </FormControl>
-                        </div>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={menuItemForm.control}
-                    name="branchAvailability"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Branch Availability</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Select branch availability" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            <SelectItem value="all">All Branches</SelectItem>
-                            {branches.map((branch) => (
-                              <SelectItem key={branch.id} value={branch.id}>
-                                {branch.name} Only
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <FormField
-                    control={menuItemForm.control}
-                    name="isActive"
-                    render={({ field }) => (
-                      <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3">
-                        <div className="space-y-0.5">
-                          <FormLabel>Active Status</FormLabel>
-                          <FormDescription>Inactive items won't appear in menus</FormDescription>
-                        </div>
-                        <FormControl>
-                          <Switch
-                            checked={field.value}
-                            onCheckedChange={field.onChange}
-                          />
-                        </FormControl>
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={menuItemForm.control}
-                    name="isFeatured"
-                    render={({ field }) => (
-                      <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3">
-                        <div className="space-y-0.5">
-                          <FormLabel>Featured Item</FormLabel>
-                          <FormDescription>Highlight this item in your menu</FormDescription>
-                        </div>
-                        <FormControl>
-                          <Switch
-                            checked={field.value}
-                            onCheckedChange={field.onChange}
-                          />
-                        </FormControl>
-                      </FormItem>
-                    )}
-                  />
-                </div>
-                <DialogFooter>
-                  <Button type="submit">{editingItem ? "Save Changes" : "Create Item"}</Button>
-                </DialogFooter>
-              </form>
-            </Form>
+            
+            <AddMenuItemForm 
+              onSubmit={handleItemSubmit}
+              initialData={editingItem}
+              categories={categories}
+            />
           </DialogContent>
         </Dialog>
       </div>

@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import RestaurantLayout from "@/components/layout/RestaurantLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -54,9 +53,13 @@ import {
   Banknote,
   Receipt,
   BarChart4,
+  CheckCircle,
+  CookingPot,
+  ThumbsUp,
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 interface OrderItem {
   id: string;
@@ -88,7 +91,6 @@ interface Order {
   notes?: string;
 }
 
-// Mock order data
 const mockOrders: Order[] = [
   {
     id: "1",
@@ -213,14 +215,14 @@ export default function OrdersPage() {
   const [activeTab, setActiveTab] = useState("all");
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [isOrderDetailsOpen, setIsOrderDetailsOpen] = useState(false);
+  const [isStatusUpdateOpen, setIsStatusUpdateOpen] = useState(false);
+  const [newStatus, setNewStatus] = useState<Order["status"]>("new");
   const [date, setDate] = useState<DateRange | undefined>({
     from: new Date(2023, 3, 10),
     to: new Date(),
   });
 
-  // Filter orders based on search term, tab filter, and date range
   const filteredOrders = orders.filter((order) => {
-    // Filter by search term
     const matchesSearch =
       searchTerm === "" ||
       order.orderNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -228,14 +230,12 @@ export default function OrdersPage() {
       (order.customer.phone && order.customer.phone.includes(searchTerm)) ||
       (order.customer.email && order.customer.email.toLowerCase().includes(searchTerm.toLowerCase()));
 
-    // Filter by tab
     const matchesTab =
       activeTab === "all" || order.status === activeTab || 
       (activeTab === "dine-in" && order.type === "dine-in") ||
       (activeTab === "takeaway" && order.type === "takeaway") ||
       (activeTab === "delivery" && order.type === "delivery");
 
-    // Filter by date range
     const orderDate = new Date(order.createdAt);
     const matchesDateRange =
       !date ||
@@ -264,11 +264,33 @@ export default function OrdersPage() {
     toast.success(`Order #${orderId} has been refunded`);
   };
 
+  const handleUpdateStatus = () => {
+    if (!selectedOrder || !newStatus) return;
+    
+    const updatedOrders = orders.map((order) =>
+      order.id === selectedOrder.id
+        ? { ...order, status: newStatus }
+        : order
+    );
+    
+    setOrders(updatedOrders);
+    setIsStatusUpdateOpen(false);
+    
+    setSelectedOrder({...selectedOrder, status: newStatus});
+    
+    toast.success(`Order #${selectedOrder.orderNumber} status updated to ${newStatus}`);
+  };
+
+  const openStatusUpdateDialog = (order: Order) => {
+    setSelectedOrder(order);
+    setNewStatus(order.status);
+    setIsStatusUpdateOpen(true);
+  };
+
   const handleExportData = () => {
     toast.success("Orders data exported successfully!");
   };
 
-  // Helper function to get style based on order status
   const getStatusStyle = (status: Order["status"]) => {
     switch (status) {
       case "new":
@@ -323,6 +345,21 @@ export default function OrdersPage() {
         return <Banknote className="h-4 w-4" />;
       case "online":
         return <Receipt className="h-4 w-4" />;
+    }
+  };
+
+  const getStatusIcon = (status: Order["status"]) => {
+    switch (status) {
+      case "new":
+        return <Clock className="h-4 w-4" />;
+      case "preparing":
+        return <CookingPot className="h-4 w-4" />;
+      case "ready":
+        return <ThumbsUp className="h-4 w-4" />;
+      case "completed":
+        return <CheckCircle className="h-4 w-4" />;
+      case "cancelled":
+        return <X className="h-4 w-4" />;
     }
   };
 
@@ -489,7 +526,7 @@ export default function OrdersPage() {
                                         Print Receipt
                                       </DropdownMenuItem>
                                       {(order.status !== "cancelled" && order.status !== "completed") && (
-                                        <DropdownMenuItem>
+                                        <DropdownMenuItem onClick={() => openStatusUpdateDialog(order)}>
                                           <RefreshCcw className="mr-2 h-4 w-4" />
                                           Update Status
                                         </DropdownMenuItem>
@@ -639,7 +676,6 @@ export default function OrdersPage() {
         </div>
       </div>
 
-      {/* Order details dialog */}
       <Dialog open={isOrderDetailsOpen} onOpenChange={setIsOrderDetailsOpen}>
         <DialogContent className="sm:max-w-[550px]">
           <DialogHeader>
@@ -651,7 +687,6 @@ export default function OrdersPage() {
           
           {selectedOrder && (
             <div className="space-y-4">
-              {/* Customer information */}
               <div>
                 <h3 className="text-sm font-semibold mb-1">Customer Information</h3>
                 <div className="flex items-center space-x-3 mb-2">
@@ -674,7 +709,6 @@ export default function OrdersPage() {
                 )}
               </div>
 
-              {/* Order items */}
               <div>
                 <h3 className="text-sm font-semibold mb-2">Order Items</h3>
                 <div className="border rounded-md">
@@ -712,7 +746,6 @@ export default function OrdersPage() {
                 </div>
               </div>
               
-              {/* Order details */}
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <Label className="text-xs">Order Type</Label>
@@ -723,10 +756,24 @@ export default function OrdersPage() {
                 </div>
                 <div>
                   <Label className="text-xs">Status</Label>
-                  <div className="mt-1">
+                  <div className="mt-1 flex items-center space-x-1">
                     <Badge variant={getStatusStyle(selectedOrder.status).variant}>
-                      {selectedOrder.status.charAt(0).toUpperCase() + selectedOrder.status.slice(1)}
+                      {getStatusIcon(selectedOrder.status)}
+                      <span className="ml-1">{selectedOrder.status.charAt(0).toUpperCase() + selectedOrder.status.slice(1)}</span>
                     </Badge>
+                    {(selectedOrder.status !== "cancelled" && selectedOrder.status !== "completed") && (
+                      <Button 
+                        variant="ghost" 
+                        size="sm"
+                        onClick={() => {
+                          setIsOrderDetailsOpen(false);
+                          openStatusUpdateDialog(selectedOrder);
+                        }}
+                      >
+                        <RefreshCcw className="h-3 w-3 mr-1" />
+                        Update
+                      </Button>
+                    )}
                   </div>
                 </div>
                 <div>
@@ -754,7 +801,6 @@ export default function OrdersPage() {
                 </div>
               </div>
 
-              {/* Order notes */}
               {selectedOrder.notes && (
                 <div>
                   <Label className="text-xs">Notes</Label>
@@ -783,6 +829,78 @@ export default function OrdersPage() {
                 Cancel & Refund
               </Button>
             )}
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={isStatusUpdateOpen} onOpenChange={setIsStatusUpdateOpen}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Update Order Status</DialogTitle>
+            <DialogDescription>
+              {selectedOrder && `Change the status for order #${selectedOrder.orderNumber}`}
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="status">Select New Status</Label>
+              <Select 
+                value={newStatus} 
+                onValueChange={(value) => setNewStatus(value as Order["status"])}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="new">
+                    <div className="flex items-center">
+                      <Clock className="h-4 w-4 mr-2 text-blue-500" />
+                      New
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="preparing">
+                    <div className="flex items-center">
+                      <CookingPot className="h-4 w-4 mr-2 text-amber-500" />
+                      Preparing
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="ready">
+                    <div className="flex items-center">
+                      <ThumbsUp className="h-4 w-4 mr-2 text-green-500" />
+                      Ready
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="completed">
+                    <div className="flex items-center">
+                      <CheckCircle className="h-4 w-4 mr-2 text-primary" />
+                      Completed
+                    </div>
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            
+            {selectedOrder && selectedOrder.status !== newStatus && (
+              <div className="rounded-md bg-muted p-3">
+                <div className="flex items-center space-x-2">
+                  <div className="p-2 rounded-full bg-primary/20">
+                    <RefreshCcw className="h-4 w-4 text-primary" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium">Status will change from <span className="font-semibold">{selectedOrder?.status}</span> to <span className="font-semibold">{newStatus}</span></p>
+                    <p className="text-xs text-muted-foreground">This will update the order status and notify relevant staff</p>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsStatusUpdateOpen(false)}>Cancel</Button>
+            <Button onClick={handleUpdateStatus} disabled={selectedOrder?.status === newStatus}>
+              Update Status
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
