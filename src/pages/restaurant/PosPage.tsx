@@ -1,5 +1,5 @@
 
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
@@ -12,11 +12,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
 import {
   BarChart,
   Clock,
   Filter,
   History,
+  Layers,
+  MapPin,
   MoreVertical,
   Plus,
   Search,
@@ -85,13 +88,29 @@ const menuItems = [
     category: "drinks",
     image: "https://images.unsplash.com/photo-1556679343-c7306c1976bc?w=300&h=200&fit=crop",
   },
+  {
+    id: 9,
+    name: "Veggie Burger",
+    price: 11.99,
+    category: "burgers",
+    image: "https://images.unsplash.com/photo-1550317138-10000687a72b?w=300&h=200&fit=crop",
+  },
+  {
+    id: 10,
+    name: "Pepperoni Pizza",
+    price: 15.99,
+    category: "pizza",
+    image: "https://images.unsplash.com/photo-1534308983496-4fabb1a015ee?w=300&h=200&fit=crop",
+  },
 ];
 
 const PosPage = () => {
   const { toast } = useToast();
   const [cart, setCart] = useState([]);
-  const [activeTab, setActiveTab] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
+  const [orderType, setOrderType] = useState("dine-in");
+  const [tableNumber, setTableNumber] = useState("");
+  const [deliveryAddress, setDeliveryAddress] = useState("");
 
   const handleAddToCart = (item) => {
     const existingItem = cart.find((cartItem) => cartItem.id === item.id);
@@ -135,14 +154,40 @@ const PosPage = () => {
       });
       return;
     }
+
+    if (orderType === "dine-in" && !tableNumber) {
+      toast({
+        title: "Table number required",
+        description: "Please enter a table number for dine-in orders.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (orderType === "delivery" && !deliveryAddress) {
+      toast({
+        title: "Delivery address required",
+        description: "Please enter a delivery address.",
+        variant: "destructive",
+      });
+      return;
+    }
     
     toast({
       title: "Order placed",
       description: `Order with ${cart.length} items has been placed successfully.`,
     });
     
-    console.log("Order placed:", cart);
+    console.log("Order placed:", {
+      items: cart,
+      orderType,
+      tableNumber,
+      deliveryAddress
+    });
+    
     setCart([]);
+    setTableNumber("");
+    setDeliveryAddress("");
   };
 
   const calculateTotal = () => {
@@ -153,24 +198,40 @@ const PosPage = () => {
   };
 
   const filteredItems = menuItems.filter((item) => {
-    const matchesCategory = activeTab === "all" || item.category === activeTab;
-    const matchesSearch = item.name
+    return item.name
       .toLowerCase()
       .includes(searchQuery.toLowerCase());
-    return matchesCategory && matchesSearch;
   });
 
-  const categories = [
-    { id: "all", name: "All" },
-    { id: "burgers", name: "Burgers" },
-    { id: "pizza", name: "Pizza" },
-    { id: "pasta", name: "Pasta" },
-    { id: "salads", name: "Salads" },
-    { id: "appetizers", name: "Appetizers" },
-    { id: "sides", name: "Sides" },
-    { id: "desserts", name: "Desserts" },
-    { id: "drinks", name: "Drinks" },
-  ];
+  // Group items by category
+  const itemsByCategory = useMemo(() => {
+    const groups = {};
+    filteredItems.forEach(item => {
+      if (!groups[item.category]) {
+        groups[item.category] = [];
+      }
+      groups[item.category].push(item);
+    });
+    return groups;
+  }, [filteredItems]);
+
+  // Group cart items by category
+  const cartByCategory = useMemo(() => {
+    const groups = {};
+    cart.forEach(item => {
+      if (!groups[item.category]) {
+        groups[item.category] = [];
+      }
+      groups[item.category].push(item);
+    });
+    return groups;
+  }, [cart]);
+
+  // Transform categories for display
+  const categories = Object.keys(itemsByCategory).map(category => ({
+    id: category,
+    name: category.charAt(0).toUpperCase() + category.slice(1)
+  }));
 
   return (
     <RestaurantLayout>
@@ -181,9 +242,11 @@ const PosPage = () => {
             <div className="flex flex-col md:flex-row justify-between mb-4 gap-4">
               <div className="flex items-center space-x-2">
                 <h1 className="text-2xl font-bold">Point of Sale</h1>
-                <Badge variant="outline" className="ml-2">
-                  Table 5
-                </Badge>
+                {tableNumber && (
+                  <Badge variant="outline" className="ml-2">
+                    Table {tableNumber}
+                  </Badge>
+                )}
               </div>
 
               <div className="flex gap-2">
@@ -203,55 +266,43 @@ const PosPage = () => {
               </div>
             </div>
 
-            <Tabs
-              defaultValue="all"
-              value={activeTab}
-              onValueChange={setActiveTab}
-              className="mt-2"
-            >
-              <div className="overflow-x-auto pb-2">
-                <TabsList className="h-9 w-max">
-                  {categories.map((category) => (
-                    <TabsTrigger
-                      key={category.id}
-                      value={category.id}
-                      className="px-4"
-                    >
-                      {category.name}
-                    </TabsTrigger>
-                  ))}
-                </TabsList>
-              </div>
-
-              <TabsContent value={activeTab} className="mt-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-                  {filteredItems.map((item) => (
-                    <div
-                      key={item.id}
-                      className="cursor-pointer rounded-lg border bg-card text-card-foreground shadow-sm overflow-hidden hover:shadow-md transition-all"
-                      onClick={() => handleAddToCart(item)}
-                    >
-                      <div className="relative">
-                        <img
-                          src={item.image}
-                          alt={item.name}
-                          className="w-full h-[120px] object-cover"
-                        />
-                      </div>
-                      <div className="p-4">
-                        <h3 className="font-medium">{item.name}</h3>
-                        <div className="flex justify-between items-center mt-1">
-                          <span className="text-muted-foreground text-sm">
-                            {item.category}
-                          </span>
-                          <span className="font-bold">${item.price}</span>
+            {/* Show all categories */}
+            <div className="space-y-6">
+              {categories.map((category) => (
+                <div key={category.id} className="space-y-3">
+                  <div className="flex items-center gap-2">
+                    <Layers className="h-4 w-4 text-muted-foreground" />
+                    <h2 className="text-lg font-semibold">{category.name}</h2>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+                    {itemsByCategory[category.id].map((item) => (
+                      <div
+                        key={item.id}
+                        className="cursor-pointer rounded-lg border bg-card text-card-foreground shadow-sm overflow-hidden hover:shadow-md transition-all"
+                        onClick={() => handleAddToCart(item)}
+                      >
+                        <div className="relative">
+                          <img
+                            src={item.image}
+                            alt={item.name}
+                            className="w-full h-[120px] object-cover"
+                          />
+                        </div>
+                        <div className="p-4">
+                          <h3 className="font-medium">{item.name}</h3>
+                          <div className="flex justify-between items-center mt-1">
+                            <span className="text-muted-foreground text-sm">
+                              {item.category}
+                            </span>
+                            <span className="font-bold">${item.price}</span>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  ))}
+                    ))}
+                  </div>
                 </div>
-              </TabsContent>
-            </Tabs>
+              ))}
+            </div>
           </div>
 
           {/* Right side - Cart */}
@@ -262,7 +313,11 @@ const PosPage = () => {
                 <h2 className="text-xl font-bold">Current Order</h2>
               </div>
               <div className="flex items-center gap-2">
-                <Select defaultValue="dine-in">
+                <Select 
+                  defaultValue="dine-in" 
+                  value={orderType}
+                  onValueChange={setOrderType}
+                >
                   <SelectTrigger className="w-[120px]">
                     <SelectValue placeholder="Order Type" />
                   </SelectTrigger>
@@ -277,6 +332,37 @@ const PosPage = () => {
                 </Button>
               </div>
             </div>
+            
+            {/* Order type specific inputs */}
+            {orderType === "dine-in" && (
+              <div className="mb-4">
+                <div className="flex items-center gap-2">
+                  <MapPin className="h-4 w-4 text-muted-foreground" />
+                  <Input 
+                    placeholder="Table Number" 
+                    value={tableNumber}
+                    onChange={(e) => setTableNumber(e.target.value)}
+                  />
+                </div>
+              </div>
+            )}
+            
+            {orderType === "delivery" && (
+              <div className="mb-4">
+                <div className="flex flex-col gap-2">
+                  <div className="flex items-center gap-2">
+                    <MapPin className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                    <span className="text-sm font-medium">Delivery Address</span>
+                  </div>
+                  <Textarea 
+                    placeholder="Enter delivery address" 
+                    value={deliveryAddress}
+                    onChange={(e) => setDeliveryAddress(e.target.value)}
+                    className="min-h-[80px]"
+                  />
+                </div>
+              </div>
+            )}
 
             <div className="flex-grow overflow-y-auto mb-4">
               {cart.length === 0 ? (
@@ -286,51 +372,61 @@ const PosPage = () => {
                   <p className="text-sm">Add items from the menu</p>
                 </div>
               ) : (
-                <div className="space-y-3">
-                  {cart.map((item) => (
-                    <div
-                      key={item.id}
-                      className="flex justify-between items-center border-b pb-3"
-                    >
-                      <div className="flex items-center">
-                        <div className="ml-3">
-                          <p className="font-medium">{item.name}</p>
-                          <p className="text-sm text-muted-foreground">
-                            ${item.price.toFixed(2)} x {item.quantity}
-                          </p>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <span className="font-bold">
-                          ${(item.price * item.quantity).toFixed(2)}
-                        </span>
-                        <div className="flex items-center border rounded-md">
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-8 w-8 p-0"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleRemoveFromCart(item.id);
-                            }}
+                <div className="space-y-4">
+                  {/* Group cart items by category */}
+                  {Object.entries(cartByCategory).map(([category, items]) => (
+                    <div key={category} className="space-y-2">
+                      <h3 className="text-sm font-medium text-muted-foreground capitalize">
+                        {category}
+                      </h3>
+                      <div className="space-y-2">
+                        {items.map((item) => (
+                          <div
+                            key={item.id}
+                            className="flex justify-between items-center border-b pb-2"
                           >
-                            -
-                          </Button>
-                          <span className="w-8 text-center">
-                            {item.quantity}
-                          </span>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-8 w-8 p-0"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleAddToCart(item);
-                            }}
-                          >
-                            +
-                          </Button>
-                        </div>
+                            <div className="flex items-center">
+                              <div className="ml-3">
+                                <p className="font-medium">{item.name}</p>
+                                <p className="text-sm text-muted-foreground">
+                                  ${item.price.toFixed(2)} x {item.quantity}
+                                </p>
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <span className="font-bold">
+                                ${(item.price * item.quantity).toFixed(2)}
+                              </span>
+                              <div className="flex items-center border rounded-md">
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="h-8 w-8 p-0"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleRemoveFromCart(item.id);
+                                  }}
+                                >
+                                  -
+                                </Button>
+                                <span className="w-8 text-center">
+                                  {item.quantity}
+                                </span>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="h-8 w-8 p-0"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleAddToCart(item);
+                                  }}
+                                >
+                                  +
+                                </Button>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
                       </div>
                     </div>
                   ))}

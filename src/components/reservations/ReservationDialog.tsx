@@ -1,5 +1,5 @@
 
-import React, { useState } from "react";
+import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -13,154 +13,193 @@ import {
 import {
   Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { CalendarPlus } from "lucide-react";
-import * as z from "zod";
-import { useForm } from "react-hook-form";
+import { Textarea } from "@/components/ui/textarea";
+import { Plus } from "lucide-react";
+import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useToast } from "@/hooks/use-toast";
-import DatePicker from "@/components/reports/admin/UpdatedDatePicker";
-import { TimeInput } from "@/components/ui/time-input";
+import { useForm } from "react-hook-form";
+import DatePicker from '../reports/admin/UpdatedDatePicker';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
+// Define the form schema
 const formSchema = z.object({
-  name: z.string().min(2, { message: "Name must be at least 2 characters." }),
-  email: z.string().email({ message: "Please enter a valid email address." }),
-  phone: z.string().min(10, { message: "Please enter a valid phone number." }),
-  partySize: z.string().min(1, { message: "Party size is required." }),
-  date: z.date({ required_error: "Please select a date." }),
-  time: z.string().min(1, { message: "Please select a time." }),
-  specialRequests: z.string().optional(),
-  tableSection: z.string().min(1, { message: "Please select a table section." }),
+  name: z.string().min(2, {
+    message: "Name must be at least 2 characters.",
+  }),
+  contact: z.string().min(5, {
+    message: "Contact information is required.",
+  }),
+  guests: z.string().transform((val) => parseInt(val, 10)),
+  date: z.date({
+    required_error: "Please select a date.",
+  }),
+  time: z.string().min(1, {
+    message: "Please select a time.",
+  }),
+  tableNumber: z.string().min(1, {
+    message: "Table number is required.",
+  }),
+  notes: z.string().optional(),
 });
 
-type FormValues = z.infer<typeof formSchema>;
-
 interface ReservationDialogProps {
-  triggerComponent?: React.ReactNode;
+  onSave?: (data: any) => void;
 }
 
-const ReservationDialog: React.FC<ReservationDialogProps> = ({ triggerComponent }) => {
+const ReservationDialog: React.FC<ReservationDialogProps> = ({ onSave }) => {
   const [open, setOpen] = useState(false);
-  const { toast } = useToast();
-
-  const form = useForm<FormValues>({
+  
+  // Initialize form
+  const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       name: "",
-      email: "",
-      phone: "",
-      partySize: "2",
-      specialRequests: "",
-      tableSection: "Main",
+      contact: "",
+      guests: 2,
+      time: "19:00",
+      tableNumber: "",
+      notes: "",
     },
   });
 
-  function onSubmit(data: FormValues) {
-    console.log("Reservation submitted:", data);
-    
-    toast({
-      title: "Reservation created",
-      description: `Reservation for ${data.name} on ${data.date.toLocaleDateString()} at ${data.time} has been created.`,
-    });
-    
-    setOpen(false);
+  // Handle form submission
+  function onSubmit(data: z.infer<typeof formSchema>) {
+    if (onSave) {
+      onSave(data);
+    }
     form.reset();
+    setOpen(false);
   }
 
-  const defaultTrigger = (
-    <Button className="flex items-center gap-2">
-      <CalendarPlus className="h-4 w-4" />
-      Add Reservation
-    </Button>
-  );
+  // Available time slots
+  const timeSlots = [
+    "17:00", "17:30", "18:00", "18:30", "19:00", "19:30", 
+    "20:00", "20:30", "21:00", "21:30", "22:00"
+  ];
+
+  // Close dialog and reset form
+  const handleDialogClose = () => {
+    form.reset();
+    setOpen(false);
+  };
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        {triggerComponent || defaultTrigger}
+        <Button className="gap-1">
+          <Plus className="h-4 w-4" />
+          Add Reservation
+        </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[525px] max-h-[90vh] overflow-y-auto">
+      <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
           <DialogTitle>Add New Reservation</DialogTitle>
           <DialogDescription>
-            Enter the details for the new reservation.
+            Fill out the form to create a new reservation. Click save when you're done.
           </DialogDescription>
         </DialogHeader>
-
+        
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 pt-4">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            <FormField
+              control={form.control}
+              name="name"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Guest Name</FormLabel>
+                  <FormControl>
+                    <Input placeholder="John Smith" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            
+            <FormField
+              control={form.control}
+              name="contact"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Contact Information</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Phone number or email" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <FormField
                 control={form.control}
-                name="name"
+                name="guests"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Customer Name</FormLabel>
+                    <FormLabel>Number of Guests</FormLabel>
                     <FormControl>
-                      <Input placeholder="John Doe" {...field} />
+                      <Input 
+                        type="number" 
+                        min={1} 
+                        {...field} 
+                        value={field.value} 
+                        onChange={(e) => field.onChange(e.target.value)}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
-
+              
               <FormField
                 control={form.control}
-                name="email"
+                name="tableNumber"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Email</FormLabel>
+                    <FormLabel>Table Number</FormLabel>
                     <FormControl>
-                      <Input placeholder="john@example.com" {...field} />
+                      <Input placeholder="T12" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
-
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <FormField
                 control={form.control}
-                name="phone"
+                name="date"
                 render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Phone</FormLabel>
-                    <FormControl>
-                      <Input placeholder="(123) 456-7890" {...field} />
-                    </FormControl>
+                  <FormItem className="flex flex-col">
+                    <FormLabel>Date</FormLabel>
+                    <DatePicker date={field.value} setDate={field.onChange} />
                     <FormMessage />
                   </FormItem>
                 )}
               />
-
+              
               <FormField
                 control={form.control}
-                name="partySize"
+                name="time"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Party Size</FormLabel>
+                    <FormLabel>Time</FormLabel>
                     <Select onValueChange={field.onChange} defaultValue={field.value}>
                       <FormControl>
                         <SelectTrigger>
-                          <SelectValue placeholder="Select party size" />
+                          <SelectValue placeholder="Select a time slot" />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, "10+"].map((size) => (
-                          <SelectItem key={size} value={String(size)}>
-                            {size}
+                        {timeSlots.map((time) => (
+                          <SelectItem key={time} value={time}>
+                            {time}
                           </SelectItem>
                         ))}
                       </SelectContent>
@@ -169,82 +208,27 @@ const ReservationDialog: React.FC<ReservationDialogProps> = ({ triggerComponent 
                   </FormItem>
                 )}
               />
-
-              <FormField
-                control={form.control}
-                name="date"
-                render={({ field }) => (
-                  <FormItem className="flex flex-col">
-                    <FormLabel>Date</FormLabel>
-                    <DatePicker
-                      date={field.value}
-                      setDate={field.onChange}
-                    />
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="time"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Time</FormLabel>
-                    <TimeInput 
-                      value={field.value}
-                      onChange={field.onChange}
-                    />
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="tableSection"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Table Section</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select section" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="Main">Main</SelectItem>
-                        <SelectItem value="Window">Window</SelectItem>
-                        <SelectItem value="Patio">Patio</SelectItem>
-                        <SelectItem value="Bar">Bar</SelectItem>
-                        <SelectItem value="Private">Private Room</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="specialRequests"
-                render={({ field }) => (
-                  <FormItem className="sm:col-span-2">
-                    <FormLabel>Special Requests</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Any special requirements or notes" {...field} />
-                    </FormControl>
-                    <FormDescription>
-                      Optional: Any special requests or dietary requirements
-                    </FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
             </div>
-
-            <DialogFooter>
-              <Button type="button" variant="outline" onClick={() => setOpen(false)}>
+            
+            <FormField
+              control={form.control}
+              name="notes"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Special Requests</FormLabel>
+                  <FormControl>
+                    <Textarea 
+                      placeholder="Any special requests or notes for this reservation"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            
+            <DialogFooter className="pt-4">
+              <Button variant="outline" type="button" onClick={handleDialogClose}>
                 Cancel
               </Button>
               <Button type="submit">Save Reservation</Button>

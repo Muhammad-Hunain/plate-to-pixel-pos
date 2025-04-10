@@ -29,10 +29,13 @@ import {
   CalendarIcon,
   ChevronLeft,
   ChevronRight,
+  Eye,
   Filter,
   Search,
 } from "lucide-react";
 import ReservationDialog from '@/components/reservations/ReservationDialog';
+import ReservationDetails from '@/components/reservations/ReservationDetails';
+import { useToast } from "@/hooks/use-toast";
 
 // Mock data for reservations
 const reservationsData = [
@@ -137,11 +140,15 @@ const days = [
 ];
 
 const ReservationsPage = () => {
+  const { toast } = useToast();
   const [activeDay, setActiveDay] = useState("Today");
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [selectedReservation, setSelectedReservation] = useState(null);
+  const [isDetailsOpen, setIsDetailsOpen] = useState(false);
+  const [reservations, setReservations] = useState(reservationsData);
 
-  const filteredReservations = reservationsData.filter(reservation => {
+  const filteredReservations = reservations.filter(reservation => {
     const matchesSearch = reservation.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
                           reservation.id.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesStatus = statusFilter === "all" || reservation.status === statusFilter;
@@ -163,6 +170,38 @@ const ReservationsPage = () => {
     }
   };
 
+  const handleViewDetails = (reservation) => {
+    setSelectedReservation(reservation);
+    setIsDetailsOpen(true);
+  };
+
+  const handleConfirmReservation = (id) => {
+    setReservations(reservations.map(res => {
+      if (res.id === id) {
+        return { ...res, status: "confirmed" };
+      }
+      return res;
+    }));
+  };
+
+  const handleCancelReservation = (id) => {
+    setReservations(reservations.map(res => {
+      if (res.id === id) {
+        return { ...res, status: "cancelled" };
+      }
+      return res;
+    }));
+  };
+
+  const handleAddNewReservation = (newReservation) => {
+    const id = `RES${String(reservations.length + 1).padStart(3, '0')}`;
+    setReservations([...reservations, { ...newReservation, id, status: "pending" }]);
+    toast({
+      title: "Reservation added",
+      description: `New reservation for ${newReservation.name} has been added.`
+    });
+  };
+
   return (
     <RestaurantLayout>
       <div className="p-8 max-w-7xl mx-auto">
@@ -172,7 +211,7 @@ const ReservationsPage = () => {
             <p className="text-muted-foreground">Manage your restaurant bookings and tables</p>
           </div>
           <div className="flex gap-2 mt-4 md:mt-0">
-            <ReservationDialog />
+            <ReservationDialog onSave={handleAddNewReservation} />
           </div>
         </div>
 
@@ -207,31 +246,31 @@ const ReservationsPage = () => {
           </div>
         </div>
 
+        <Card className="mb-6">
+          <CardContent className="p-0">
+            <div className="flex overflow-x-auto py-4 px-2">
+              {days.map((day) => (
+                <Button
+                  key={day}
+                  variant={activeDay === day ? "default" : "ghost"}
+                  className="rounded-full px-4 mx-1 whitespace-nowrap"
+                  onClick={() => setActiveDay(day)}
+                >
+                  {day}
+                </Button>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+
         <Tabs defaultValue="list">
           <TabsList className="mb-4">
             <TabsTrigger value="list">List View</TabsTrigger>
             <TabsTrigger value="table">Table View</TabsTrigger>
           </TabsList>
           
-          <Card className="mb-6">
-            <CardContent className="p-0">
-              <div className="flex overflow-x-auto py-4 px-2">
-                {days.map((day) => (
-                  <Button
-                    key={day}
-                    variant={activeDay === day ? "default" : "ghost"}
-                    className="rounded-full px-4 mx-1 whitespace-nowrap"
-                    onClick={() => setActiveDay(day)}
-                  >
-                    {day}
-                  </Button>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-
           <TabsContent value="list" className="space-y-4">
-            <div className="flex gap-2 mb-4">
+            <div className="flex gap-2 mb-4 overflow-x-auto">
               <Button 
                 variant={statusFilter === "all" ? "default" : "outline"} 
                 size="sm"
@@ -281,12 +320,13 @@ const ReservationsPage = () => {
                     <TableHead>Status</TableHead>
                     <TableHead>Contact</TableHead>
                     <TableHead>Notes</TableHead>
+                    <TableHead>Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {filteredReservations.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={8} className="text-center h-24">
+                      <TableCell colSpan={9} className="text-center h-24">
                         No reservations found
                       </TableCell>
                     </TableRow>
@@ -302,6 +342,16 @@ const ReservationsPage = () => {
                         <TableCell>{reservation.contact}</TableCell>
                         <TableCell className="max-w-[200px] truncate" title={reservation.notes}>
                           {reservation.notes || "-"}
+                        </TableCell>
+                        <TableCell>
+                          <Button 
+                            variant="ghost" 
+                            size="icon"
+                            onClick={() => handleViewDetails(reservation)}
+                            title="View Details"
+                          >
+                            <Eye className="h-4 w-4" />
+                          </Button>
                         </TableCell>
                       </TableRow>
                     ))
@@ -331,6 +381,14 @@ const ReservationsPage = () => {
           </TabsContent>
         </Tabs>
       </div>
+      
+      <ReservationDetails 
+        reservation={selectedReservation}
+        isOpen={isDetailsOpen}
+        onClose={() => setIsDetailsOpen(false)}
+        onConfirm={handleConfirmReservation}
+        onCancel={handleCancelReservation}
+      />
     </RestaurantLayout>
   );
 };

@@ -22,12 +22,14 @@ const AdvancedCustomerAnalytics: React.FC<AdvancedCustomerAnalyticsProps> = ({
   colors
 }) => {
   return (
-    <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+    <div className="grid gap-6 md:grid-cols-2 w-full">
       <CustomerRetentionChart retentionData={retentionData} />
       <AcquisitionChannelsChart acquisitionData={acquisitionData} colors={colors} />
       <CustomerLifetimeValueChart lifetimeValueData={lifetimeValueData} colors={colors} />
       <FeedbackSentimentAnalysis sentimentData={sentimentData} />
-      <CustomerEngagementOverview />
+      <div className="md:col-span-2">
+        <CustomerEngagementOverview />
+      </div>
     </div>
   );
 };

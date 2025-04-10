@@ -20,13 +20,13 @@ interface CustomerRetentionChartProps {
 
 const CustomerRetentionChart: React.FC<CustomerRetentionChartProps> = ({ retentionData }) => {
   return (
-    <Card>
+    <Card className="w-full">
       <CardHeader>
         <CardTitle>Customer Retention</CardTitle>
         <CardDescription>Monthly retention rate (%)</CardDescription>
       </CardHeader>
-      <CardContent>
-        <ResponsiveContainer width="100%" height={350}>
+      <CardContent className="h-[350px]">
+        <ResponsiveContainer width="100%" height="100%">
           <LineChart data={retentionData}>
             <CartesianGrid strokeDasharray="3 3" />
             <XAxis dataKey="month" />
