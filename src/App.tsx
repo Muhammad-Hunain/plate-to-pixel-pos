@@ -14,6 +14,10 @@ import ForgotPasswordPage from "./pages/auth/ForgotPasswordPage";
 
 // Admin Pages
 import AdminDashboard from "./pages/admin/AdminDashboard";
+import RestaurantsPage from "./pages/admin/RestaurantsPage";
+import UsersPage from "./pages/admin/UsersPage";
+import ReportsPage from "./pages/admin/ReportsPage";
+import SettingsPage from "./pages/admin/SettingsPage";
 
 // Restaurant Pages
 import RestaurantDashboard from "./pages/restaurant/RestaurantDashboard";
@@ -38,6 +42,10 @@ const App = () => (
           
           {/* Admin Routes */}
           <Route path="/admin/dashboard" element={<AdminDashboard />} />
+          <Route path="/admin/restaurants" element={<RestaurantsPage />} />
+          <Route path="/admin/users" element={<UsersPage />} />
+          <Route path="/admin/reports" element={<ReportsPage />} />
+          <Route path="/admin/settings" element={<SettingsPage />} />
           
           {/* Restaurant Routes */}
           <Route path="/restaurant/dashboard" element={<RestaurantDashboard />} />
