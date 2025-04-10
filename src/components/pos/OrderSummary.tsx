@@ -4,7 +4,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import { Plus, Minus, Trash, CreditCard, Receipt } from "lucide-react";
+import { Plus, Minus, Trash, CreditCard, Receipt, ShoppingBag } from "lucide-react";
 import { toast } from "sonner";
 
 type MenuItem = {
@@ -59,6 +59,50 @@ export function OrderSummary({
   // Get all items for a specific category
   const getOrderItemsByCategory = (categoryId: number) => {
     return orderItems.filter(item => item.category === categoryId);
+  };
+
+  // Handle place order button
+  const handlePlaceOrder = () => {
+    // Get current date and time
+    const now = new Date();
+    
+    // Create order object
+    const order = {
+      id: `order-${Date.now()}`,
+      orderNumber: `ORD-${Math.floor(1000 + Math.random() * 9000)}`,
+      items: orderItems.map(item => ({
+        id: `item-${item.id}-${Date.now()}`,
+        name: item.name,
+        quantity: item.quantity,
+        price: item.price
+      })),
+      total: total,
+      status: "new",
+      type: orderType,
+      paymentMethod: "pending",
+      paymentStatus: "pending",
+      table: orderType === "dine-in" ? `Table ${tableNumber}` : undefined,
+      staff: "Current User",
+      branch: "Main Branch",
+      createdAt: now.toISOString(),
+      customer: {
+        name: orderType === "dine-in" ? `Table ${tableNumber}` : "Walk-in Customer"
+      }
+    };
+    
+    // Save order to localStorage to make it available to the Orders page
+    const existingOrders = localStorage.getItem('restaurant-orders');
+    const ordersArray = existingOrders ? JSON.parse(existingOrders) : [];
+    ordersArray.push(order);
+    localStorage.setItem('restaurant-orders', JSON.stringify(ordersArray));
+    
+    // Show success message
+    toast.success("Order placed successfully!", {
+      description: `Order #${order.orderNumber} has been placed.`,
+    });
+    
+    // Call process payment (which clears the order)
+    processPayment();
   };
 
   return (
@@ -213,10 +257,10 @@ export function OrderSummary({
         <Button 
           className="w-full"
           disabled={orderItems.length === 0}
-          onClick={processPayment}
+          onClick={handlePlaceOrder}
         >
-          <CreditCard className="mr-2 h-4 w-4" />
-          Pay
+          <ShoppingBag className="mr-2 h-4 w-4" />
+          Place Order
         </Button>
       </div>
     </div>

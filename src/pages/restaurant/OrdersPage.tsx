@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import RestaurantLayout from "@/components/layout/RestaurantLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -30,6 +30,7 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
+  DialogTrigger,
 } from "@/components/ui/dialog";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -54,9 +55,14 @@ import {
   Banknote,
   Receipt,
   BarChart4,
+  PlusCircle,
+  ShoppingCart,
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
+import { useNavigate } from "react-router-dom";
+import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 interface OrderItem {
   id: string;
@@ -79,7 +85,7 @@ interface Order {
   total: number;
   status: "new" | "preparing" | "ready" | "completed" | "cancelled";
   type: "dine-in" | "takeaway" | "delivery";
-  paymentMethod: "cash" | "card" | "online";
+  paymentMethod: "cash" | "card" | "online" | "pending";
   paymentStatus: "paid" | "pending" | "refunded";
   table?: string;
   staff: string;
@@ -213,10 +219,136 @@ export default function OrdersPage() {
   const [activeTab, setActiveTab] = useState("all");
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [isOrderDetailsOpen, setIsOrderDetailsOpen] = useState(false);
+  const [isAddOrderOpen, setIsAddOrderOpen] = useState(false);
   const [date, setDate] = useState<DateRange | undefined>({
     from: new Date(2023, 3, 10),
     to: new Date(),
   });
+  
+  // Form state for adding new order
+  const [newOrderType, setNewOrderType] = useState<"dine-in" | "takeaway" | "delivery">("dine-in");
+  const [newOrderTable, setNewOrderTable] = useState("");
+  const [newOrderCustomerName, setNewOrderCustomerName] = useState("");
+  const [newOrderCustomerPhone, setNewOrderCustomerPhone] = useState("");
+  const [newOrderItems, setNewOrderItems] = useState<{name: string; price: string; quantity: string}[]>([
+    { name: "", price: "", quantity: "1" }
+  ]);
+  const [newOrderNotes, setNewOrderNotes] = useState("");
+  
+  const navigate = useNavigate();
+
+  // Check local storage for orders from POS
+  useEffect(() => {
+    const storedOrders = localStorage.getItem('restaurant-orders');
+    if (storedOrders) {
+      const parsedOrders = JSON.parse(storedOrders);
+      
+      // Add any new orders to the orders state
+      if (Array.isArray(parsedOrders) && parsedOrders.length > 0) {
+        // Look for new orders by checking IDs
+        const existingOrderIds = orders.map(order => order.id);
+        const newOrders = parsedOrders.filter(
+          (order: Order) => !existingOrderIds.includes(order.id)
+        );
+        
+        if (newOrders.length > 0) {
+          setOrders(prevOrders => [...newOrders, ...prevOrders]);
+          toast.success(`${newOrders.length} new order(s) received from POS`);
+        }
+      }
+    }
+  }, []);
+
+  // Add a new order manually
+  const handleAddOrder = () => {
+    // Validate form
+    if (!newOrderCustomerName) {
+      toast.error("Customer name is required");
+      return;
+    }
+    
+    if (newOrderType === "dine-in" && !newOrderTable) {
+      toast.error("Table number is required for dine-in orders");
+      return;
+    }
+    
+    // Validate items
+    const validItems = newOrderItems.filter(item => 
+      item.name && !isNaN(parseFloat(item.price)) && parseInt(item.quantity) > 0
+    );
+    
+    if (validItems.length === 0) {
+      toast.error("At least one valid item is required");
+      return;
+    }
+    
+    // Create new order
+    const orderItems: OrderItem[] = validItems.map(item => ({
+      id: `item-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+      name: item.name,
+      price: parseFloat(item.price),
+      quantity: parseInt(item.quantity)
+    }));
+    
+    const total = orderItems.reduce(
+      (sum, item) => sum + (item.price * item.quantity), 
+      0
+    );
+    
+    const newOrder: Order = {
+      id: `order-${Date.now()}`,
+      orderNumber: `ORD-${Math.floor(1000 + Math.random() * 9000)}`,
+      customer: {
+        name: newOrderCustomerName,
+        phone: newOrderCustomerPhone || undefined,
+      },
+      items: orderItems,
+      total: total,
+      status: "new",
+      type: newOrderType,
+      paymentMethod: "pending",
+      paymentStatus: "pending",
+      table: newOrderType === "dine-in" ? `Table ${newOrderTable}` : undefined,
+      staff: "Current User",
+      branch: "Main Branch",
+      createdAt: new Date().toISOString(),
+      notes: newOrderNotes || undefined
+    };
+    
+    // Add to orders
+    setOrders(prevOrders => [newOrder, ...prevOrders]);
+    
+    // Reset form and close dialog
+    setNewOrderType("dine-in");
+    setNewOrderTable("");
+    setNewOrderCustomerName("");
+    setNewOrderCustomerPhone("");
+    setNewOrderItems([{ name: "", price: "", quantity: "1" }]);
+    setNewOrderNotes("");
+    setIsAddOrderOpen(false);
+    
+    toast.success("Order added successfully!");
+  };
+
+  // Add a new item field to the order form
+  const addItemField = () => {
+    setNewOrderItems([...newOrderItems, { name: "", price: "", quantity: "1" }]);
+  };
+  
+  // Update an item field
+  const updateItemField = (index: number, field: string, value: string) => {
+    const updatedItems = [...newOrderItems];
+    updatedItems[index] = { ...updatedItems[index], [field]: value };
+    setNewOrderItems(updatedItems);
+  };
+  
+  // Remove an item field
+  const removeItemField = (index: number) => {
+    if (newOrderItems.length > 1) {
+      const updatedItems = newOrderItems.filter((_, i) => i !== index);
+      setNewOrderItems(updatedItems);
+    }
+  };
 
   // Filter orders based on search term, tab filter, and date range
   const filteredOrders = orders.filter((order) => {
@@ -266,6 +398,10 @@ export default function OrdersPage() {
 
   const handleExportData = () => {
     toast.success("Orders data exported successfully!");
+  };
+  
+  const navigateToPOS = () => {
+    navigate('/restaurant/pos');
   };
 
   // Helper function to get style based on order status
@@ -323,6 +459,8 @@ export default function OrdersPage() {
         return <Banknote className="h-4 w-4" />;
       case "online":
         return <Receipt className="h-4 w-4" />;
+      case "pending":
+        return <Clock className="h-4 w-4" />;
     }
   };
 
@@ -337,6 +475,147 @@ export default function OrdersPage() {
             </p>
           </div>
           <div className="flex items-center gap-2">
+            <Button variant="outline" className="hover-scale" onClick={navigateToPOS}>
+              <ShoppingCart className="mr-2 h-4 w-4" />
+              Go to POS
+            </Button>
+            <Dialog open={isAddOrderOpen} onOpenChange={setIsAddOrderOpen}>
+              <DialogTrigger asChild>
+                <Button className="hover-scale">
+                  <PlusCircle className="mr-2 h-4 w-4" />
+                  Add Order
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-[600px]">
+                <DialogHeader>
+                  <DialogTitle>Add New Order</DialogTitle>
+                  <DialogDescription>
+                    Create a new order manually with the details below.
+                  </DialogDescription>
+                </DialogHeader>
+                
+                <div className="grid gap-4 py-4">
+                  <div className="grid grid-cols-4 gap-4">
+                    <div className="col-span-4">
+                      <Label htmlFor="orderType">Order Type</Label>
+                      <Select 
+                        value={newOrderType} 
+                        onValueChange={(value) => setNewOrderType(value as any)}
+                      >
+                        <SelectTrigger className="w-full mt-1">
+                          <SelectValue placeholder="Select order type" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="dine-in">Dine-in</SelectItem>
+                          <SelectItem value="takeaway">Takeaway</SelectItem>
+                          <SelectItem value="delivery">Delivery</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    
+                    {newOrderType === "dine-in" && (
+                      <div className="col-span-4 sm:col-span-2">
+                        <Label htmlFor="tableNumber">Table Number</Label>
+                        <Input
+                          id="tableNumber"
+                          className="mt-1"
+                          value={newOrderTable}
+                          onChange={(e) => setNewOrderTable(e.target.value)}
+                        />
+                      </div>
+                    )}
+                    
+                    <div className="col-span-4 sm:col-span-2">
+                      <Label htmlFor="customerName">Customer Name</Label>
+                      <Input
+                        id="customerName"
+                        className="mt-1"
+                        value={newOrderCustomerName}
+                        onChange={(e) => setNewOrderCustomerName(e.target.value)}
+                      />
+                    </div>
+                    
+                    <div className="col-span-4 sm:col-span-2">
+                      <Label htmlFor="customerPhone">Customer Phone</Label>
+                      <Input
+                        id="customerPhone"
+                        className="mt-1"
+                        value={newOrderCustomerPhone}
+                        onChange={(e) => setNewOrderCustomerPhone(e.target.value)}
+                      />
+                    </div>
+                  </div>
+                  
+                  <div>
+                    <Label className="mb-2 block">Order Items</Label>
+                    {newOrderItems.map((item, index) => (
+                      <div key={index} className="flex gap-2 mb-2">
+                        <div className="flex-1">
+                          <Input
+                            placeholder="Item name"
+                            value={item.name}
+                            onChange={(e) => updateItemField(index, "name", e.target.value)}
+                          />
+                        </div>
+                        <div className="w-20">
+                          <Input
+                            placeholder="Price"
+                            type="number"
+                            step="0.01"
+                            value={item.price}
+                            onChange={(e) => updateItemField(index, "price", e.target.value)}
+                          />
+                        </div>
+                        <div className="w-16">
+                          <Input
+                            placeholder="Qty"
+                            type="number"
+                            min="1"
+                            value={item.quantity}
+                            onChange={(e) => updateItemField(index, "quantity", e.target.value)}
+                          />
+                        </div>
+                        <Button 
+                          type="button" 
+                          variant="ghost" 
+                          size="icon" 
+                          className="shrink-0"
+                          onClick={() => removeItemField(index)}
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    ))}
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      className="mt-2"
+                      onClick={addItemField}
+                    >
+                      <Plus className="h-4 w-4 mr-2" />
+                      Add Item
+                    </Button>
+                  </div>
+                  
+                  <div>
+                    <Label htmlFor="notes">Notes</Label>
+                    <Textarea
+                      id="notes"
+                      placeholder="Order notes or special instructions"
+                      className="mt-1"
+                      value={newOrderNotes}
+                      onChange={(e) => setNewOrderNotes(e.target.value)}
+                    />
+                  </div>
+                </div>
+                
+                <DialogFooter>
+                  <Button variant="outline" onClick={() => setIsAddOrderOpen(false)}>Cancel</Button>
+                  <Button onClick={handleAddOrder}>Create Order</Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
             <Popover>
               <PopoverTrigger asChild>
                 <Button variant="outline" className="hover-scale">
