@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import RestaurantLayout from "@/components/layout/RestaurantLayout";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
@@ -951,7 +950,11 @@ export default function EmployeesPage() {
                           {currentEmployee.hourlyRate !== undefined && (
                             <>
                               <CreditCard className="h-4 w-4 text-muted-foreground" />
-                              <span className="text-sm">${currentEmployee.hourlyRate.toFixed(2)}/hr</span>
+                              <span className="text-sm">
+                                ${typeof currentEmployee.hourlyRate === 'number' 
+                                   ? currentEmployee.hourlyRate.toFixed(2) 
+                                   : '0.00'}/hr
+                              </span>
                             </>
                           )}
                         </div>
