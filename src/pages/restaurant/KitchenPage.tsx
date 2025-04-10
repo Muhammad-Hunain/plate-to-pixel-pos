@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import RestaurantLayout from "@/components/layout/RestaurantLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -372,10 +371,10 @@ export default function KitchenPage() {
       if (order.id === orderId) {
         return {
           ...order,
-          status: "ready",
+          status: "ready" as const,
           items: order.items.map(item => ({
             ...item,
-            status: item.status === "pending" || item.status === "preparing" ? "ready" : item.status
+            status: (item.status === "pending" || item.status === "preparing") ? "ready" : item.status
           }))
         };
       }
@@ -392,10 +391,10 @@ export default function KitchenPage() {
       if (order.id === orderId) {
         return {
           ...order,
-          status: "completed",
+          status: "completed" as const,
           items: order.items.map(item => ({
             ...item,
-            status: "served"
+            status: "served" as const
           }))
         };
       }
