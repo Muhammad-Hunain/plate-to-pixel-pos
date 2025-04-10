@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import RestaurantLayout from "@/components/layout/RestaurantLayout";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -6,6 +5,14 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { DateRangePicker } from "@/components/ui/date-range-picker";
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { 
   BarChart, Bar, LineChart, Line, PieChart, Pie, ResponsiveContainer, 
   XAxis, YAxis, CartesianGrid, Tooltip, Legend, Cell 
@@ -233,7 +240,7 @@ export default function BranchesPage() {
           address: data.address,
           manager: data.manager,
           contact: data.contact,
-          status: data.status,
+          status: data.status as "active" | "maintenance" | "closed",
           openHours: `${data.openingTime} - ${data.closingTime}`,
           notes: data.notes
         } : branch
@@ -247,7 +254,7 @@ export default function BranchesPage() {
         address: data.address,
         manager: data.manager,
         contact: data.contact,
-        status: data.status,
+        status: data.status as "active" | "maintenance" | "closed",
         openHours: `${data.openingTime} - ${data.closingTime}`,
         employees: 0,
         todayOrders: 0,
