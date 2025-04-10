@@ -19,6 +19,7 @@ import RestaurantsPage from "./pages/admin/RestaurantsPage";
 import UsersPage from "./pages/admin/UsersPage";
 import ReportsPage from "./pages/admin/ReportsPage";
 import SettingsPage from "./pages/admin/SettingsPage";
+import ProfilePage from "./pages/admin/ProfilePage";
 
 // Restaurant Pages
 import RestaurantDashboard from "./pages/restaurant/RestaurantDashboard";
@@ -49,6 +50,7 @@ const App = () => {
               <Route path="/admin/users" element={<UsersPage />} />
               <Route path="/admin/reports" element={<ReportsPage />} />
               <Route path="/admin/settings" element={<SettingsPage />} />
+              <Route path="/admin/profile" element={<ProfilePage />} />
               
               {/* Restaurant Routes */}
               <Route path="/restaurant/dashboard" element={<RestaurantDashboard />} />

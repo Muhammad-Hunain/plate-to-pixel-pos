@@ -1,3 +1,4 @@
+
 import React from "react";
 import { useState } from "react";
 import AdminLayout from "@/components/layout/AdminLayout";
@@ -13,10 +14,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Checkbox } from "@/components/ui/checkbox";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
-import { toast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { 
   Settings, Save, GraduationCap, Mail, Bell, CreditCard, Lock, User, Shield, 
-  ExternalLink, Check, X, Palette, SunMoon, Info, FileText, Database, Download as DownloadIcon
+  ExternalLink, Check, X, Palette, SunMoon, Info, FileText, Database, Download,
+  Plus, Copy
 } from "lucide-react";
 
 export default function SettingsPage() {
@@ -94,7 +96,7 @@ export default function SettingsPage() {
               </CardContent>
               <CardFooter className="flex justify-end">
                 <Button variant="outline" className="mr-2">Reset</Button>
-                <Button onClick={() => toast({ title: "Settings saved", description: "Your platform settings have been saved successfully." })}>
+                <Button onClick={() => toast("Settings saved", { description: "Your platform settings have been saved successfully." })}>
                   <Save className="mr-2 h-4 w-4" />
                   Save Changes
                 </Button>
@@ -275,7 +277,7 @@ export default function SettingsPage() {
               </CardContent>
               <CardFooter className="flex justify-end">
                 <Button variant="outline" className="mr-2">Reset</Button>
-                <Button onClick={() => toast({ title: "Theme settings saved", description: "Your appearance settings have been updated." })}>
+                <Button onClick={() => toast("Theme settings saved", { description: "Your appearance settings have been updated." })}>
                   <Save className="mr-2 h-4 w-4" />
                   Save Changes
                 </Button>
@@ -320,7 +322,7 @@ export default function SettingsPage() {
               </CardContent>
               <CardFooter className="flex justify-end">
                 <Button variant="outline" className="mr-2">Reset</Button>
-                <Button onClick={() => toast({ title: "CSS saved", description: "Your custom CSS has been applied." })}>
+                <Button onClick={() => toast("CSS saved", { description: "Your custom CSS has been applied." })}>
                   <Save className="mr-2 h-4 w-4" />
                   Save Changes
                 </Button>
@@ -370,7 +372,7 @@ export default function SettingsPage() {
               </CardContent>
               <CardFooter className="flex justify-end">
                 <Button variant="outline" className="mr-2">Reset</Button>
-                <Button onClick={() => toast({ title: "Email settings saved", description: "Your email notification preferences have been updated." })}>
+                <Button onClick={() => toast("Email settings saved", { description: "Your email notification preferences have been updated." })}>
                   <Save className="mr-2 h-4 w-4" />
                   Save Changes
                 </Button>
@@ -452,7 +454,7 @@ export default function SettingsPage() {
               </CardContent>
               <CardFooter className="flex justify-end">
                 <Button variant="outline" className="mr-2">Reset</Button>
-                <Button onClick={() => toast({ title: "Alert settings saved", description: "Your system alert settings have been updated." })}>
+                <Button onClick={() => toast("Alert settings saved", { description: "Your system alert settings have been updated." })}>
                   <Save className="mr-2 h-4 w-4" />
                   Save Changes
                 </Button>
@@ -502,7 +504,7 @@ export default function SettingsPage() {
                       Run Manual Backup
                     </Button>
                     <Button variant="secondary">
-                      <DownloadIcon className="h-4 w-4 mr-2" />
+                      <Download className="h-4 w-4 mr-2" />
                       Download Latest Backup
                     </Button>
                     <p className="text-xs text-muted-foreground">Last automated backup: 6 hours ago</p>
@@ -563,7 +565,7 @@ export default function SettingsPage() {
               </CardContent>
               <CardFooter className="flex justify-end">
                 <Button variant="outline" className="mr-2">Cancel</Button>
-                <Button onClick={() => toast({ title: "Advanced settings saved", description: "Your system settings have been updated." })}>
+                <Button onClick={() => toast("Advanced settings saved", { description: "Your system settings have been updated." })}>
                   Save Changes
                 </Button>
               </CardFooter>
@@ -610,7 +612,7 @@ export default function SettingsPage() {
                         </div>
                         <div className="flex items-center gap-2">
                           <Button variant="ghost" size="sm">
-                            <CopyIcon className="h-3.5 w-3.5 mr-1" />
+                            <Copy className="h-3.5 w-3.5 mr-1" />
                             Copy
                           </Button>
                           <Button variant="ghost" size="sm">
@@ -622,7 +624,7 @@ export default function SettingsPage() {
                     ))}
                   </div>
                   <Button variant="outline" size="sm" className="mt-2">
-                    <PlusIcon className="h-4 w-4 mr-2" />
+                    <Plus className="h-4 w-4 mr-2" />
                     Generate New API Key
                   </Button>
                 </div>
@@ -649,7 +651,7 @@ export default function SettingsPage() {
               </CardContent>
               <CardFooter className="flex justify-end">
                 <Button variant="outline" className="mr-2">Reset</Button>
-                <Button onClick={() => toast({ title: "API settings saved", description: "Your API configuration has been updated." })}>
+                <Button onClick={() => toast("API settings saved", { description: "Your API configuration has been updated." })}>
                   <Save className="mr-2 h-4 w-4" />
                   Save Changes
                 </Button>
@@ -661,58 +663,3 @@ export default function SettingsPage() {
     </AdminLayout>
   );
 }
-
-// Missing components import
-const Plus = ({ className }) => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width="24"
-    height="24"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-    className={className}
-  >
-    <path d="M5 12h14" />
-    <path d="M12 5v14" />
-  </svg>
-);
-
-const CopyIcon = ({ className }) => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width="24"
-    height="24"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-    className={className}
-  >
-    <rect width="14" height="14" x="8" y="8" rx="2" ry="2" />
-    <path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2" />
-  </svg>
-);
-
-const PlusIcon = ({ className }) => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width="24"
-    height="24"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-    className={className}
-  >
-    <path d="M5 12h14" />
-    <path d="M12 5v14" />
-  </svg>
-);

@@ -1,17 +1,25 @@
 
 import AdminLayout from "@/components/layout/AdminLayout";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+
+// Import charts and components
+import SalesPerformanceChart from "@/components/dashboard/SalesPerformanceChart";
+import UserActivityMap from "@/components/dashboard/UserActivityMap";
+import RealtimeActivityFeed from "@/components/dashboard/RealtimeActivityFeed";
+
+import { 
+  Building2, DollarSign, TrendingUp, Users, 
+  ArrowUpRight, ChevronRight, Store, Wallet,
+  Clock, Globe, CircleUser, Percent,
+  BarChart3, Activity, Target, CreditCard
+} from "lucide-react";
+
 import { 
   Bar, BarChart, ResponsiveContainer, XAxis, YAxis, Tooltip, CartesianGrid,
   LineChart, Line, PieChart, Pie, Cell, Area, AreaChart, Legend
 } from "recharts";
-import { 
-  Building2, DollarSign, TrendingUp, Users, 
-  ArrowUpRight, ChevronRight, Store, Wallet,
-  Clock, Globe, CircleUser, Percent
-} from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 
 // Monthly growth data
 const growthData = [
@@ -32,28 +40,6 @@ const subscriptionData = [
 ];
 
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28'];
-
-// Revenue by month
-const revenueData = [
-  { name: "Jan", revenue: 15400 },
-  { name: "Feb", revenue: 18200 },
-  { name: "Mar", revenue: 21000 },
-  { name: "Apr", revenue: 25500 },
-  { name: "May", revenue: 27800 },
-  { name: "Jun", revenue: 31200 },
-  { name: "Jul", revenue: 34600 },
-];
-
-// Active users data
-const activeUsersData = [
-  { name: "Jan", users: 120 },
-  { name: "Feb", users: 145 },
-  { name: "Mar", users: 162 },
-  { name: "Apr", users: 197 },
-  { name: "May", users: 235 },
-  { name: "Jun", users: 284 },
-  { name: "Jul", users: 314 },
-];
 
 // Restaurant location data by region
 const locationData = [
@@ -82,10 +68,14 @@ export default function AdminDashboard() {
               Platform overview and performance metrics
             </p>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <Button variant="outline" size="sm">
               <Clock className="mr-2 h-4 w-4" />
               Last 30 Days
+            </Button>
+            <Button variant="outline" size="sm">
+              <Globe className="mr-2 h-4 w-4" />
+              All Regions
             </Button>
             <Button size="sm">
               <TrendingUp className="mr-2 h-4 w-4" />
@@ -160,50 +150,133 @@ export default function AdminDashboard() {
           </Card>
         </div>
 
-        <div className="grid gap-6 md:grid-cols-12">
-          <Card className="col-span-12 md:col-span-8 chart-container animate-slide-in">
-            <CardHeader className="pb-0">
-              <CardTitle className="text-lg font-semibold">Monthly Revenue</CardTitle>
+        {/* Additional KPI Cards */}
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+          <Card className="stat-card animate-fade-in [animation-delay:400ms]">
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-sm font-medium text-muted-foreground">
+                Active Subscriptions
+              </CardTitle>
+              <CreditCard className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
-            <CardContent className="pt-4">
-              <ChartContainer config={{
-                revenue: { label: "Total Revenue" }
-              }} className="h-[300px]">
-                <ResponsiveContainer width="100%" height="100%">
-                  <AreaChart data={revenueData} margin={{ top: 5, right: 20, bottom: 5, left: 0 }}>
-                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" />
-                    <XAxis dataKey="name" stroke="hsl(var(--muted-foreground))" fontSize={12} tickLine={false} axisLine={false} />
-                    <YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} tickLine={false} axisLine={false} />
-                    <ChartTooltip
-                      content={<ChartTooltipContent />}
-                    />
-                    <defs>
-                      <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.8}/>
-                        <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0.1}/>
-                      </linearGradient>
-                    </defs>
-                    <Area 
-                      type="monotone" 
-                      dataKey="revenue" 
-                      stroke="hsl(var(--primary))" 
-                      fillOpacity={1}
-                      fill="url(#colorRevenue)" 
-                      strokeWidth={2}
-                      name="Revenue" 
-                    />
-                  </AreaChart>
-                </ResponsiveContainer>
-              </ChartContainer>
+            <CardContent>
+              <div className="text-2xl font-bold">25</div>
+              <div className="flex items-center text-xs text-success mt-1">
+                <ArrowUpRight className="h-3 w-3 mr-1" />
+                <span>+3 from last month</span>
+              </div>
+              <div className="mt-3">
+                <div className="h-2 w-full bg-secondary rounded-full overflow-hidden">
+                  <div className="h-full bg-primary rounded-full" style={{ width: '89%' }}></div>
+                </div>
+                <div className="text-xs text-muted-foreground mt-1">89% retention rate</div>
+              </div>
             </CardContent>
           </Card>
+          
+          <Card className="stat-card animate-fade-in [animation-delay:500ms]">
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-sm font-medium text-muted-foreground">
+                Customer Satisfaction
+              </CardTitle>
+              <Activity className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">4.7/5</div>
+              <div className="flex items-center text-xs text-success mt-1">
+                <ArrowUpRight className="h-3 w-3 mr-1" />
+                <span>+0.2 from last month</span>
+              </div>
+              <div className="mt-3 flex">
+                {[1, 2, 3, 4, 5].map((star) => (
+                  <svg
+                    key={star}
+                    className={`h-4 w-4 ${star <= 4 ? "text-yellow-400" : "text-yellow-200"}`}
+                    fill="currentColor"
+                    viewBox="0 0 20 20"
+                  >
+                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                  </svg>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Card className="stat-card animate-fade-in [animation-delay:600ms]">
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-sm font-medium text-muted-foreground">
+                Average Order Value
+              </CardTitle>
+              <BarChart3 className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">$32.47</div>
+              <div className="flex items-center text-xs text-success mt-1">
+                <ArrowUpRight className="h-3 w-3 mr-1" />
+                <span>+$2.14 from last month</span>
+              </div>
+              <div className="mt-3 h-8">
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart data={[
+                    { day: "Mon", value: 28 },
+                    { day: "Tue", value: 30 },
+                    { day: "Wed", value: 29 },
+                    { day: "Thu", value: 34 },
+                    { day: "Fri", value: 38 },
+                    { day: "Sat", value: 35 },
+                    { day: "Sun", value: 32 },
+                  ]}>
+                    <Line
+                      type="monotone"
+                      dataKey="value"
+                      stroke="hsl(var(--primary))"
+                      strokeWidth={2}
+                      dot={false}
+                    />
+                  </LineChart>
+                </ResponsiveContainer>
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Card className="stat-card animate-fade-in [animation-delay:700ms]">
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-sm font-medium text-muted-foreground">
+                Platform Uptime
+              </CardTitle>
+              <Target className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">99.98%</div>
+              <div className="flex items-center text-xs text-success mt-1">
+                <ArrowUpRight className="h-3 w-3 mr-1" />
+                <span>+0.01% from last month</span>
+              </div>
+              <div className="mt-3 grid grid-cols-7 gap-1">
+                {[99.9, 100, 100, 99.8, 100, 100, 100].map((day, i) => (
+                  <div key={i} className="h-6 rounded-sm flex items-end">
+                    <div 
+                      className={`w-full ${day === 100 ? 'bg-emerald-500' : 'bg-amber-400'}`} 
+                      style={{ height: `${day}%` }}
+                    ></div>
+                  </div>
+                ))}
+              </div>
+              <div className="text-xs text-muted-foreground mt-1 text-center">Last 7 days</div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Main Charts Section */}
+        <div className="grid gap-6 md:grid-cols-12">
+          <SalesPerformanceChart />
           
           <Card className="col-span-12 md:col-span-4 chart-container animate-slide-in [animation-delay:100ms]">
             <CardHeader className="pb-0">
               <CardTitle className="text-lg font-semibold">Subscription Plans</CardTitle>
             </CardHeader>
             <CardContent className="pt-4">
-              <ResponsiveContainer width="100%" height="100%">
+              <ResponsiveContainer width="100%" height={240}>
                 <PieChart>
                   <Pie
                     data={subscriptionData}
@@ -224,76 +297,27 @@ export default function AdminDashboard() {
                   <Tooltip />
                 </PieChart>
               </ResponsiveContainer>
+              <div className="mt-2 grid grid-cols-3 gap-2">
+                {subscriptionData.map((plan, i) => (
+                  <Card key={i}>
+                    <CardContent className="p-2 text-center">
+                      <div className="text-xs text-muted-foreground">{plan.name}</div>
+                      <div className="font-bold">{plan.value}</div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
             </CardContent>
           </Card>
         </div>
 
+        {/* Activity Section */}
         <div className="grid gap-6 md:grid-cols-12">
-          <Card className="col-span-12 md:col-span-6 chart-container animate-slide-in [animation-delay:150ms]">
-            <CardHeader className="pb-0">
-              <CardTitle className="text-lg font-semibold">Restaurant Growth</CardTitle>
-            </CardHeader>
-            <CardContent className="pt-4">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={growthData}>
-                  <XAxis dataKey="name" stroke="hsl(var(--muted-foreground))" fontSize={12} tickLine={false} axisLine={false} />
-                  <YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} tickLine={false} axisLine={false} />
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" />
-                  <Tooltip />
-                  <Bar 
-                    dataKey="value" 
-                    fill="hsl(var(--primary))" 
-                    radius={[4, 4, 0, 0]} 
-                    name="Restaurants" 
-                  />
-                </BarChart>
-              </ResponsiveContainer>
-            </CardContent>
-          </Card>
-          
-          <Card className="col-span-12 md:col-span-6 chart-container animate-slide-in [animation-delay:200ms]">
-            <CardHeader className="pb-0">
-              <CardTitle className="text-lg font-semibold">User Growth</CardTitle>
-            </CardHeader>
-            <CardContent className="pt-4">
-              <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={activeUsersData}>
-                  <XAxis dataKey="name" stroke="hsl(var(--muted-foreground))" fontSize={12} tickLine={false} axisLine={false} />
-                  <YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} tickLine={false} axisLine={false} />
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" />
-                  <Tooltip />
-                  <Line 
-                    type="monotone" 
-                    dataKey="users" 
-                    stroke="hsl(var(--primary))" 
-                    strokeWidth={2} 
-                    dot={{ fill: "hsl(var(--primary))" }}
-                    name="Users" 
-                  />
-                </LineChart>
-              </ResponsiveContainer>
-            </CardContent>
-          </Card>
+          <UserActivityMap />
+          <RealtimeActivityFeed />
         </div>
-
+        
         <div className="grid gap-6 md:grid-cols-12">
-          <Card className="col-span-12 md:col-span-5 chart-container animate-slide-in [animation-delay:250ms]">
-            <CardHeader className="pb-0">
-              <CardTitle className="text-lg font-semibold">Restaurants by Location</CardTitle>
-            </CardHeader>
-            <CardContent className="pt-4">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart layout="vertical" data={locationData} margin={{ top: 5, right: 30, bottom: 5, left: 20 }}>
-                  <XAxis type="number" stroke="hsl(var(--muted-foreground))" fontSize={12} tickLine={false} axisLine={false} />
-                  <YAxis dataKey="name" type="category" stroke="hsl(var(--muted-foreground))" fontSize={12} tickLine={false} axisLine={false} />
-                  <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="hsl(var(--border))" />
-                  <Tooltip />
-                  <Bar dataKey="value" fill="hsl(var(--secondary))" name="Restaurants" />
-                </BarChart>
-              </ResponsiveContainer>
-            </CardContent>
-          </Card>
-          
           <Card className="col-span-12 md:col-span-7 animate-slide-in [animation-delay:300ms]">
             <CardHeader className="flex flex-row items-center justify-between">
               <CardTitle className="text-lg font-semibold">Top Performing Restaurants</CardTitle>
@@ -329,6 +353,29 @@ export default function AdminDashboard() {
                   </tbody>
                 </table>
               </div>
+            </CardContent>
+          </Card>
+          
+          <Card className="col-span-12 md:col-span-5 animate-slide-in [animation-delay:350ms]">
+            <CardHeader className="pb-0">
+              <CardTitle className="text-lg font-semibold">Restaurant Growth</CardTitle>
+              <CardDescription>New restaurant registrations over time</CardDescription>
+            </CardHeader>
+            <CardContent className="pt-4">
+              <ResponsiveContainer width="100%" height={240}>
+                <BarChart data={growthData}>
+                  <XAxis dataKey="name" stroke="hsl(var(--muted-foreground))" fontSize={12} tickLine={false} axisLine={false} />
+                  <YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} tickLine={false} axisLine={false} />
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" />
+                  <Tooltip />
+                  <Bar 
+                    dataKey="value" 
+                    fill="hsl(var(--primary))" 
+                    radius={[4, 4, 0, 0]} 
+                    name="Restaurants" 
+                  />
+                </BarChart>
+              </ResponsiveContainer>
             </CardContent>
           </Card>
         </div>
