@@ -15,7 +15,8 @@ import {
   LineChart as LineChartIcon, ArrowUpRight, FileBarChart2,
   Clock, DollarSign, Users, Save, FileUp, Share, RefreshCw,
   Calendar as CalendarIcon, Table as TableIcon, GripHorizontal,
-  Sheet, Percent, Award, Repeat, PackageOpen, Activity
+  Sheet, Percent, Award, Repeat, PackageOpen, Activity,
+  Plus, Edit, Trash2, Building2
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -201,6 +202,18 @@ const topRestaurants = [
   { name: "The Great Kitchen", revenue: 138500, orders: 10920 },
   { name: "Sushi Express", revenue: 125200, orders: 9870 },
   { name: "Thai Delight", revenue: 118400, orders: 9240 },
+];
+
+// Sample restaurant data for filter
+const restaurants = [
+  { id: 1, name: "Burger Zone" },
+  { id: 2, name: "Pizza Paradise" },
+  { id: 3, name: "The Great Kitchen" },
+  { id: 4, name: "Sushi Express" },
+  { id: 5, name: "Thai Delight" },
+  { id: 6, name: "Mexican Fiesta" },
+  { id: 7, name: "Italian Bistro" },
+  { id: 8, name: "Indian Spice" }
 ];
 
 // User acquisition by channel
@@ -1029,7 +1042,6 @@ export default function ReportsPage() {
                     <Treemap
                       data={featureUsageData}
                       dataKey="value"
-                      ratio={4/3}
                       stroke="#fff"
                       fill="#8884d8"
                       animationDuration={1000}
@@ -1063,7 +1075,6 @@ export default function ReportsPage() {
                     data={userSatisfactionData}
                   >
                     <RadialBar
-                      minAngle={15}
                       background={{ fill: "hsl(var(--muted))" }}
                       clockWise
                       dataKey="uv"
@@ -1077,7 +1088,12 @@ export default function ReportsPage() {
                       wrapperStyle={{ lineHeight: '24px' }}
                     />
                     <Tooltip 
-                      formatter={(value) => [`${value.toFixed(2)}% satisfaction`, 'Rating']} 
+                      formatter={(value) => {
+                        if (typeof value === 'number') {
+                          return [`${value.toFixed(2)}% satisfaction`, 'Rating'];
+                        }
+                        return [`${value}% satisfaction`, 'Rating'];
+                      }} 
                     />
                   </RadialBarChart>
                 </ResponsiveContainer>
