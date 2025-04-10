@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import RestaurantLayout from "@/components/layout/RestaurantLayout";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
@@ -57,7 +58,7 @@ import {
   Lock,
   Unlock,
   Check,
-  XMark,
+  X,
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -870,7 +871,7 @@ export default function EmployeesPage() {
                     {currentView === "activity" && "Activity Log"}
                   </CardTitle>
                   <Button variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={() => setCurrentView(null)}>
-                    <XMark className="h-4 w-4" />
+                    <X className="h-4 w-4" />
                   </Button>
                 </CardHeader>
                 <CardContent className="pt-4">

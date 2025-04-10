@@ -20,7 +20,7 @@ import {
   CheckCircle,
   AlertCircle,
   Check,
-  X as XMark
+  X
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -65,7 +65,6 @@ import {
 } from "@/components/ui/form";
 import { useForm } from "react-hook-form";
 import { cn } from "@/lib/utils";
-import { Calendar as CalendarIcon } from "lucide-react";
 import { format } from "date-fns";
 import { DatePicker } from "@/components/ui/date-picker";
 import {
@@ -291,7 +290,7 @@ export default function ReservationsPage() {
 
   return (
     <RestaurantLayout>
-      <div className="space-y-8 p-6 animate-fade-in">
+      <div className="space-y-8 p-8 animate-fade-in">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6">
           <div>
             <h1 className="text-3xl font-bold tracking-tight mb-2">Reservation Management</h1>
@@ -389,7 +388,7 @@ export default function ReservationsPage() {
                               selected={selectedDate}
                               onSelect={setSelectedDate}
                               placeholderText="Select a date"
-                              className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                              className="w-full"
                             />
                           </FormControl>
                           <FormDescription>

@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import RestaurantLayout from "@/components/layout/RestaurantLayout";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -217,7 +218,7 @@ export default function ReportsPage() {
 
   return (
     <RestaurantLayout>
-      <div className="space-y-8 p-6">
+      <div className="space-y-8 p-8">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6">
           <div>
             <h1 className="text-3xl font-bold tracking-tight mb-2">Reports & Analytics</h1>
@@ -240,10 +241,10 @@ export default function ReportsPage() {
                 <SelectItem value="custom">Custom Range</SelectItem>
               </SelectContent>
             </Select>
-            <Button variant="outline" size="icon">
+            <Button variant="outline" size="icon" className="h-10 w-10">
               <Calendar className="h-4 w-4" />
             </Button>
-            <Button variant="outline" size="icon">
+            <Button variant="outline" size="icon" className="h-10 w-10">
               <RefreshCw className="h-4 w-4" />
             </Button>
             <Button>
@@ -254,7 +255,10 @@ export default function ReportsPage() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          <AnimatedDashboardCard delay={1}>
+          <AnimatedDashboardCard 
+            title="Total Revenue" 
+            delay={1}
+          >
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Total Revenue</p>
@@ -273,7 +277,10 @@ export default function ReportsPage() {
             </div>
           </AnimatedDashboardCard>
 
-          <AnimatedDashboardCard delay={2}>
+          <AnimatedDashboardCard 
+            title="Total Orders"
+            delay={2}
+          >
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Total Orders</p>
@@ -292,7 +299,10 @@ export default function ReportsPage() {
             </div>
           </AnimatedDashboardCard>
 
-          <AnimatedDashboardCard delay={3}>
+          <AnimatedDashboardCard 
+            title="Avg. Order Value"
+            delay={3}
+          >
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Avg. Order Value</p>
@@ -311,7 +321,10 @@ export default function ReportsPage() {
             </div>
           </AnimatedDashboardCard>
 
-          <AnimatedDashboardCard delay={4}>
+          <AnimatedDashboardCard 
+            title="Total Customers"
+            delay={4}
+          >
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Total Customers</p>
