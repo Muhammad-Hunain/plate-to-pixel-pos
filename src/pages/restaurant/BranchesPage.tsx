@@ -1,830 +1,432 @@
 import { useState } from "react";
 import RestaurantLayout from "@/components/layout/RestaurantLayout";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { DateRangePicker } from "@/components/ui/date-range-picker";
-import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { 
-  BarChart, Bar, LineChart, Line, PieChart, Pie, ResponsiveContainer, 
-  XAxis, YAxis, CartesianGrid, Tooltip, Legend, Cell 
-} from "recharts";
-import { 
-  MapPin, Users, ShoppingBag, Clock, AlertTriangle,
-  Plus, Edit, Trash2, BarChart3, Calendar, Clock8, ChefHat,
-  Package, DollarSign, TrendingUp, Bell, Eye, ArrowUpRight, Settings
-} from "lucide-react";
-import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
-import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import AddBranchForm from "@/components/branches/AddBranchForm";
-import BranchDetailsView from "@/components/branches/BranchDetailsView";
+import { 
+  Coffee, Search, Utensils, Pizza, Sandwich, IceCream, 
+  Beef, Beer, Plus, Minus, Trash, CreditCard, Receipt, 
+  ChevronDown, ChevronRight 
+} from "lucide-react";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
+import {
+  ToggleGroup,
+  ToggleGroupItem
+} from "@/components/ui/toggle-group";
 
-// Sample branch data
-const branches = [
-  {
-    id: 1,
-    name: "Downtown Branch",
-    address: "123 Main St, Downtown",
-    manager: "John Smith",
-    contact: "+1 (555) 123-4567",
-    status: "active",
-    openHours: "8:00 AM - 10:00 PM",
-    employees: 24,
-    todayOrders: 142,
-    todayRevenue: 3245.75,
-    lowStockItems: 5,
-  },
-  {
-    id: 2,
-    name: "Uptown Branch",
-    address: "456 High St, Uptown",
-    manager: "Emily Johnson",
-    contact: "+1 (555) 987-6543",
-    status: "active",
-    openHours: "9:00 AM - 11:00 PM",
-    employees: 18,
-    todayOrders: 98,
-    todayRevenue: 2187.50,
-    lowStockItems: 3,
-  },
-  {
-    id: 3,
-    name: "Westside Branch",
-    address: "789 West Blvd, Westside",
-    manager: "Michael Chen",
-    contact: "+1 (555) 456-7890",
-    status: "active",
-    openHours: "10:00 AM - 9:00 PM",
-    employees: 15,
-    todayOrders: 75,
-    todayRevenue: 1823.25,
-    lowStockItems: 8,
-  },
-  {
-    id: 4,
-    name: "Eastside Branch",
-    address: "321 East Ave, Eastside",
-    manager: "Sarah Rodriguez",
-    contact: "+1 (555) 789-0123",
-    status: "maintenance",
-    openHours: "Closed for renovation",
-    employees: 0,
-    todayOrders: 0,
-    todayRevenue: 0,
-    lowStockItems: 0,
-  },
-  {
-    id: 5,
-    name: "Northside Branch",
-    address: "654 North Rd, Northside",
-    manager: "David Kim",
-    contact: "+1 (555) 321-6547",
-    status: "active",
-    openHours: "8:30 AM - 10:30 PM",
-    employees: 21,
-    todayOrders: 112,
-    todayRevenue: 2756.80,
-    lowStockItems: 2,
-  },
+// Sample menu categories and items
+const menuCategories = [
+  { id: 1, name: "Starters", icon: Utensils },
+  { id: 2, name: "Main Course", icon: Pizza },
+  { id: 3, name: "Sandwiches", icon: Sandwich },
+  { id: 4, name: "Desserts", icon: IceCream },
+  { id: 5, name: "Drinks", icon: Coffee },
+  { id: 6, name: "Specials", icon: Beef },
+  { id: 7, name: "Beverages", icon: Beer },
 ];
 
-// Sample performance data for charts
-const performanceData = [
-  { name: "Mon", downtown: 2400, uptown: 1800, westside: 1600, northside: 2200 },
-  { name: "Tue", downtown: 1800, uptown: 1600, westside: 1400, northside: 2000 },
-  { name: "Wed", downtown: 2800, uptown: 2200, westside: 1800, northside: 2400 },
-  { name: "Thu", downtown: 3600, uptown: 2800, westside: 2400, northside: 3000 },
-  { name: "Fri", downtown: 4200, uptown: 3600, westside: 2800, northside: 3800 },
-  { name: "Sat", downtown: 5000, uptown: 4200, westside: 3200, northside: 4400 },
-  { name: "Sun", downtown: 4300, uptown: 3800, westside: 2600, northside: 3600 },
+const menuItems = [
+  // Starters
+  { id: 101, name: "Garlic Bread", price: 4.99, category: 1, image: "placeholder.svg" },
+  { id: 102, name: "Buffalo Wings", price: 8.99, category: 1, image: "placeholder.svg" },
+  { id: 103, name: "Mozzarella Sticks", price: 6.99, category: 1, image: "placeholder.svg" },
+  { id: 104, name: "Loaded Nachos", price: 9.99, category: 1, image: "placeholder.svg" },
+  
+  // Main Course
+  { id: 201, name: "Margherita Pizza", price: 12.99, category: 2, image: "placeholder.svg" },
+  { id: 202, name: "Pepperoni Pizza", price: 14.99, category: 2, image: "placeholder.svg" },
+  { id: 203, name: "Spaghetti Bolognese", price: 13.99, category: 2, image: "placeholder.svg" },
+  { id: 204, name: "Grilled Salmon", price: 19.99, category: 2, image: "placeholder.svg" },
+  
+  // Sandwiches
+  { id: 301, name: "Club Sandwich", price: 11.99, category: 3, image: "placeholder.svg" },
+  { id: 302, name: "BLT", price: 9.99, category: 3, image: "placeholder.svg" },
+  { id: 303, name: "Chicken Wrap", price: 10.99, category: 3, image: "placeholder.svg" },
+  
+  // Desserts
+  { id: 401, name: "Chocolate Cake", price: 6.99, category: 4, image: "placeholder.svg" },
+  { id: 402, name: "Cheesecake", price: 7.99, category: 4, image: "placeholder.svg" },
+  { id: 403, name: "Apple Pie", price: 5.99, category: 4, image: "placeholder.svg" },
+  
+  // Drinks
+  { id: 501, name: "Cappuccino", price: 3.99, category: 5, image: "placeholder.svg" },
+  { id: 502, name: "Latte", price: 4.29, category: 5, image: "placeholder.svg" },
+  { id: 503, name: "Espresso", price: 2.99, category: 5, image: "placeholder.svg" },
+  { id: 504, name: "Hot Chocolate", price: 3.49, category: 5, image: "placeholder.svg" },
 ];
 
-// Sample active orders data
-const activeOrdersData = [
-  { 
-    id: "ORD-001", 
-    branch: "Downtown Branch", 
-    table: "Table 5", 
-    items: 4, 
-    status: "Preparing", 
-    time: "10:15 AM", 
-    total: "$52.50" 
-  },
-  { 
-    id: "ORD-002", 
-    branch: "Downtown Branch", 
-    table: "Takeaway", 
-    items: 2, 
-    status: "Ready", 
-    time: "10:20 AM", 
-    total: "$27.25" 
-  },
-  { 
-    id: "ORD-003", 
-    branch: "Uptown Branch", 
-    table: "Table 3", 
-    items: 6, 
-    status: "Served", 
-    time: "10:05 AM", 
-    total: "$68.75" 
-  },
-  { 
-    id: "ORD-004", 
-    branch: "Northside Branch", 
-    table: "Table 7", 
-    items: 3, 
-    status: "New", 
-    time: "10:25 AM", 
-    total: "$41.30" 
-  },
-];
+// Type definitions
+type MenuItem = {
+  id: number;
+  name: string;
+  price: number;
+  category: number;
+  image: string;
+};
 
-// Sample staff attendance data
-const staffAttendanceData = [
-  { id: 1, name: "John Smith", branch: "Downtown Branch", role: "Manager", status: "Present", checkIn: "08:45 AM" },
-  { id: 2, name: "Sarah Lee", branch: "Downtown Branch", role: "Chef", status: "Present", checkIn: "09:00 AM" },
-  { id: 3, name: "Mike Johnson", branch: "Uptown Branch", role: "Waiter", status: "Late", checkIn: "09:30 AM" },
-  { id: 4, name: "Emily Davis", branch: "Westside Branch", role: "Cashier", status: "Present", checkIn: "08:50 AM" },
-  { id: 5, name: "Robert Chen", branch: "Northside Branch", role: "Chef", status: "Absent", checkIn: "-" },
-];
+type OrderItem = MenuItem & {
+  quantity: number;
+};
 
-// Low stock items
-const lowStockItems = [
-  { id: 1, name: "Tomatoes", branch: "Downtown Branch", current: 5, minimum: 10 },
-  { id: 2, name: "Chicken Breast", branch: "Downtown Branch", current: 3, minimum: 8 },
-  { id: 3, name: "Olive Oil", branch: "Uptown Branch", current: 2, minimum: 5 },
-  { id: 4, name: "Napkins", branch: "Westside Branch", current: 10, minimum: 25 },
-  { id: 5, name: "Coffee Beans", branch: "Northside Branch", current: 4, minimum: 10 },
-];
-
-// Sales distribution
-const salesDistribution = [
-  { name: "Downtown", value: 35 },
-  { name: "Uptown", value: 25 },
-  { name: "Westside", value: 20 },
-  { name: "Northside", value: 20 },
-];
-
-const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042"];
-
-export default function BranchesPage() {
-  const [branchList, setBranchList] = useState(branches);
-  const [selectedBranch, setSelectedBranch] = useState<number | null>(null);
+export default function PosPage() {
   const [searchQuery, setSearchQuery] = useState("");
-  const [viewMode, setViewMode] = useState("grid");
-  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
-  const [isViewingBranch, setIsViewingBranch] = useState(false);
-  const [isEditingBranch, setIsEditingBranch] = useState(false);
-  const [currentBranchId, setCurrentBranchId] = useState<number | null>(null);
-  const [selectedBranchFilter, setSelectedBranchFilter] = useState<string>("all");
+  const [orderItems, setOrderItems] = useState<OrderItem[]>([]);
+  const [orderType, setOrderType] = useState("dine-in");
+  const [tableNumber, setTableNumber] = useState("1");
   
-  const handleBranchSelect = (branchId: number) => {
-    setSelectedBranch(branchId === selectedBranch ? null : branchId);
-  };
-  
-  const filteredBranches = branchList.filter(branch => 
-    branch.name.toLowerCase().includes(searchQuery.toLowerCase())
-  );
-  
-  const getStatusColor = (status: string) => {
-    switch(status) {
-      case "active":
-        return "bg-green-100 text-green-800";
-      case "maintenance":
-        return "bg-amber-100 text-amber-800";
-      case "closed":
-        return "bg-red-100 text-red-800";
-      default:
-        return "bg-gray-100 text-gray-800";
-    }
-  };
+  // Get unique categories from order items
+  const orderItemCategories = [...new Set(orderItems.map(item => {
+    const category = menuCategories.find(cat => cat.id === item.category);
+    return category ? category.id : null;
+  }).filter(Boolean))];
 
-  const handleAddBranch = () => {
-    setCurrentBranchId(null);
-    setIsAddDialogOpen(true);
-  };
+  // Filter menu items by search query
+  const filteredMenuItems = menuItems.filter((item) => {
+    return item.name.toLowerCase().includes(searchQuery.toLowerCase());
+  });
 
-  const handleEditBranch = (id: number) => {
-    setCurrentBranchId(id);
-    setIsEditingBranch(true);
-    setIsAddDialogOpen(true);
-  };
+  // Group menu items by category
+  const groupedMenuItems = menuCategories.map(category => {
+    const items = filteredMenuItems.filter(item => item.category === category.id);
+    return {
+      ...category,
+      items
+    };
+  }).filter(group => group.items.length > 0);
 
-  const handleViewBranchDetails = (id: number) => {
-    setCurrentBranchId(id);
-    setIsViewingBranch(true);
-  };
-
-  const handleDeleteBranch = (id: number) => {
-    setBranchList(branchList.filter(branch => branch.id !== id));
-    toast.success("Branch deleted successfully");
-  };
-
-  const handleBranchFormSubmit = (data: any) => {
-    if (currentBranchId) {
-      // Edit existing branch
-      setBranchList(branchList.map(branch => 
-        branch.id === currentBranchId ? { 
-          ...branch, 
-          name: data.name,
-          address: data.address,
-          manager: data.manager,
-          contact: data.contact,
-          status: data.status as "active" | "maintenance" | "closed",
-          openHours: `${data.openingTime} - ${data.closingTime}`,
-          notes: data.notes
-        } : branch
-      ));
-      toast.success(`Branch "${data.name}" updated successfully!`);
-    } else {
-      // Add new branch
-      const newBranch = {
-        id: branchList.length + 1,
-        name: data.name,
-        address: data.address,
-        manager: data.manager,
-        contact: data.contact,
-        status: data.status as "active" | "maintenance" | "closed",
-        openHours: `${data.openingTime} - ${data.closingTime}`,
-        employees: 0,
-        todayOrders: 0,
-        todayRevenue: 0,
-        lowStockItems: 0
-      };
+  // Add item to order
+  const addItemToOrder = (item: MenuItem) => {
+    setOrderItems((prevItems) => {
+      const existingItem = prevItems.find((orderItem) => orderItem.id === item.id);
       
-      setBranchList([...branchList, newBranch]);
-      toast.success(`Branch "${data.name}" added successfully!`);
-    }
+      if (existingItem) {
+        return prevItems.map((orderItem) => 
+          orderItem.id === item.id 
+            ? { ...orderItem, quantity: orderItem.quantity + 1 } 
+            : orderItem
+        );
+      } else {
+        return [...prevItems, { ...item, quantity: 1 }];
+      }
+    });
     
-    setIsAddDialogOpen(false);
-    setIsEditingBranch(false);
-    setCurrentBranchId(null);
+    toast.success(`Added ${item.name} to order`);
   };
 
-  const getCurrentBranch = () => {
-    return branchList.find(branch => branch.id === currentBranchId) || null;
+  // Update item quantity in order
+  const updateItemQuantity = (itemId: number, newQuantity: number) => {
+    if (newQuantity === 0) {
+      setOrderItems((prevItems) => prevItems.filter((item) => item.id !== itemId));
+      return;
+    }
+
+    setOrderItems((prevItems) => 
+      prevItems.map((item) => 
+        item.id === itemId ? { ...item, quantity: newQuantity } : item
+      )
+    );
+  };
+
+  // Remove item from order
+  const removeItem = (itemId: number) => {
+    setOrderItems((prevItems) => prevItems.filter((item) => item.id !== itemId));
+    toast("Item removed from order");
+  };
+
+  // Calculate order subtotal
+  const subtotal = orderItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+  const tax = subtotal * 0.08; // 8% tax
+  const total = subtotal + tax;
+
+  // Process payment
+  const processPayment = () => {
+    toast.success("Payment processed successfully!");
+    setOrderItems([]);
+    setTableNumber("1");
+  };
+
+  // Print receipt
+  const printReceipt = () => {
+    toast("Printing receipt...");
+  };
+
+  // Get all items for a specific category
+  const getOrderItemsByCategory = (categoryId: number) => {
+    return orderItems.filter(item => item.category === categoryId);
   };
 
   return (
     <RestaurantLayout>
-      <div className="space-y-8 p-8">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight mb-2">Branch Management</h1>
-            <p className="text-muted-foreground">
-              Monitor and manage all your restaurant branches
-            </p>
-          </div>
-          <div className="flex items-center gap-2">
-            <Button onClick={handleAddBranch} className="hover-scale">
-              <Plus className="mr-2 h-4 w-4" />
-              Add Branch
-            </Button>
-          </div>
+      <div className="space-y-6">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">POS System</h1>
+          <p className="text-muted-foreground">Create and manage orders</p>
         </div>
 
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-4">
-          <div className="relative w-full sm:w-64">
-            <Input
-              type="search"
-              placeholder="Search branches..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10"
-            />
-            <MapPin className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-          </div>
-
-          <div className="flex gap-2 items-center">
-            <DateRangePicker
-              initialDateFrom={new Date()}
-              initialDateTo={new Date()}
-              className="w-full sm:w-auto"
-            />
-            <div className="border rounded-md p-1">
-              <Button
-                variant={viewMode === "grid" ? "default" : "ghost"}
-                size="icon"
-                className="h-8 w-8"
-                onClick={() => setViewMode("grid")}
-              >
-                <BarChart3 className="h-4 w-4" />
-              </Button>
-              <Button
-                variant={viewMode === "list" ? "default" : "ghost"}
-                size="icon"
-                className="h-8 w-8"
-                onClick={() => setViewMode("list")}
-              >
-                <Users className="h-4 w-4" />
-              </Button>
-            </div>
-          </div>
-        </div>
-
-        {/* Branch Grid View */}
-        {viewMode === "grid" && (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredBranches.map((branch) => (
-              <Card 
-                key={branch.id} 
-                className={`branch-card animate-fade-in hover-scale transition-all ${selectedBranch === branch.id ? 'ring-2 ring-primary' : ''}`}
-                onClick={() => handleBranchSelect(branch.id)}
-              >
-                <CardHeader className="pb-2">
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <CardTitle className="text-lg">{branch.name}</CardTitle>
-                      <CardDescription>{branch.address}</CardDescription>
-                    </div>
-                    <div>
-                      <Badge className={getStatusColor(branch.status)}>
-                        {branch.status.charAt(0).toUpperCase() + branch.status.slice(1)}
-                      </Badge>
-                    </div>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {/* Menu Section - Redesigned to be more intuitive */}
+          <div className="md:col-span-2 space-y-4">
+            <Card>
+              <CardHeader className="pb-3">
+                <div className="flex flex-col md:flex-row gap-3 md:items-center md:justify-between">
+                  <CardTitle>Menu Items</CardTitle>
+                  <div className="relative w-full md:w-64">
+                    <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      type="search"
+                      placeholder="Search items..."
+                      className="pl-8"
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                    />
                   </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-6">
-                    <div className="text-sm">
-                      <div className="flex justify-between py-1">
-                        <span className="text-muted-foreground">Manager:</span>
-                        <span className="font-medium">{branch.manager}</span>
-                      </div>
-                      <div className="flex justify-between py-1">
-                        <span className="text-muted-foreground">Contact:</span>
-                        <span className="font-medium">{branch.contact}</span>
-                      </div>
-                      <div className="flex justify-between py-1">
-                        <span className="text-muted-foreground">Hours:</span>
-                        <span className="font-medium">{branch.openHours}</span>
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-4 pt-2">
-                      <div className="flex flex-col items-center justify-center bg-primary/10 p-3 rounded-lg">
-                        <Users className="h-5 w-5 text-primary mb-1" />
-                        <span className="text-xs text-muted-foreground">Staff</span>
-                        <span className="font-bold">{branch.employees}</span>
-                      </div>
-                      <div className="flex flex-col items-center justify-center bg-green-100/50 p-3 rounded-lg">
-                        <ShoppingBag className="h-5 w-5 text-green-600 mb-1" />
-                        <span className="text-xs text-muted-foreground">Orders</span>
-                        <span className="font-bold">{branch.todayOrders}</span>
-                      </div>
-                      <div className="flex flex-col items-center justify-center bg-blue-100/50 p-3 rounded-lg">
-                        <DollarSign className="h-5 w-5 text-blue-600 mb-1" />
-                        <span className="text-xs text-muted-foreground">Revenue</span>
-                        <span className="font-bold">${branch.todayRevenue.toFixed(2)}</span>
-                      </div>
-                      <div className="flex flex-col items-center justify-center bg-amber-100/50 p-3 rounded-lg">
-                        <AlertTriangle className="h-5 w-5 text-amber-600 mb-1" />
-                        <span className="text-xs text-muted-foreground">Low Stock</span>
-                        <span className="font-bold">{branch.lowStockItems}</span>
-                      </div>
-                    </div>
-
-                    <div className="flex justify-between pt-2">
-                      <Button variant="outline" size="sm" onClick={(e) => {e.stopPropagation(); handleEditBranch(branch.id);}}>
-                        <Edit className="h-4 w-4 mr-1" />
-                        Edit
-                      </Button>
-                      <Button 
-                        variant="outline" 
-                        size="sm" 
-                        className="text-destructive hover:bg-destructive/10"
-                        onClick={(e) => {e.stopPropagation(); handleDeleteBranch(branch.id);}}
-                      >
-                        <Trash2 className="h-4 w-4 mr-1" />
-                        Delete
-                      </Button>
-                      <Button 
-                        variant="outline" 
-                        size="sm"
-                        onClick={(e) => {e.stopPropagation(); handleViewBranchDetails(branch.id);}}
-                      >
-                        <Eye className="h-4 w-4 mr-1" />
-                        View
-                      </Button>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        )}
-
-        {/* Branch List View */}
-        {viewMode === "list" && (
-          <Card>
-            <CardContent className="p-0">
-              <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead>
-                    <tr className="border-b">
-                      <th className="px-6 py-3 text-left text-sm font-medium text-muted-foreground">Branch Name</th>
-                      <th className="px-4 py-3 text-left text-sm font-medium text-muted-foreground">Manager</th>
-                      <th className="px-4 py-3 text-left text-sm font-medium text-muted-foreground">Status</th>
-                      <th className="px-4 py-3 text-left text-sm font-medium text-muted-foreground">Staff</th>
-                      <th className="px-4 py-3 text-left text-sm font-medium text-muted-foreground">Orders Today</th>
-                      <th className="px-4 py-3 text-left text-sm font-medium text-muted-foreground">Revenue Today</th>
-                      <th className="px-6 py-3 text-right text-sm font-medium text-muted-foreground">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {filteredBranches.map((branch) => (
-                      <tr key={branch.id} className="border-b hover:bg-muted/50">
-                        <td className="px-6 py-3 text-sm font-medium">
-                          <div>
-                            <div>{branch.name}</div>
-                            <div className="text-xs text-muted-foreground">{branch.address}</div>
-                          </div>
-                        </td>
-                        <td className="px-4 py-3 text-sm">{branch.manager}</td>
-                        <td className="px-4 py-3 text-sm">
-                          <Badge className={getStatusColor(branch.status)}>
-                            {branch.status.charAt(0).toUpperCase() + branch.status.slice(1)}
-                          </Badge>
-                        </td>
-                        <td className="px-4 py-3 text-sm">{branch.employees}</td>
-                        <td className="px-4 py-3 text-sm">{branch.todayOrders}</td>
-                        <td className="px-4 py-3 text-sm">${branch.todayRevenue.toFixed(2)}</td>
-                        <td className="px-6 py-3 text-sm text-right">
-                          <div className="flex justify-end gap-2">
-                            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleEditBranch(branch.id)}>
-                              <Edit className="h-4 w-4" />
-                            </Button>
-                            <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => handleDeleteBranch(branch.id)}>
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleViewBranchDetails(branch.id)}>
-                              <Eye className="h-4 w-4" />
-                            </Button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </CardContent>
-          </Card>
-        )}
-
-        {/* Performance Analytics */}
-        <Card className="animate-slide-in">
-          <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle>Branch Performance Comparison</CardTitle>
-            <Select 
-              defaultValue="all"
-              onValueChange={setSelectedBranchFilter}
-            >
-              <SelectTrigger className="w-[180px]">
-                <SelectValue placeholder="All Branches" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Branches</SelectItem>
-                <SelectItem value="downtown">Downtown</SelectItem>
-                <SelectItem value="uptown">Uptown</SelectItem>
-                <SelectItem value="westside">Westside</SelectItem>
-                <SelectItem value="northside">Northside</SelectItem>
-              </SelectContent>
-            </Select>
-          </CardHeader>
-          <CardContent>
-            <ResponsiveContainer width="100%" height={300}>
-              <LineChart data={performanceData}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" />
-                <XAxis dataKey="name" />
-                <YAxis />
-                <Tooltip />
-                <Legend />
-                {(selectedBranchFilter === "all" || selectedBranchFilter === "downtown") && (
-                  <Line type="monotone" dataKey="downtown" stroke="#0088FE" activeDot={{ r: 8 }} />
-                )}
-                {(selectedBranchFilter === "all" || selectedBranchFilter === "uptown") && (
-                  <Line type="monotone" dataKey="uptown" stroke="#00C49F" />
-                )}
-                {(selectedBranchFilter === "all" || selectedBranchFilter === "westside") && (
-                  <Line type="monotone" dataKey="westside" stroke="#FFBB28" />
-                )}
-                {(selectedBranchFilter === "all" || selectedBranchFilter === "northside") && (
-                  <Line type="monotone" dataKey="northside" stroke="#FF8042" />
-                )}
-              </LineChart>
-            </ResponsiveContainer>
-          </CardContent>
-        </Card>
-
-        {/* Branch Details Tabs */}
-        <Card className="animate-slide-in">
-          <CardHeader>
-            <CardTitle>Branch Insights</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <Tabs defaultValue="active-orders" className="w-full">
-              <TabsList className="grid grid-cols-4 mb-4">
-                <TabsTrigger value="active-orders">Active Orders</TabsTrigger>
-                <TabsTrigger value="staff-attendance">Staff Attendance</TabsTrigger>
-                <TabsTrigger value="inventory-alerts">Inventory Alerts</TabsTrigger>
-                <TabsTrigger value="sales">Sales Distribution</TabsTrigger>
-              </TabsList>
-              
-              <TabsContent value="active-orders" className="space-y-4">
-                <div className="overflow-x-auto">
-                  <table className="w-full">
-                    <thead>
-                      <tr className="border-b">
-                        <th className="px-4 py-3 text-left text-sm font-medium text-muted-foreground">Order ID</th>
-                        <th className="px-4 py-3 text-left text-sm font-medium text-muted-foreground">Branch</th>
-                        <th className="px-4 py-3 text-left text-sm font-medium text-muted-foreground">Table</th>
-                        <th className="px-4 py-3 text-left text-sm font-medium text-muted-foreground">Items</th>
-                        <th className="px-4 py-3 text-left text-sm font-medium text-muted-foreground">Status</th>
-                        <th className="px-4 py-3 text-left text-sm font-medium text-muted-foreground">Time</th>
-                        <th className="px-4 py-3 text-right text-sm font-medium text-muted-foreground">Total</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {activeOrdersData.map((order) => (
-                        <tr key={order.id} className="border-b hover:bg-muted/50">
-                          <td className="px-4 py-3 text-sm font-medium">{order.id}</td>
-                          <td className="px-4 py-3 text-sm">{order.branch}</td>
-                          <td className="px-4 py-3 text-sm">{order.table}</td>
-                          <td className="px-4 py-3 text-sm">{order.items} items</td>
-                          <td className="px-4 py-3 text-sm">
-                            <Badge className={
-                              order.status === "New" ? "bg-blue-100 text-blue-800" :
-                              order.status === "Preparing" ? "bg-yellow-100 text-yellow-800" :
-                              order.status === "Ready" ? "bg-green-100 text-green-800" :
-                              "bg-gray-100 text-gray-800"
-                            }>
-                              {order.status}
-                            </Badge>
-                          </td>
-                          <td className="px-4 py-3 text-sm">{order.time}</td>
-                          <td className="px-4 py-3 text-sm text-right">{order.total}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
                 </div>
-              </TabsContent>
-              
-              <TabsContent value="staff-attendance" className="space-y-4">
-                <div className="overflow-x-auto">
-                  <table className="w-full">
-                    <thead>
-                      <tr className="border-b">
-                        <th className="px-4 py-3 text-left text-sm font-medium text-muted-foreground">Name</th>
-                        <th className="px-4 py-3 text-left text-sm font-medium text-muted-foreground">Branch</th>
-                        <th className="px-4 py-3 text-left text-sm font-medium text-muted-foreground">Role</th>
-                        <th className="px-4 py-3 text-left text-sm font-medium text-muted-foreground">Status</th>
-                        <th className="px-4 py-3 text-left text-sm font-medium text-muted-foreground">Check In</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {staffAttendanceData.map((staff) => (
-                        <tr key={staff.id} className="border-b hover:bg-muted/50">
-                          <td className="px-4 py-3 text-sm font-medium">{staff.name}</td>
-                          <td className="px-4 py-3 text-sm">{staff.branch}</td>
-                          <td className="px-4 py-3 text-sm">{staff.role}</td>
-                          <td className="px-4 py-3 text-sm">
-                            <Badge className={
-                              staff.status === "Present" ? "bg-green-100 text-green-800" :
-                              staff.status === "Late" ? "bg-yellow-100 text-yellow-800" :
-                              "bg-red-100 text-red-800"
-                            }>
-                              {staff.status}
-                            </Badge>
-                          </td>
-                          <td className="px-4 py-3 text-sm">{staff.checkIn}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </TabsContent>
-              
-              <TabsContent value="inventory-alerts" className="space-y-4">
-                <div className="overflow-x-auto">
-                  <table className="w-full">
-                    <thead>
-                      <tr className="border-b">
-                        <th className="px-4 py-3 text-left text-sm font-medium text-muted-foreground">Item</th>
-                        <th className="px-4 py-3 text-left text-sm font-medium text-muted-foreground">Branch</th>
-                        <th className="px-4 py-3 text-left text-sm font-medium text-muted-foreground">Current Stock</th>
-                        <th className="px-4 py-3 text-left text-sm font-medium text-muted-foreground">Minimum Required</th>
-                        <th className="px-4 py-3 text-left text-sm font-medium text-muted-foreground">Status</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {lowStockItems.map((item) => (
-                        <tr key={item.id} className="border-b hover:bg-muted/50">
-                          <td className="px-4 py-3 text-sm font-medium">{item.name}</td>
-                          <td className="px-4 py-3 text-sm">{item.branch}</td>
-                          <td className="px-4 py-3 text-sm">{item.current} units</td>
-                          <td className="px-4 py-3 text-sm">{item.minimum} units</td>
-                          <td className="px-4 py-3 text-sm">
-                            <Badge className={
-                              item.current <= item.minimum * 0.3 ? "bg-red-100 text-red-800" :
-                              item.current <= item.minimum * 0.7 ? "bg-yellow-100 text-yellow-800" :
-                              "bg-amber-100 text-amber-800"
-                            }>
-                              {item.current <= item.minimum * 0.3 ? "Critical" :
-                               item.current <= item.minimum * 0.7 ? "Low" : "Warning"}
-                            </Badge>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </TabsContent>
-              
-              <TabsContent value="sales" className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <ResponsiveContainer width="100%" height={300}>
-                      <PieChart>
-                        <Pie
-                          data={salesDistribution}
-                          cx="50%"
-                          cy="50%"
-                          labelLine={false}
-                          outerRadius={80}
-                          fill="#8884d8"
-                          dataKey="value"
-                          label={({name, percent}) => `${name}: ${(percent * 100).toFixed(0)}%`}
-                        >
-                          {salesDistribution.map((entry, index) => (
-                            <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                          ))}
-                        </Pie>
-                        <Tooltip />
-                        <Legend />
-                      </PieChart>
-                    </ResponsiveContainer>
-                  </div>
-                  <div>
-                    <h3 className="text-lg font-semibold mb-2">Sales Summary</h3>
-                    <div className="space-y-2">
-                      {salesDistribution.map((branch, index) => (
-                        <div key={index} className="flex justify-between items-center">
-                          <div className="flex items-center">
-                            <div className="w-3 h-3 rounded-full mr-2" style={{ backgroundColor: COLORS[index % COLORS.length] }}></div>
-                            <span>{branch.name}</span>
-                          </div>
-                          <div className="flex items-center">
-                            <span className="font-medium">{branch.value}%</span>
-                            <ArrowUpRight className="h-4 w-4 ml-1 text-green-500" />
-                          </div>
+              </CardHeader>
+              <CardContent>
+                {/* Category Toggle Group */}
+                <ToggleGroup type="single" className="flex flex-wrap gap-2 pb-4 overflow-x-auto">
+                  {menuCategories.map((category) => (
+                    <ToggleGroupItem 
+                      key={category.id}
+                      value={category.id.toString()}
+                      aria-label={category.name}
+                      className="flex items-center gap-1 px-3 py-1.5"
+                    >
+                      <category.icon className="h-4 w-4" />
+                      <span>{category.name}</span>
+                    </ToggleGroupItem>
+                  ))}
+                </ToggleGroup>
+
+                {/* Menu Items by Category - Accordion Style */}
+                <Accordion 
+                  type="multiple" 
+                  defaultValue={menuCategories.map(cat => `category-${cat.id}`)}
+                  className="space-y-2"
+                >
+                  {groupedMenuItems.map((categoryGroup) => (
+                    <AccordionItem 
+                      key={`category-${categoryGroup.id}`}
+                      value={`category-${categoryGroup.id}`}
+                      className="border rounded-md overflow-hidden"
+                    >
+                      <AccordionTrigger className="px-4 py-2 hover:bg-muted/50">
+                        <div className="flex items-center gap-2">
+                          <categoryGroup.icon className="h-5 w-5" />
+                          <span className="font-medium">{categoryGroup.name}</span>
+                          <span className="text-sm text-muted-foreground ml-2">
+                            ({categoryGroup.items.length} items)
+                          </span>
                         </div>
-                      ))}
+                      </AccordionTrigger>
+                      <AccordionContent className="pb-0">
+                        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 p-4 bg-muted/20">
+                          {categoryGroup.items.map((item) => (
+                            <div
+                              key={item.id}
+                              className="pos-item bg-background border rounded-md p-3 hover:border-primary cursor-pointer transition-colors"
+                              onClick={() => addItemToOrder(item)}
+                            >
+                              <div className="aspect-square rounded-md bg-muted mb-2 overflow-hidden">
+                                <img
+                                  src={item.image}
+                                  alt={item.name}
+                                  className="h-full w-full object-cover"
+                                />
+                              </div>
+                              <div className="text-sm font-medium truncate">{item.name}</div>
+                              <div className="text-sm font-bold">${item.price.toFixed(2)}</div>
+                            </div>
+                          ))}
+                        </div>
+                      </AccordionContent>
+                    </AccordionItem>
+                  ))}
+
+                  {groupedMenuItems.length === 0 && (
+                    <div className="text-center py-8 text-muted-foreground">
+                      No menu items found. Try a different search term.
                     </div>
-                    
-                    <div className="mt-6 p-4 bg-muted/50 rounded-lg">
-                      <h4 className="text-sm font-medium mb-2">Branch Control Actions</h4>
-                      <div className="grid grid-cols-2 gap-2">
-                        <Button variant="outline" size="sm" className="text-blue-600">
-                          <Settings className="h-4 w-4 mr-1" />
-                          Modify Hours
-                        </Button>
-                        <Button variant="outline" size="sm" className="text-purple-600">
-                          <Users className="h-4 w-4 mr-1" />
-                          Assign Staff
-                        </Button>
-                        <Button variant="outline" size="sm" className="text-orange-600">
-                          <Package className="h-4 w-4 mr-1" />
-                          Stock Transfer
-                        </Button>
-                        <Button variant="outline" size="sm" className="text-green-600">
-                          <BarChart3 className="h-4 w-4 mr-1" />
-                          Full Report
-                        </Button>
-                      </div>
+                  )}
+                </Accordion>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Order Section */}
+          <div className="md:col-span-1">
+            <Card className="animate-slide-in">
+              <CardHeader>
+                <CardTitle>Current Order</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <Tabs defaultValue="dine-in" className="w-full" onValueChange={(value) => setOrderType(value)}>
+                  <TabsList className="grid grid-cols-3 w-full">
+                    <TabsTrigger value="dine-in">Dine In</TabsTrigger>
+                    <TabsTrigger value="takeaway">Takeaway</TabsTrigger>
+                    <TabsTrigger value="delivery">Delivery</TabsTrigger>
+                  </TabsList>
+
+                  <TabsContent value="dine-in">
+                    <div className="space-y-2 py-2">
+                      <label htmlFor="table-number" className="text-sm font-medium">
+                        Table Number
+                      </label>
+                      <Input
+                        id="table-number"
+                        value={tableNumber}
+                        onChange={(e) => setTableNumber(e.target.value)}
+                      />
                     </div>
+                  </TabsContent>
+                  
+                  <TabsContent value="takeaway">
+                    <div className="py-2 text-center text-sm text-muted-foreground">
+                      Takeaway order - ready for pickup
+                    </div>
+                  </TabsContent>
+                  
+                  <TabsContent value="delivery">
+                    <div className="space-y-2 py-2">
+                      <label className="text-sm font-medium">
+                        Delivery Address
+                      </label>
+                      <Input placeholder="Enter delivery address" />
+                    </div>
+                  </TabsContent>
+                </Tabs>
+
+                {/* Order Items - Organized by Categories */}
+                <div className="space-y-4">
+                  <div className="text-sm font-medium">Order Items</div>
+
+                  {orderItems.length === 0 ? (
+                    <div className="text-center py-8 text-muted-foreground">
+                      No items in order.
+                    </div>
+                  ) : (
+                    <Accordion 
+                      type="multiple" 
+                      defaultValue={orderItemCategories.map(id => `order-category-${id}`)}
+                      className="space-y-2"
+                    >
+                      {orderItemCategories.map(categoryId => {
+                        const categoryItems = getOrderItemsByCategory(categoryId);
+                        const category = menuCategories.find(cat => cat.id === categoryId);
+                        
+                        if (!category || categoryItems.length === 0) return null;
+                        
+                        return (
+                          <AccordionItem 
+                            key={`order-category-${categoryId}`}
+                            value={`order-category-${categoryId}`}
+                            className="border rounded-md overflow-hidden"
+                          >
+                            <AccordionTrigger className="px-3 py-1.5 hover:bg-muted/50">
+                              <div className="flex items-center gap-2">
+                                <category.icon className="h-4 w-4" />
+                                <span className="font-medium">{category.name}</span>
+                                <span className="text-xs text-muted-foreground ml-1">
+                                  ({categoryItems.length})
+                                </span>
+                              </div>
+                            </AccordionTrigger>
+                            <AccordionContent>
+                              <div className="space-y-2 p-2">
+                                {categoryItems.map((item) => (
+                                  <div key={item.id} className="flex justify-between items-center border-b pb-2 last:border-0">
+                                    <div className="flex-1">
+                                      <div className="font-medium">{item.name}</div>
+                                      <div className="text-sm text-muted-foreground">
+                                        ${item.price.toFixed(2)} each
+                                      </div>
+                                    </div>
+
+                                    <div className="flex items-center gap-2">
+                                      <Button
+                                        variant="outline"
+                                        size="icon"
+                                        className="h-7 w-7"
+                                        onClick={() => updateItemQuantity(item.id, item.quantity - 1)}
+                                      >
+                                        <Minus className="h-3 w-3" />
+                                      </Button>
+                                      <span className="w-5 text-center">{item.quantity}</span>
+                                      <Button
+                                        variant="outline"
+                                        size="icon"
+                                        className="h-7 w-7"
+                                        onClick={() => updateItemQuantity(item.id, item.quantity + 1)}
+                                      >
+                                        <Plus className="h-3 w-3" />
+                                      </Button>
+                                      <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        className="h-7 w-7 text-muted-foreground hover:text-destructive"
+                                        onClick={() => removeItem(item.id)}
+                                      >
+                                        <Trash className="h-3 w-3" />
+                                      </Button>
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            </AccordionContent>
+                          </AccordionItem>
+                        );
+                      })}
+                    </Accordion>
+                  )}
+                </div>
+
+                {/* Order Summary */}
+                <div className="border-t pt-3">
+                  <div className="flex justify-between text-sm">
+                    <span>Subtotal</span>
+                    <span>${subtotal.toFixed(2)}</span>
+                  </div>
+                  <div className="flex justify-between text-sm mt-1">
+                    <span>Tax (8%)</span>
+                    <span>${tax.toFixed(2)}</span>
+                  </div>
+                  <div className="flex justify-between font-bold text-lg mt-2">
+                    <span>Total</span>
+                    <span>${total.toFixed(2)}</span>
                   </div>
                 </div>
-              </TabsContent>
-            </Tabs>
-          </CardContent>
-        </Card>
 
-        {/* Quick Insight Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          <Card className="stat-card animate-fade-in hover-scale">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Total Branches</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{branchList.length}</div>
-              <div className="flex items-center text-xs text-success mt-1">
-                <TrendingUp className="h-3 w-3 mr-1" />
-                <span>1 new in last month</span>
-              </div>
-            </CardContent>
-          </Card>
-          
-          <Card className="stat-card animate-fade-in [animation-delay:100ms] hover-scale">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Total Staff</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">78</div>
-              <div className="flex items-center text-xs text-success mt-1">
-                <TrendingUp className="h-3 w-3 mr-1" />
-                <span>5 new hires this month</span>
-              </div>
-            </CardContent>
-          </Card>
-          
-          <Card className="stat-card animate-fade-in [animation-delay:200ms] hover-scale">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Average Daily Orders</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">427</div>
-              <div className="flex items-center text-xs text-success mt-1">
-                <TrendingUp className="h-3 w-3 mr-1" />
-                <span>12% from last month</span>
-              </div>
-            </CardContent>
-          </Card>
-          
-          <Card className="stat-card animate-fade-in [animation-delay:300ms] hover-scale">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Operation Success Rate</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">96.7%</div>
-              <div className="flex items-center text-xs text-success mt-1">
-                <TrendingUp className="h-3 w-3 mr-1" />
-                <span>1.2% from last month</span>
-              </div>
-            </CardContent>
-          </Card>
+                {/* Payment Buttons */}
+                <div className="grid grid-cols-2 gap-2 pt-2">
+                  <Button 
+                    variant="outline" 
+                    className="w-full"
+                    disabled={orderItems.length === 0}
+                    onClick={printReceipt}
+                  >
+                    <Receipt className="mr-2 h-4 w-4" />
+                    Print
+                  </Button>
+                  <Button 
+                    className="w-full"
+                    disabled={orderItems.length === 0}
+                    onClick={processPayment}
+                  >
+                    <CreditCard className="mr-2 h-4 w-4" />
+                    Pay
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
         </div>
-
-        {/* Add/Edit Branch Dialog */}
-        <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle>
-                {isEditingBranch ? "Edit Branch" : "Add New Branch"}
-              </DialogTitle>
-              <DialogDescription>
-                {isEditingBranch 
-                  ? "Update information for this branch location" 
-                  : "Fill in the details to add a new branch to your restaurant chain"}
-              </DialogDescription>
-            </DialogHeader>
-            
-            <AddBranchForm 
-              onSubmit={handleBranchFormSubmit} 
-              defaultValues={
-                isEditingBranch && currentBranchId ? {
-                  name: getCurrentBranch()?.name || "",
-                  address: getCurrentBranch()?.address || "",
-                  manager: getCurrentBranch()?.manager || "",
-                  contact: getCurrentBranch()?.contact || "",
-                  status: getCurrentBranch()?.status || "active",
-                  openingTime: getCurrentBranch()?.openHours.split(" - ")[0] || "08:00",
-                  closingTime: getCurrentBranch()?.openHours.split(" - ")[1] || "22:00",
-                  taxRate: 8.5, // Default value
-                  notes: ""
-                } : undefined
-              } 
-              title={isEditingBranch ? "Edit Branch Details" : "Add New Branch"}
-              submitLabel={isEditingBranch ? "Update Branch" : "Create Branch"}
-            />
-          </DialogContent>
-        </Dialog>
-
-        {/* Branch Details View Dialog */}
-        <Dialog open={isViewingBranch} onOpenChange={setIsViewingBranch}>
-          <DialogContent className="max-w-3xl max-h-[90vh] p-0">
-            {currentBranchId && getCurrentBranch() && (
-              <BranchDetailsView 
-                branch={getCurrentBranch()!}
-                onClose={() => setIsViewingBranch(false)} 
-                onEdit={(id) => {
-                  setIsViewingBranch(false);
-                  handleEditBranch(id);
-                }} 
-              />
-            )}
-          </DialogContent>
-        </Dialog>
       </div>
     </RestaurantLayout>
   );
