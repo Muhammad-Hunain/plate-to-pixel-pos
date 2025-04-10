@@ -1,434 +1,379 @@
 
-import { useState } from "react";
-import RestaurantLayout from "@/components/layout/RestaurantLayout";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { toast } from "sonner";
-import { 
-  Coffee, Search, Utensils, Pizza, Sandwich, IceCream, 
-  Beef, Beer, Plus, Minus, Trash, CreditCard, Receipt, 
-  ChevronDown, ChevronRight 
+import { Badge } from "@/components/ui/badge";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  BarChart,
+  Clock,
+  Filter,
+  History,
+  MoreVertical,
+  Plus,
+  Search,
+  ShoppingCart,
+  Utensils,
 } from "lucide-react";
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@/components/ui/accordion";
-import {
-  ToggleGroup,
-  ToggleGroupItem
-} from "@/components/ui/toggle-group";
 
-// Sample menu categories and items
-const menuCategories = [
-  { id: 1, name: "Starters", icon: Utensils },
-  { id: 2, name: "Main Course", icon: Pizza },
-  { id: 3, name: "Sandwiches", icon: Sandwich },
-  { id: 4, name: "Desserts", icon: IceCream },
-  { id: 5, name: "Drinks", icon: Coffee },
-  { id: 6, name: "Specials", icon: Beef },
-  { id: 7, name: "Beverages", icon: Beer },
-];
+import RestaurantLayout from "@/components/layout/RestaurantLayout";
+import { useToast } from "@/hooks/use-toast";
 
+// Menu items data
 const menuItems = [
-  // Starters
-  { id: 101, name: "Garlic Bread", price: 4.99, category: 1, image: "placeholder.svg" },
-  { id: 102, name: "Buffalo Wings", price: 8.99, category: 1, image: "placeholder.svg" },
-  { id: 103, name: "Mozzarella Sticks", price: 6.99, category: 1, image: "placeholder.svg" },
-  { id: 104, name: "Loaded Nachos", price: 9.99, category: 1, image: "placeholder.svg" },
-  
-  // Main Course
-  { id: 201, name: "Margherita Pizza", price: 12.99, category: 2, image: "placeholder.svg" },
-  { id: 202, name: "Pepperoni Pizza", price: 14.99, category: 2, image: "placeholder.svg" },
-  { id: 203, name: "Spaghetti Bolognese", price: 13.99, category: 2, image: "placeholder.svg" },
-  { id: 204, name: "Grilled Salmon", price: 19.99, category: 2, image: "placeholder.svg" },
-  
-  // Sandwiches
-  { id: 301, name: "Club Sandwich", price: 11.99, category: 3, image: "placeholder.svg" },
-  { id: 302, name: "BLT", price: 9.99, category: 3, image: "placeholder.svg" },
-  { id: 303, name: "Chicken Wrap", price: 10.99, category: 3, image: "placeholder.svg" },
-  
-  // Desserts
-  { id: 401, name: "Chocolate Cake", price: 6.99, category: 4, image: "placeholder.svg" },
-  { id: 402, name: "Cheesecake", price: 7.99, category: 4, image: "placeholder.svg" },
-  { id: 403, name: "Apple Pie", price: 5.99, category: 4, image: "placeholder.svg" },
-  
-  // Drinks
-  { id: 501, name: "Cappuccino", price: 3.99, category: 5, image: "placeholder.svg" },
-  { id: 502, name: "Latte", price: 4.29, category: 5, image: "placeholder.svg" },
-  { id: 503, name: "Espresso", price: 2.99, category: 5, image: "placeholder.svg" },
-  { id: 504, name: "Hot Chocolate", price: 3.49, category: 5, image: "placeholder.svg" },
+  {
+    id: 1,
+    name: "Classic Burger",
+    price: 12.99,
+    category: "burgers",
+    image: "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=300&h=200&fit=crop",
+  },
+  {
+    id: 2,
+    name: "Cheese Pizza",
+    price: 14.99,
+    category: "pizza",
+    image: "https://images.unsplash.com/photo-1513104890138-7c749659a591?w=300&h=200&fit=crop",
+  },
+  {
+    id: 3,
+    name: "Caesar Salad",
+    price: 8.99,
+    category: "salads",
+    image: "https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=300&h=200&fit=crop",
+  },
+  {
+    id: 4,
+    name: "Chicken Wings",
+    price: 10.99,
+    category: "appetizers",
+    image: "https://images.unsplash.com/photo-1567620832903-9fc6debc209f?w=300&h=200&fit=crop",
+  },
+  {
+    id: 5,
+    name: "Spaghetti",
+    price: 13.99,
+    category: "pasta",
+    image: "https://images.unsplash.com/photo-1563379926898-05f4575a45d8?w=300&h=200&fit=crop",
+  },
+  {
+    id: 6,
+    name: "French Fries",
+    price: 4.99,
+    category: "sides",
+    image: "https://images.unsplash.com/photo-1573080496219-bb080dd4f877?w=300&h=200&fit=crop",
+  },
+  {
+    id: 7,
+    name: "Chocolate Cake",
+    price: 6.99,
+    category: "desserts",
+    image: "https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=300&h=200&fit=crop",
+  },
+  {
+    id: 8,
+    name: "Iced Tea",
+    price: 3.99,
+    category: "drinks",
+    image: "https://images.unsplash.com/photo-1556679343-c7306c1976bc?w=300&h=200&fit=crop",
+  },
 ];
 
-// Type definitions
-type MenuItem = {
-  id: number;
-  name: string;
-  price: number;
-  category: number;
-  image: string;
-};
-
-type OrderItem = MenuItem & {
-  quantity: number;
-};
-
-export default function PosPage() {
+const PosPage = () => {
+  const { toast } = useToast();
+  const [cart, setCart] = useState([]);
+  const [activeTab, setActiveTab] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
-  const [orderItems, setOrderItems] = useState<OrderItem[]>([]);
-  const [orderType, setOrderType] = useState("dine-in");
-  const [tableNumber, setTableNumber] = useState("1");
-  
-  // Get unique categories from order items
-  const orderItemCategories = [...new Set(orderItems.map(item => {
-    const category = menuCategories.find(cat => cat.id === item.category);
-    return category ? category.id : null;
-  }).filter(Boolean))];
 
-  // Filter menu items by search query
-  const filteredMenuItems = menuItems.filter((item) => {
-    return item.name.toLowerCase().includes(searchQuery.toLowerCase());
-  });
-
-  // Group menu items by category
-  const groupedMenuItems = menuCategories.map(category => {
-    const items = filteredMenuItems.filter(item => item.category === category.id);
-    return {
-      ...category,
-      items
-    };
-  }).filter(group => group.items.length > 0);
-
-  // Add item to order
-  const addItemToOrder = (item: MenuItem) => {
-    setOrderItems((prevItems) => {
-      const existingItem = prevItems.find((orderItem) => orderItem.id === item.id);
-      
-      if (existingItem) {
-        return prevItems.map((orderItem) => 
-          orderItem.id === item.id 
-            ? { ...orderItem, quantity: orderItem.quantity + 1 } 
-            : orderItem
-        );
-      } else {
-        return [...prevItems, { ...item, quantity: 1 }];
-      }
-    });
-    
-    toast.success(`Added ${item.name} to order`);
-  };
-
-  // Update item quantity in order
-  const updateItemQuantity = (itemId: number, newQuantity: number) => {
-    if (newQuantity === 0) {
-      setOrderItems((prevItems) => prevItems.filter((item) => item.id !== itemId));
-      return;
+  const handleAddToCart = (item) => {
+    const existingItem = cart.find((cartItem) => cartItem.id === item.id);
+    if (existingItem) {
+      setCart(
+        cart.map((cartItem) =>
+          cartItem.id === item.id
+            ? { ...cartItem, quantity: cartItem.quantity + 1 }
+            : cartItem
+        )
+      );
+    } else {
+      setCart([...cart, { ...item, quantity: 1 }]);
     }
 
-    setOrderItems((prevItems) => 
-      prevItems.map((item) => 
-        item.id === itemId ? { ...item, quantity: newQuantity } : item
-      )
+    toast({
+      title: "Added to order",
+      description: `${item.name} has been added to the order.`,
+    });
+  };
+
+  const handleRemoveFromCart = (id) => {
+    const itemToRemove = cart.find((item) => item.id === id);
+    if (itemToRemove.quantity === 1) {
+      setCart(cart.filter((item) => item.id !== id));
+    } else {
+      setCart(
+        cart.map((item) =>
+          item.id === id ? { ...item, quantity: item.quantity - 1 } : item
+        )
+      );
+    }
+  };
+
+  const handlePlaceOrder = () => {
+    if (cart.length === 0) {
+      toast({
+        title: "No items in order",
+        description: "Please add items to the order before placing it.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    toast({
+      title: "Order placed",
+      description: `Order with ${cart.length} items has been placed successfully.`,
+    });
+    
+    console.log("Order placed:", cart);
+    setCart([]);
+  };
+
+  const calculateTotal = () => {
+    return cart.reduce(
+      (total, item) => total + item.price * item.quantity,
+      0
     );
   };
 
-  // Remove item from order
-  const removeItem = (itemId: number) => {
-    setOrderItems((prevItems) => prevItems.filter((item) => item.id !== itemId));
-    toast("Item removed from order");
-  };
+  const filteredItems = menuItems.filter((item) => {
+    const matchesCategory = activeTab === "all" || item.category === activeTab;
+    const matchesSearch = item.name
+      .toLowerCase()
+      .includes(searchQuery.toLowerCase());
+    return matchesCategory && matchesSearch;
+  });
 
-  // Calculate order subtotal
-  const subtotal = orderItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-  const tax = subtotal * 0.08; // 8% tax
-  const total = subtotal + tax;
-
-  // Process payment
-  const processPayment = () => {
-    toast.success("Payment processed successfully!");
-    setOrderItems([]);
-    setTableNumber("1");
-  };
-
-  // Print receipt
-  const printReceipt = () => {
-    toast("Printing receipt...");
-  };
-
-  // Get all items for a specific category
-  const getOrderItemsByCategory = (categoryId: number) => {
-    return orderItems.filter(item => item.category === categoryId);
-  };
+  const categories = [
+    { id: "all", name: "All" },
+    { id: "burgers", name: "Burgers" },
+    { id: "pizza", name: "Pizza" },
+    { id: "pasta", name: "Pasta" },
+    { id: "salads", name: "Salads" },
+    { id: "appetizers", name: "Appetizers" },
+    { id: "sides", name: "Sides" },
+    { id: "desserts", name: "Desserts" },
+    { id: "drinks", name: "Drinks" },
+  ];
 
   return (
     <RestaurantLayout>
-      <div className="space-y-6">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">POS System</h1>
-          <p className="text-muted-foreground">Create and manage orders</p>
-        </div>
+      <div className="p-6 h-full">
+        <div className="flex flex-col lg:flex-row h-full gap-6">
+          {/* Left side - Menu Items */}
+          <div className="w-full lg:w-2/3 flex flex-col">
+            <div className="flex flex-col md:flex-row justify-between mb-4 gap-4">
+              <div className="flex items-center space-x-2">
+                <h1 className="text-2xl font-bold">Point of Sale</h1>
+                <Badge variant="outline" className="ml-2">
+                  Table 5
+                </Badge>
+              </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {/* Menu Section - Redesigned to be more intuitive */}
-          <div className="md:col-span-2 space-y-4">
-            <Card>
-              <CardHeader className="pb-3">
-                <div className="flex flex-col md:flex-row gap-3 md:items-center md:justify-between">
-                  <CardTitle>Menu Items</CardTitle>
-                  <div className="relative w-full md:w-64">
-                    <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                    <Input
-                      type="search"
-                      placeholder="Search items..."
-                      className="pl-8"
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                    />
-                  </div>
+              <div className="flex gap-2">
+                <div className="relative flex-grow">
+                  <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    type="search"
+                    placeholder="Search items..."
+                    className="pl-8 w-full md:w-[200px]"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                  />
                 </div>
-              </CardHeader>
-              <CardContent>
-                {/* Category Toggle Group */}
-                <ToggleGroup type="single" className="flex flex-wrap gap-2 pb-4 overflow-x-auto">
-                  {menuCategories.map((category) => (
-                    <ToggleGroupItem 
+                <Button variant="outline" size="icon">
+                  <Filter className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+
+            <Tabs
+              defaultValue="all"
+              value={activeTab}
+              onValueChange={setActiveTab}
+              className="mt-2"
+            >
+              <div className="overflow-x-auto pb-2">
+                <TabsList className="h-9 w-max">
+                  {categories.map((category) => (
+                    <TabsTrigger
                       key={category.id}
-                      value={category.id.toString()}
-                      aria-label={category.name}
-                      className="flex items-center gap-1 px-3 py-1.5"
+                      value={category.id}
+                      className="px-4"
                     >
-                      <category.icon className="h-4 w-4" />
-                      <span>{category.name}</span>
-                    </ToggleGroupItem>
+                      {category.name}
+                    </TabsTrigger>
                   ))}
-                </ToggleGroup>
+                </TabsList>
+              </div>
 
-                {/* Menu Items by Category - Accordion Style */}
-                <Accordion 
-                  type="multiple" 
-                  defaultValue={menuCategories.map(cat => `category-${cat.id}`)}
-                  className="space-y-2"
-                >
-                  {groupedMenuItems.map((categoryGroup) => (
-                    <AccordionItem 
-                      key={`category-${categoryGroup.id}`}
-                      value={`category-${categoryGroup.id}`}
-                      className="border rounded-md overflow-hidden"
+              <TabsContent value={activeTab} className="mt-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+                  {filteredItems.map((item) => (
+                    <div
+                      key={item.id}
+                      className="cursor-pointer rounded-lg border bg-card text-card-foreground shadow-sm overflow-hidden hover:shadow-md transition-all"
+                      onClick={() => handleAddToCart(item)}
                     >
-                      <AccordionTrigger className="px-4 py-2 hover:bg-muted/50">
-                        <div className="flex items-center gap-2">
-                          <categoryGroup.icon className="h-5 w-5" />
-                          <span className="font-medium">{categoryGroup.name}</span>
-                          <span className="text-sm text-muted-foreground ml-2">
-                            ({categoryGroup.items.length} items)
+                      <div className="relative">
+                        <img
+                          src={item.image}
+                          alt={item.name}
+                          className="w-full h-[120px] object-cover"
+                        />
+                      </div>
+                      <div className="p-4">
+                        <h3 className="font-medium">{item.name}</h3>
+                        <div className="flex justify-between items-center mt-1">
+                          <span className="text-muted-foreground text-sm">
+                            {item.category}
                           </span>
+                          <span className="font-bold">${item.price}</span>
                         </div>
-                      </AccordionTrigger>
-                      <AccordionContent className="pb-0">
-                        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 p-4 bg-muted/20">
-                          {categoryGroup.items.map((item) => (
-                            <div
-                              key={item.id}
-                              className="pos-item bg-background border rounded-md p-3 hover:border-primary cursor-pointer transition-colors"
-                              onClick={() => addItemToOrder(item)}
-                            >
-                              <div className="aspect-square rounded-md bg-muted mb-2 overflow-hidden">
-                                <img
-                                  src={item.image}
-                                  alt={item.name}
-                                  className="h-full w-full object-cover"
-                                />
-                              </div>
-                              <div className="text-sm font-medium truncate">{item.name}</div>
-                              <div className="text-sm font-bold">${item.price.toFixed(2)}</div>
-                            </div>
-                          ))}
-                        </div>
-                      </AccordionContent>
-                    </AccordionItem>
-                  ))}
-
-                  {groupedMenuItems.length === 0 && (
-                    <div className="text-center py-8 text-muted-foreground">
-                      No menu items found. Try a different search term.
+                      </div>
                     </div>
-                  )}
-                </Accordion>
-              </CardContent>
-            </Card>
+                  ))}
+                </div>
+              </TabsContent>
+            </Tabs>
           </div>
 
-          {/* Order Section */}
-          <div className="md:col-span-1">
-            <Card className="animate-slide-in">
-              <CardHeader>
-                <CardTitle>Current Order</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <Tabs defaultValue="dine-in" className="w-full" onValueChange={(value) => setOrderType(value)}>
-                  <TabsList className="grid grid-cols-3 w-full">
-                    <TabsTrigger value="dine-in">Dine In</TabsTrigger>
-                    <TabsTrigger value="takeaway">Takeaway</TabsTrigger>
-                    <TabsTrigger value="delivery">Delivery</TabsTrigger>
-                  </TabsList>
+          {/* Right side - Cart */}
+          <div className="w-full lg:w-1/3 h-full flex flex-col border rounded-lg p-4 bg-card text-card-foreground shadow-sm">
+            <div className="flex justify-between items-center mb-4">
+              <div className="flex items-center">
+                <ShoppingCart className="h-5 w-5 mr-2" />
+                <h2 className="text-xl font-bold">Current Order</h2>
+              </div>
+              <div className="flex items-center gap-2">
+                <Select defaultValue="dine-in">
+                  <SelectTrigger className="w-[120px]">
+                    <SelectValue placeholder="Order Type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="dine-in">Dine In</SelectItem>
+                    <SelectItem value="takeout">Takeout</SelectItem>
+                    <SelectItem value="delivery">Delivery</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Button variant="ghost" size="icon">
+                  <MoreVertical className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
 
-                  <TabsContent value="dine-in">
-                    <div className="space-y-2 py-2">
-                      <label htmlFor="table-number" className="text-sm font-medium">
-                        Table Number
-                      </label>
-                      <Input
-                        id="table-number"
-                        value={tableNumber}
-                        onChange={(e) => setTableNumber(e.target.value)}
-                      />
-                    </div>
-                  </TabsContent>
-                  
-                  <TabsContent value="takeaway">
-                    <div className="py-2 text-center text-sm text-muted-foreground">
-                      Takeaway order - ready for pickup
-                    </div>
-                  </TabsContent>
-                  
-                  <TabsContent value="delivery">
-                    <div className="space-y-2 py-2">
-                      <label className="text-sm font-medium">
-                        Delivery Address
-                      </label>
-                      <Input placeholder="Enter delivery address" />
-                    </div>
-                  </TabsContent>
-                </Tabs>
-
-                {/* Order Items - Organized by Categories */}
-                <div className="space-y-4">
-                  <div className="text-sm font-medium">Order Items</div>
-
-                  {orderItems.length === 0 ? (
-                    <div className="text-center py-8 text-muted-foreground">
-                      No items in order.
-                    </div>
-                  ) : (
-                    <Accordion 
-                      type="multiple" 
-                      defaultValue={orderItemCategories.map(id => `order-category-${id}`)}
-                      className="space-y-2"
+            <div className="flex-grow overflow-y-auto mb-4">
+              {cart.length === 0 ? (
+                <div className="text-center py-12 text-muted-foreground">
+                  <Utensils className="mx-auto h-12 w-12 mb-4 opacity-20" />
+                  <p>No items in the order yet</p>
+                  <p className="text-sm">Add items from the menu</p>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {cart.map((item) => (
+                    <div
+                      key={item.id}
+                      className="flex justify-between items-center border-b pb-3"
                     >
-                      {orderItemCategories.map(categoryId => {
-                        const categoryItems = getOrderItemsByCategory(categoryId);
-                        const category = menuCategories.find(cat => cat.id === categoryId);
-                        
-                        if (!category || categoryItems.length === 0) return null;
-                        
-                        return (
-                          <AccordionItem 
-                            key={`order-category-${categoryId}`}
-                            value={`order-category-${categoryId}`}
-                            className="border rounded-md overflow-hidden"
+                      <div className="flex items-center">
+                        <div className="ml-3">
+                          <p className="font-medium">{item.name}</p>
+                          <p className="text-sm text-muted-foreground">
+                            ${item.price.toFixed(2)} x {item.quantity}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="font-bold">
+                          ${(item.price * item.quantity).toFixed(2)}
+                        </span>
+                        <div className="flex items-center border rounded-md">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 p-0"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleRemoveFromCart(item.id);
+                            }}
                           >
-                            <AccordionTrigger className="px-3 py-1.5 hover:bg-muted/50">
-                              <div className="flex items-center gap-2">
-                                <category.icon className="h-4 w-4" />
-                                <span className="font-medium">{category.name}</span>
-                                <span className="text-xs text-muted-foreground ml-1">
-                                  ({categoryItems.length})
-                                </span>
-                              </div>
-                            </AccordionTrigger>
-                            <AccordionContent>
-                              <div className="space-y-2 p-2">
-                                {categoryItems.map((item) => (
-                                  <div key={item.id} className="flex justify-between items-center border-b pb-2 last:border-0">
-                                    <div className="flex-1">
-                                      <div className="font-medium">{item.name}</div>
-                                      <div className="text-sm text-muted-foreground">
-                                        ${item.price.toFixed(2)} each
-                                      </div>
-                                    </div>
-
-                                    <div className="flex items-center gap-2">
-                                      <Button
-                                        variant="outline"
-                                        size="icon"
-                                        className="h-7 w-7"
-                                        onClick={() => updateItemQuantity(item.id, item.quantity - 1)}
-                                      >
-                                        <Minus className="h-3 w-3" />
-                                      </Button>
-                                      <span className="w-5 text-center">{item.quantity}</span>
-                                      <Button
-                                        variant="outline"
-                                        size="icon"
-                                        className="h-7 w-7"
-                                        onClick={() => updateItemQuantity(item.id, item.quantity + 1)}
-                                      >
-                                        <Plus className="h-3 w-3" />
-                                      </Button>
-                                      <Button
-                                        variant="ghost"
-                                        size="icon"
-                                        className="h-7 w-7 text-muted-foreground hover:text-destructive"
-                                        onClick={() => removeItem(item.id)}
-                                      >
-                                        <Trash className="h-3 w-3" />
-                                      </Button>
-                                    </div>
-                                  </div>
-                                ))}
-                              </div>
-                            </AccordionContent>
-                          </AccordionItem>
-                        );
-                      })}
-                    </Accordion>
-                  )}
+                            -
+                          </Button>
+                          <span className="w-8 text-center">
+                            {item.quantity}
+                          </span>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 p-0"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleAddToCart(item);
+                            }}
+                          >
+                            +
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
                 </div>
+              )}
+            </div>
 
-                {/* Order Summary */}
-                <div className="border-t pt-3">
-                  <div className="flex justify-between text-sm">
-                    <span>Subtotal</span>
-                    <span>${subtotal.toFixed(2)}</span>
-                  </div>
-                  <div className="flex justify-between text-sm mt-1">
-                    <span>Tax (8%)</span>
-                    <span>${tax.toFixed(2)}</span>
-                  </div>
-                  <div className="flex justify-between font-bold text-lg mt-2">
-                    <span>Total</span>
-                    <span>${total.toFixed(2)}</span>
-                  </div>
+            <div className="border-t pt-4">
+              <div className="space-y-2">
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Subtotal</span>
+                  <span>${calculateTotal().toFixed(2)}</span>
                 </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Tax (10%)</span>
+                  <span>${(calculateTotal() * 0.1).toFixed(2)}</span>
+                </div>
+                <div className="flex justify-between text-lg font-bold">
+                  <span>Total</span>
+                  <span>${(calculateTotal() * 1.1).toFixed(2)}</span>
+                </div>
+              </div>
 
-                {/* Payment Buttons */}
-                <div className="grid grid-cols-2 gap-2 pt-2">
-                  <Button 
-                    variant="outline" 
-                    className="w-full"
-                    disabled={orderItems.length === 0}
-                    onClick={printReceipt}
-                  >
-                    <Receipt className="mr-2 h-4 w-4" />
-                    Print
-                  </Button>
-                  <Button 
-                    className="w-full"
-                    disabled={orderItems.length === 0}
-                    onClick={processPayment}
-                  >
-                    <CreditCard className="mr-2 h-4 w-4" />
-                    Pay
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
+              <div className="grid grid-cols-2 gap-3 mt-4">
+                <Button variant="outline" className="gap-1" disabled={cart.length === 0}>
+                  <History className="h-4 w-4 mr-1" />
+                  Save Order
+                </Button>
+                <Button 
+                  className="gap-1"
+                  onClick={handlePlaceOrder}
+                  disabled={cart.length === 0}
+                >
+                  <ShoppingCart className="h-4 w-4 mr-1" />
+                  Place Order
+                </Button>
+              </div>
+            </div>
           </div>
         </div>
       </div>
     </RestaurantLayout>
   );
-}
+};
+
+export default PosPage;

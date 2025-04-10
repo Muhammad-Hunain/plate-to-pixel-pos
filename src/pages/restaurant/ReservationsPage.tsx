@@ -1,18 +1,20 @@
 
-import { useState } from "react";
+import React, { useState } from 'react';
 import RestaurantLayout from "@/components/layout/RestaurantLayout";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { DatePicker } from "@/components/ui/date-picker";
-import { Calendar as CalendarIcon } from "lucide-react";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "@/components/ui/tabs";
 import {
   Table,
   TableBody,
@@ -21,1002 +23,317 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from "@/components/ui/dialog";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
-import { useForm } from "react-hook-form";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import {
-  Search,
-  MoreVertical,
-  User,
-  Calendar,
-  Phone,
-  Clock,
-  Users,
-  Filter,
-  Plus,
-  Check,
-  X,
-  Edit,
-  Trash2,
-  CheckCircle,
-  AlertCircle,
+  CalendarIcon,
   ChevronLeft,
   ChevronRight,
-  MapPin
+  Filter,
+  Search,
 } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
-import { toast } from "sonner";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { Separator } from "@/components/ui/separator";
-import { TimeInput } from "@/components/ui/time-input";
+import ReservationDialog from '@/components/reservations/ReservationDialog';
 
-// Type definitions
-interface Reservation {
-  id: string;
-  customerName: string;
-  phone: string;
-  email: string;
-  date: string;
-  time: string;
-  partySize: number;
-  status: "confirmed" | "pending" | "cancelled" | "completed";
-  tableNumber?: string;
-  specialRequests?: string;
-  createdAt: string;
-  branch: string;
-}
-
-// Mock data
-const initialReservations: Reservation[] = [
+// Mock data for reservations
+const reservationsData = [
   {
-    id: "R1001",
-    customerName: "John Smith",
-    phone: "(555) 123-4567",
-    email: "john.smith@example.com",
+    id: "RES001",
+    name: "John Smith",
     date: "2025-04-10",
     time: "19:00",
-    partySize: 4,
+    guests: 4,
+    contact: "555-0123",
     status: "confirmed",
-    tableNumber: "12",
-    specialRequests: "Window seat if possible",
-    createdAt: "2025-04-01T15:30:00",
-    branch: "Downtown",
+    tableNumber: "T12",
+    notes: "",
   },
   {
-    id: "R1002",
-    customerName: "Sarah Johnson",
-    phone: "(555) 234-5678",
-    email: "sarah.j@example.com",
+    id: "RES002",
+    name: "Sarah Johnson",
     date: "2025-04-10",
     time: "20:00",
-    partySize: 2,
+    guests: 2,
+    contact: "555-0124",
     status: "confirmed",
-    tableNumber: "5",
-    specialRequests: "Anniversary celebration",
-    createdAt: "2025-04-02T10:15:00",
-    branch: "Uptown",
+    tableNumber: "T5",
+    notes: "Anniversary dinner",
   },
   {
-    id: "R1003",
-    customerName: "Michael Chang",
-    phone: "(555) 345-6789",
-    email: "michael.c@example.com",
-    date: "2025-04-11",
-    time: "18:30",
-    partySize: 6,
-    status: "pending",
-    createdAt: "2025-04-02T16:45:00",
-    branch: "Downtown",
-  },
-  {
-    id: "R1004",
-    customerName: "Emily Davis",
-    phone: "(555) 456-7890",
-    email: "emily.d@example.com",
+    id: "RES003",
+    name: "Michael Brown",
     date: "2025-04-10",
-    time: "17:00",
-    partySize: 3,
-    status: "cancelled",
-    createdAt: "2025-04-01T09:20:00",
-    branch: "Westside",
+    time: "18:30",
+    guests: 6,
+    contact: "555-0125",
+    status: "pending",
+    tableNumber: "T8",
+    notes: "Highchair needed",
   },
   {
-    id: "R1005",
-    customerName: "Robert Wilson",
-    phone: "(555) 567-8901",
-    email: "robert.w@example.com",
-    date: "2025-04-09",
-    time: "19:30",
-    partySize: 4,
-    status: "completed",
-    tableNumber: "8",
-    specialRequests: "Food allergies: nuts",
-    createdAt: "2025-04-01T11:10:00",
-    branch: "Downtown",
-  },
-  {
-    id: "R1006",
-    customerName: "Jessica Brown",
-    phone: "(555) 678-9012",
-    email: "jessica.b@example.com",
+    id: "RES004",
+    name: "Emily Wilson",
     date: "2025-04-11",
-    time: "20:15",
-    partySize: 5,
+    time: "19:30",
+    guests: 3,
+    contact: "555-0126",
     status: "confirmed",
-    tableNumber: "15",
-    createdAt: "2025-04-03T14:25:00",
-    branch: "Uptown",
-  }
+    tableNumber: "T3",
+    notes: "",
+  },
+  {
+    id: "RES005",
+    name: "David Lee",
+    date: "2025-04-11",
+    time: "20:30",
+    guests: 5,
+    contact: "555-0127",
+    status: "cancelled",
+    tableNumber: "T15",
+    notes: "Gluten allergy",
+  },
+  {
+    id: "RES006",
+    name: "Jennifer Taylor",
+    date: "2025-04-11",
+    time: "18:00",
+    guests: 2,
+    contact: "555-0128",
+    status: "confirmed",
+    tableNumber: "T7",
+    notes: "",
+  },
+  {
+    id: "RES007",
+    name: "Robert Anderson",
+    date: "2025-04-12",
+    time: "19:00",
+    guests: 4,
+    contact: "555-0129",
+    status: "waiting",
+    tableNumber: "T10",
+    notes: "Birthday celebration",
+  },
+  {
+    id: "RES008",
+    name: "Michelle Garcia",
+    date: "2025-04-12",
+    time: "19:45",
+    guests: 2,
+    contact: "555-0130",
+    status: "confirmed",
+    tableNumber: "T2",
+    notes: "",
+  },
 ];
 
-const mockBranches = ["All Branches", "Downtown", "Uptown", "Westside", "Northside", "Eastside"];
+const days = [
+  "Today", 
+  "Tomorrow", 
+  "Apr 12", 
+  "Apr 13", 
+  "Apr 14", 
+  "Apr 15", 
+  "Apr 16"
+];
 
 const ReservationsPage = () => {
-  const [reservations, setReservations] = useState<Reservation[]>(initialReservations);
-  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
+  const [activeDay, setActiveDay] = useState("Today");
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
-  const [branchFilter, setBranchFilter] = useState("All Branches");
-  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
-  const [editingReservation, setEditingReservation] = useState<Reservation | null>(null);
-  const [currentView, setCurrentView] = useState<"list" | "calendar">("list");
 
-  const form = useForm({
-    defaultValues: {
-      customerName: "",
-      phone: "",
-      email: "",
-      date: new Date(),
-      time: "19:00",
-      partySize: 2,
-      branch: "Downtown",
-      tableNumber: "",
-      specialRequests: "",
-      status: "confirmed" as "confirmed" | "pending" | "cancelled" | "completed",
-    },
-  });
-
-  // Filter reservations based on search, status, date, and branch
-  const filteredReservations = reservations.filter((reservation) => {
-    const matchesSearch =
-      searchQuery === "" ||
-      reservation.customerName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      reservation.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      reservation.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      reservation.phone.includes(searchQuery);
-
+  const filteredReservations = reservationsData.filter(reservation => {
+    const matchesSearch = reservation.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
+                          reservation.id.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesStatus = statusFilter === "all" || reservation.status === statusFilter;
-    
-    const reservationDate = new Date(reservation.date);
-    const selectedDateStr = selectedDate.toISOString().split("T")[0];
-    const matchesDate = 
-      reservationDate.toISOString().split("T")[0] === selectedDateStr;
-
-    const matchesBranch = 
-      branchFilter === "All Branches" || 
-      reservation.branch === branchFilter;
-
-    return matchesSearch && matchesStatus && matchesDate && matchesBranch;
+    return matchesSearch && matchesStatus;
   });
 
-  const handleReservationSubmit = (data: any) => {
-    const formattedDate = data.date.toISOString().split("T")[0];
-    
-    if (editingReservation) {
-      // Edit existing reservation
-      const updatedReservations = reservations.map((res) =>
-        res.id === editingReservation.id
-          ? {
-              ...res,
-              customerName: data.customerName,
-              phone: data.phone,
-              email: data.email,
-              date: formattedDate,
-              time: data.time,
-              partySize: data.partySize,
-              status: data.status,
-              tableNumber: data.tableNumber,
-              specialRequests: data.specialRequests,
-              branch: data.branch,
-            }
-          : res
-      );
-      setReservations(updatedReservations);
-      toast.success("Reservation updated successfully!");
-    } else {
-      // Add new reservation
-      const newReservation: Reservation = {
-        id: `R${Math.floor(1000 + Math.random() * 9000)}`,
-        customerName: data.customerName,
-        phone: data.phone,
-        email: data.email,
-        date: formattedDate,
-        time: data.time,
-        partySize: data.partySize,
-        status: data.status,
-        tableNumber: data.tableNumber,
-        specialRequests: data.specialRequests,
-        createdAt: new Date().toISOString(),
-        branch: data.branch,
-      };
-      setReservations([...reservations, newReservation]);
-      toast.success("Reservation added successfully!");
-    }
-
-    setIsAddDialogOpen(false);
-    setEditingReservation(null);
-    form.reset();
-  };
-
-  const handleEditReservation = (reservation: Reservation) => {
-    setEditingReservation(reservation);
-    
-    form.reset({
-      customerName: reservation.customerName,
-      phone: reservation.phone,
-      email: reservation.email,
-      date: new Date(reservation.date),
-      time: reservation.time,
-      partySize: reservation.partySize,
-      status: reservation.status,
-      tableNumber: reservation.tableNumber || "",
-      specialRequests: reservation.specialRequests || "",
-      branch: reservation.branch,
-    });
-    
-    setIsAddDialogOpen(true);
-  };
-
-  const handleDeleteReservation = (id: string) => {
-    setReservations(reservations.filter((res) => res.id !== id));
-    toast.success("Reservation deleted successfully!");
-  };
-
-  const handleStatusChange = (id: string, status: "confirmed" | "pending" | "cancelled" | "completed") => {
-    const updatedReservations = reservations.map((res) =>
-      res.id === id ? { ...res, status } : res
-    );
-    setReservations(updatedReservations);
-    
-    const statusMessages = {
-      confirmed: "Reservation confirmed successfully!",
-      pending: "Reservation marked as pending.",
-      cancelled: "Reservation cancelled.",
-      completed: "Reservation marked as completed.",
-    };
-    
-    toast.success(statusMessages[status]);
-  };
-
-  const getStatusBadgeColor = (status: string) => {
+  const getStatusBadge = (status) => {
     switch (status) {
       case "confirmed":
-        return "bg-green-100 text-green-800";
+        return <Badge className="bg-green-500">Confirmed</Badge>;
       case "pending":
-        return "bg-amber-100 text-amber-800";
+        return <Badge variant="outline" className="text-amber-500 border-amber-500">Pending</Badge>;
+      case "waiting":
+        return <Badge className="bg-blue-500">Waiting</Badge>;
       case "cancelled":
-        return "bg-red-100 text-red-800";
-      case "completed":
-        return "bg-blue-100 text-blue-800";
+        return <Badge variant="destructive">Cancelled</Badge>;
       default:
-        return "bg-gray-100 text-gray-800";
+        return <Badge variant="outline">{status}</Badge>;
     }
-  };
-
-  const addNewReservation = () => {
-    setEditingReservation(null);
-    form.reset({
-      customerName: "",
-      phone: "",
-      email: "",
-      date: selectedDate,
-      time: "19:00",
-      partySize: 2,
-      branch: branchFilter !== "All Branches" ? branchFilter : "Downtown",
-      tableNumber: "",
-      specialRequests: "",
-      status: "confirmed",
-    });
-    setIsAddDialogOpen(true);
   };
 
   return (
     <RestaurantLayout>
-      <div className="space-y-8 p-8">
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+      <div className="p-8 max-w-7xl mx-auto">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
           <div>
             <h1 className="text-3xl font-bold tracking-tight mb-2">Reservations</h1>
-            <p className="text-muted-foreground">
-              Manage restaurant reservations and table assignments
-            </p>
+            <p className="text-muted-foreground">Manage your restaurant bookings and tables</p>
           </div>
-          <div className="flex items-center space-x-2">
-            <Select
-              value={branchFilter}
-              onValueChange={setBranchFilter}
-            >
-              <SelectTrigger className="w-[180px]">
-                <SelectValue placeholder="Select branch" />
-              </SelectTrigger>
-              <SelectContent>
-                {mockBranches.map((branch) => (
-                  <SelectItem key={branch} value={branch}>
-                    {branch}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+          <div className="flex gap-2 mt-4 md:mt-0">
+            <ReservationDialog />
+          </div>
+        </div>
 
-            <Button onClick={addNewReservation} className="hover-scale">
-              <Plus className="mr-2 h-4 w-4" />
-              Add Reservation
+        <div className="flex justify-between items-center my-6">
+          <div className="flex items-center gap-2">
+            <Button variant="outline" size="icon">
+              <ChevronLeft className="h-4 w-4" />
+            </Button>
+            <div className="font-semibold text-lg">April 2025</div>
+            <Button variant="outline" size="icon">
+              <ChevronRight className="h-4 w-4" />
+            </Button>
+          </div>
+          <div className="flex gap-2">
+            <div className="relative">
+              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Input
+                type="search"
+                placeholder="Search reservations..."
+                className="pl-8 w-[200px] md:w-[300px]"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+            </div>
+            <Button variant="outline" size="icon">
+              <Filter className="h-4 w-4" />
+            </Button>
+            <Button variant="outline">
+              <CalendarIcon className="mr-2 h-4 w-4" />
+              View Calendar
             </Button>
           </div>
         </div>
-        
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-          {/* Left sidebar */}
-          <div className="lg:col-span-1 space-y-6">
+
+        <Tabs defaultValue="list">
+          <TabsList className="mb-4">
+            <TabsTrigger value="list">List View</TabsTrigger>
+            <TabsTrigger value="table">Table View</TabsTrigger>
+          </TabsList>
+          
+          <Card className="mb-6">
+            <CardContent className="p-0">
+              <div className="flex overflow-x-auto py-4 px-2">
+                {days.map((day) => (
+                  <Button
+                    key={day}
+                    variant={activeDay === day ? "default" : "ghost"}
+                    className="rounded-full px-4 mx-1 whitespace-nowrap"
+                    onClick={() => setActiveDay(day)}
+                  >
+                    {day}
+                  </Button>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+
+          <TabsContent value="list" className="space-y-4">
+            <div className="flex gap-2 mb-4">
+              <Button 
+                variant={statusFilter === "all" ? "default" : "outline"} 
+                size="sm"
+                onClick={() => setStatusFilter("all")}
+              >
+                All
+              </Button>
+              <Button 
+                variant={statusFilter === "confirmed" ? "default" : "outline"} 
+                size="sm"
+                onClick={() => setStatusFilter("confirmed")}
+              >
+                Confirmed
+              </Button>
+              <Button 
+                variant={statusFilter === "pending" ? "default" : "outline"} 
+                size="sm"
+                onClick={() => setStatusFilter("pending")}
+              >
+                Pending
+              </Button>
+              <Button 
+                variant={statusFilter === "waiting" ? "default" : "outline"} 
+                size="sm"
+                onClick={() => setStatusFilter("waiting")}
+              >
+                Waiting
+              </Button>
+              <Button 
+                variant={statusFilter === "cancelled" ? "default" : "outline"} 
+                size="sm"
+                onClick={() => setStatusFilter("cancelled")}
+              >
+                Cancelled
+              </Button>
+            </div>
+
+            <div className="rounded-md border">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>ID</TableHead>
+                    <TableHead>Customer</TableHead>
+                    <TableHead>Time</TableHead>
+                    <TableHead>Guests</TableHead>
+                    <TableHead>Table</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Contact</TableHead>
+                    <TableHead>Notes</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {filteredReservations.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={8} className="text-center h-24">
+                        No reservations found
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    filteredReservations.map((reservation) => (
+                      <TableRow key={reservation.id}>
+                        <TableCell className="font-medium">{reservation.id}</TableCell>
+                        <TableCell>{reservation.name}</TableCell>
+                        <TableCell>{reservation.time}</TableCell>
+                        <TableCell>{reservation.guests}</TableCell>
+                        <TableCell>{reservation.tableNumber}</TableCell>
+                        <TableCell>{getStatusBadge(reservation.status)}</TableCell>
+                        <TableCell>{reservation.contact}</TableCell>
+                        <TableCell className="max-w-[200px] truncate" title={reservation.notes}>
+                          {reservation.notes || "-"}
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  )}
+                </TableBody>
+              </Table>
+            </div>
+          </TabsContent>
+          
+          <TabsContent value="table">
             <Card>
               <CardHeader>
-                <CardTitle>Reservation Date</CardTitle>
+                <CardTitle>Table Assignments</CardTitle>
+                <CardDescription>
+                  Visual layout of your restaurant tables and reservations
+                </CardDescription>
               </CardHeader>
-              <CardContent className="flex flex-col items-center space-y-4">
-                <DatePicker
-                  mode="single"
-                  selected={selectedDate}
-                  onSelect={(date) => date && setSelectedDate(date)}
-                  className="w-full"
-                />
-                
-                <div className="flex justify-between items-center w-full">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => {
-                      const prevDay = new Date(selectedDate);
-                      prevDay.setDate(prevDay.getDate() - 1);
-                      setSelectedDate(prevDay);
-                    }}
-                  >
-                    <ChevronLeft className="h-4 w-4" />
-                    Previous
-                  </Button>
-                  
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setSelectedDate(new Date())}
-                  >
-                    Today
-                  </Button>
-                  
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => {
-                      const nextDay = new Date(selectedDate);
-                      nextDay.setDate(nextDay.getDate() + 1);
-                      setSelectedDate(nextDay);
-                    }}
-                  >
-                    Next
-                    <ChevronRight className="h-4 w-4" />
-                  </Button>
+              <CardContent className="flex justify-center">
+                <div className="text-center p-10 bg-muted rounded-lg w-full max-w-3xl">
+                  <p className="text-lg mb-2">Table View Coming Soon</p>
+                  <p className="text-sm text-muted-foreground">
+                    A visual representation of your restaurant layout with table assignments will be available here.
+                  </p>
                 </div>
               </CardContent>
             </Card>
-            
-            <Card>
-              <CardHeader className="pb-3">
-                <CardTitle>Quick Actions</CardTitle>
-                <CardDescription>Fast access to reservation tasks</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                <Button 
-                  variant="outline" 
-                  className="w-full justify-start text-left" 
-                  onClick={addNewReservation}
-                >
-                  <Plus className="mr-2 h-4 w-4" />
-                  New Reservation
-                </Button>
-                
-                <Button 
-                  variant="outline" 
-                  className="w-full justify-start text-left"
-                  onClick={() => {
-                    const confirmed = reservations.filter(r => 
-                      r.status === "confirmed" && 
-                      r.date === selectedDate.toISOString().split("T")[0] && 
-                      (branchFilter === "All Branches" || r.branch === branchFilter)
-                    );
-                    if (confirmed.length > 0) {
-                      const message = `${confirmed.length} confirmed reservations for ${
-                        selectedDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
-                      }${branchFilter !== "All Branches" ? ` at ${branchFilter}` : ''}`;
-                      toast.success(message);
-                    } else {
-                      toast.info("No confirmed reservations found for the selected date and branch.");
-                    }
-                  }}
-                >
-                  <Check className="mr-2 h-4 w-4" />
-                  View Confirmed
-                </Button>
-                
-                <Button 
-                  variant="outline" 
-                  className="w-full justify-start text-left"
-                  onClick={() => {
-                    const pending = reservations.filter(r => 
-                      r.status === "pending" && 
-                      r.date === selectedDate.toISOString().split("T")[0] && 
-                      (branchFilter === "All Branches" || r.branch === branchFilter)
-                    );
-                    if (pending.length > 0) {
-                      toast.info(`${pending.length} pending reservations require your attention`);
-                    } else {
-                      toast.success("No pending reservations for the selected date and branch.");
-                    }
-                  }}
-                >
-                  <AlertCircle className="mr-2 h-4 w-4" />
-                  Review Pending
-                </Button>
-                
-                <Button 
-                  variant="outline" 
-                  className="w-full justify-start text-left"
-                  onClick={() => {
-                    setCurrentView(currentView === "list" ? "calendar" : "list");
-                    toast.info(`Switched to ${currentView === "list" ? "calendar" : "list"} view`);
-                  }}
-                >
-                  {currentView === "list" ? (
-                    <Calendar className="mr-2 h-4 w-4" />
-                  ) : (
-                    <Users className="mr-2 h-4 w-4" />
-                  )}
-                  Toggle View
-                </Button>
-                
-                <Button 
-                  variant="outline" 
-                  className="w-full justify-start text-left"
-                  onClick={() => {
-                    const today = new Date();
-                    const todayString = today.toISOString().split("T")[0];
-                    const completed = reservations.filter(r => 
-                      r.date === todayString && 
-                      r.status === "completed" && 
-                      (branchFilter === "All Branches" || r.branch === branchFilter)
-                    );
-                    toast.success(`${completed.length} reservations completed today${branchFilter !== "All Branches" ? ` at ${branchFilter}` : ''}`);
-                  }}
-                >
-                  <CheckCircle className="mr-2 h-4 w-4" />
-                  Today's Summary
-                </Button>
-              </CardContent>
-            </Card>
-            
-            <Card>
-              <CardHeader className="pb-3">
-                <CardTitle>Stats</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Today's Bookings:</span>
-                  <span className="font-medium">
-                    {reservations.filter(r => r.date === new Date().toISOString().split("T")[0]).length}
-                  </span>
-                </div>
-                
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Selected Date:</span>
-                  <span className="font-medium">
-                    {filteredReservations.length}
-                  </span>
-                </div>
-                
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Pending:</span>
-                  <span className="font-medium">
-                    {filteredReservations.filter(r => r.status === "pending").length}
-                  </span>
-                </div>
-                
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Confirmed:</span>
-                  <span className="font-medium">
-                    {filteredReservations.filter(r => r.status === "confirmed").length}
-                  </span>
-                </div>
-                
-                <Separator />
-                
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Total Party Size:</span>
-                  <span className="font-medium">
-                    {filteredReservations.reduce((total, r) => total + r.partySize, 0)}
-                  </span>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-          
-          {/* Main content */}
-          <div className="lg:col-span-3 space-y-6">
-            <Card>
-              <CardHeader className="pb-3">
-                <div className="flex flex-col md:flex-row md:items-center md:justify-between space-y-2 md:space-y-0">
-                  <CardTitle>
-                    Reservations for {selectedDate.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
-                  </CardTitle>
-                  
-                  <div className="flex flex-col sm:flex-row gap-2">
-                    <div className="relative">
-                      <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                      <Input
-                        type="search"
-                        placeholder="Search reservations..."
-                        className="pl-9 w-full"
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                      />
-                    </div>
-                    
-                    <Select
-                      value={statusFilter}
-                      onValueChange={setStatusFilter}
-                    >
-                      <SelectTrigger className="w-[130px]">
-                        <SelectValue placeholder="All Statuses" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">All Statuses</SelectItem>
-                        <SelectItem value="confirmed">Confirmed</SelectItem>
-                        <SelectItem value="pending">Pending</SelectItem>
-                        <SelectItem value="cancelled">Cancelled</SelectItem>
-                        <SelectItem value="completed">Completed</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    
-                    <Button variant="outline" size="icon">
-                      <Filter className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </div>
-              </CardHeader>
-              
-              <CardContent>
-                <Tabs defaultValue="all" className="w-full">
-                  <TabsList className="grid w-full grid-cols-5 mb-4">
-                    <TabsTrigger value="all">All</TabsTrigger>
-                    <TabsTrigger value="confirmed">Confirmed</TabsTrigger>
-                    <TabsTrigger value="pending">Pending</TabsTrigger>
-                    <TabsTrigger value="cancelled">Cancelled</TabsTrigger>
-                    <TabsTrigger value="completed">Completed</TabsTrigger>
-                  </TabsList>
-                  
-                  <TabsContent value="all" className="space-y-4">
-                    {currentView === "list" ? (
-                      <div className="rounded-md border overflow-hidden">
-                        <Table>
-                          <TableHeader>
-                            <TableRow>
-                              <TableHead className="w-[180px]">Customer</TableHead>
-                              <TableHead>Time</TableHead>
-                              <TableHead>Party Size</TableHead>
-                              <TableHead>Branch</TableHead>
-                              <TableHead>Table</TableHead>
-                              <TableHead>Status</TableHead>
-                              <TableHead className="text-right">Actions</TableHead>
-                            </TableRow>
-                          </TableHeader>
-                          <TableBody>
-                            {filteredReservations.length === 0 ? (
-                              <TableRow>
-                                <TableCell colSpan={7} className="h-32 text-center">
-                                  No reservations found for the selected date and filters
-                                </TableCell>
-                              </TableRow>
-                            ) : (
-                              filteredReservations.map((reservation) => (
-                                <TableRow key={reservation.id}>
-                                  <TableCell>
-                                    <div className="font-medium">{reservation.customerName}</div>
-                                    <div className="text-sm text-muted-foreground">{reservation.phone}</div>
-                                  </TableCell>
-                                  <TableCell>{reservation.time}</TableCell>
-                                  <TableCell>{reservation.partySize}</TableCell>
-                                  <TableCell>{reservation.branch}</TableCell>
-                                  <TableCell>{reservation.tableNumber || "—"}</TableCell>
-                                  <TableCell>
-                                    <Badge className={getStatusBadgeColor(reservation.status)}>
-                                      {reservation.status.charAt(0).toUpperCase() + reservation.status.slice(1)}
-                                    </Badge>
-                                  </TableCell>
-                                  <TableCell className="text-right">
-                                    <DropdownMenu>
-                                      <DropdownMenuTrigger asChild>
-                                        <Button variant="ghost" size="icon" className="h-8 w-8 p-0">
-                                          <MoreVertical className="h-4 w-4" />
-                                        </Button>
-                                      </DropdownMenuTrigger>
-                                      <DropdownMenuContent align="end" className="w-56">
-                                        <DropdownMenuItem onClick={() => handleEditReservation(reservation)}>
-                                          <Edit className="mr-2 h-4 w-4" />
-                                          Edit Details
-                                        </DropdownMenuItem>
-                                        <DropdownMenuItem
-                                          onClick={() => handleStatusChange(reservation.id, "confirmed")}
-                                          disabled={reservation.status === "confirmed"}
-                                        >
-                                          <Check className="mr-2 h-4 w-4 text-green-600" />
-                                          Confirm
-                                        </DropdownMenuItem>
-                                        <DropdownMenuItem
-                                          onClick={() => handleStatusChange(reservation.id, "completed")}
-                                          disabled={reservation.status === "completed"}
-                                        >
-                                          <CheckCircle className="mr-2 h-4 w-4 text-blue-600" />
-                                          Mark as Completed
-                                        </DropdownMenuItem>
-                                        <DropdownMenuItem
-                                          onClick={() => handleStatusChange(reservation.id, "cancelled")}
-                                          disabled={reservation.status === "cancelled"}
-                                        >
-                                          <X className="mr-2 h-4 w-4 text-red-600" />
-                                          Cancel
-                                        </DropdownMenuItem>
-                                        <DropdownMenuSeparator />
-                                        <DropdownMenuItem
-                                          className="text-red-600"
-                                          onClick={() => handleDeleteReservation(reservation.id)}
-                                        >
-                                          <Trash2 className="mr-2 h-4 w-4" />
-                                          Delete
-                                        </DropdownMenuItem>
-                                      </DropdownMenuContent>
-                                    </DropdownMenu>
-                                  </TableCell>
-                                </TableRow>
-                              ))
-                            )}
-                          </TableBody>
-                        </Table>
-                      </div>
-                    ) : (
-                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                        {filteredReservations.length === 0 ? (
-                          <div className="col-span-full h-32 flex items-center justify-center text-muted-foreground">
-                            No reservations found for the selected date and filters
-                          </div>
-                        ) : (
-                          filteredReservations.map((reservation) => (
-                            <Card key={reservation.id} className={`hover:shadow-md transition-shadow ${
-                              reservation.status === "cancelled" ? "opacity-60" : ""
-                            }`}>
-                              <CardHeader className="pb-2">
-                                <div className="flex justify-between items-start">
-                                  <div>
-                                    <CardTitle className="text-base">{reservation.customerName}</CardTitle>
-                                    <CardDescription>{reservation.phone}</CardDescription>
-                                  </div>
-                                  <Badge className={getStatusBadgeColor(reservation.status)}>
-                                    {reservation.status.charAt(0).toUpperCase() + reservation.status.slice(1)}
-                                  </Badge>
-                                </div>
-                              </CardHeader>
-                              <CardContent className="pb-2">
-                                <div className="grid grid-cols-2 gap-2 text-sm">
-                                  <div className="flex items-center">
-                                    <Clock className="h-4 w-4 mr-2 text-muted-foreground" />
-                                    <span>{reservation.time}</span>
-                                  </div>
-                                  <div className="flex items-center">
-                                    <Users className="h-4 w-4 mr-2 text-muted-foreground" />
-                                    <span>{reservation.partySize} guests</span>
-                                  </div>
-                                  <div className="flex items-center">
-                                    <MapPin className="h-4 w-4 mr-2 text-muted-foreground" />
-                                    <span>{reservation.branch}</span>
-                                  </div>
-                                  <div className="flex items-center">
-                                    <Calendar className="h-4 w-4 mr-2 text-muted-foreground" />
-                                    <span>Table {reservation.tableNumber || "—"}</span>
-                                  </div>
-                                </div>
-                                {reservation.specialRequests && (
-                                  <div className="mt-3 text-sm">
-                                    <p className="text-muted-foreground">Notes:</p>
-                                    <p className="italic">{reservation.specialRequests}</p>
-                                  </div>
-                                )}
-                              </CardContent>
-                              <CardFooter className="flex justify-end pt-2">
-                                <Button 
-                                  variant="ghost" 
-                                  size="sm"
-                                  onClick={() => handleEditReservation(reservation)}
-                                >
-                                  <Edit className="h-4 w-4 mr-2" />
-                                  Edit
-                                </Button>
-                                <DropdownMenu>
-                                  <DropdownMenuTrigger asChild>
-                                    <Button variant="ghost" size="sm">
-                                      <MoreVertical className="h-4 w-4" />
-                                    </Button>
-                                  </DropdownMenuTrigger>
-                                  <DropdownMenuContent align="end">
-                                    <DropdownMenuItem
-                                      onClick={() => handleStatusChange(reservation.id, "confirmed")}
-                                      disabled={reservation.status === "confirmed"}
-                                    >
-                                      <Check className="mr-2 h-4 w-4 text-green-600" />
-                                      Confirm
-                                    </DropdownMenuItem>
-                                    <DropdownMenuItem
-                                      onClick={() => handleStatusChange(reservation.id, "completed")}
-                                      disabled={reservation.status === "completed"}
-                                    >
-                                      <CheckCircle className="mr-2 h-4 w-4 text-blue-600" />
-                                      Mark as Completed
-                                    </DropdownMenuItem>
-                                    <DropdownMenuItem
-                                      onClick={() => handleStatusChange(reservation.id, "cancelled")}
-                                      disabled={reservation.status === "cancelled"}
-                                    >
-                                      <X className="mr-2 h-4 w-4 text-red-600" />
-                                      Cancel
-                                    </DropdownMenuItem>
-                                    <DropdownMenuSeparator />
-                                    <DropdownMenuItem
-                                      className="text-red-600"
-                                      onClick={() => handleDeleteReservation(reservation.id)}
-                                    >
-                                      <Trash2 className="mr-2 h-4 w-4" />
-                                      Delete
-                                    </DropdownMenuItem>
-                                  </DropdownMenuContent>
-                                </DropdownMenu>
-                              </CardFooter>
-                            </Card>
-                          ))
-                        )}
-                      </div>
-                    )}
-                  </TabsContent>
-                  
-                  {/* Other tabs will use filtered data based on status */}
-                  {["confirmed", "pending", "cancelled", "completed"].map((status) => (
-                    <TabsContent key={status} value={status} className="space-y-4">
-                      {currentView === "list" ? (
-                        <div className="rounded-md border overflow-hidden">
-                          <Table>
-                            <TableHeader>
-                              <TableRow>
-                                <TableHead className="w-[180px]">Customer</TableHead>
-                                <TableHead>Time</TableHead>
-                                <TableHead>Party Size</TableHead>
-                                <TableHead>Branch</TableHead>
-                                <TableHead>Table</TableHead>
-                                <TableHead>Status</TableHead>
-                                <TableHead className="text-right">Actions</TableHead>
-                              </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                              {filteredReservations.filter(r => r.status === status).length === 0 ? (
-                                <TableRow>
-                                  <TableCell colSpan={7} className="h-32 text-center">
-                                    No {status} reservations found for the selected date
-                                  </TableCell>
-                                </TableRow>
-                              ) : (
-                                filteredReservations
-                                  .filter(r => r.status === status)
-                                  .map((reservation) => (
-                                    <TableRow key={reservation.id}>
-                                      <TableCell>
-                                        <div className="font-medium">{reservation.customerName}</div>
-                                        <div className="text-sm text-muted-foreground">{reservation.phone}</div>
-                                      </TableCell>
-                                      <TableCell>{reservation.time}</TableCell>
-                                      <TableCell>{reservation.partySize}</TableCell>
-                                      <TableCell>{reservation.branch}</TableCell>
-                                      <TableCell>{reservation.tableNumber || "—"}</TableCell>
-                                      <TableCell>
-                                        <Badge className={getStatusBadgeColor(status)}>
-                                          {status.charAt(0).toUpperCase() + status.slice(1)}
-                                        </Badge>
-                                      </TableCell>
-                                      <TableCell className="text-right">
-                                        <DropdownMenu>
-                                          <DropdownMenuTrigger asChild>
-                                            <Button variant="ghost" size="icon" className="h-8 w-8 p-0">
-                                              <MoreVertical className="h-4 w-4" />
-                                            </Button>
-                                          </DropdownMenuTrigger>
-                                          <DropdownMenuContent align="end" className="w-56">
-                                            <DropdownMenuItem onClick={() => handleEditReservation(reservation)}>
-                                              <Edit className="mr-2 h-4 w-4" />
-                                              Edit Details
-                                            </DropdownMenuItem>
-                                            <DropdownMenuItem
-                                              onClick={() => handleStatusChange(reservation.id, "confirmed")}
-                                              disabled={status === "confirmed"}
-                                            >
-                                              <Check className="mr-2 h-4 w-4 text-green-600" />
-                                              Confirm
-                                            </DropdownMenuItem>
-                                            <DropdownMenuItem
-                                              onClick={() => handleStatusChange(reservation.id, "completed")}
-                                              disabled={status === "completed"}
-                                            >
-                                              <CheckCircle className="mr-2 h-4 w-4 text-blue-600" />
-                                              Mark as Completed
-                                            </DropdownMenuItem>
-                                            <DropdownMenuItem
-                                              onClick={() => handleStatusChange(reservation.id, "cancelled")}
-                                              disabled={status === "cancelled"}
-                                            >
-                                              <X className="mr-2 h-4 w-4 text-red-600" />
-                                              Cancel
-                                            </DropdownMenuItem>
-                                            <DropdownMenuSeparator />
-                                            <DropdownMenuItem
-                                              className="text-red-600"
-                                              onClick={() => handleDeleteReservation(reservation.id)}
-                                            >
-                                              <Trash2 className="mr-2 h-4 w-4" />
-                                              Delete
-                                            </DropdownMenuItem>
-                                          </DropdownMenuContent>
-                                        </DropdownMenu>
-                                      </TableCell>
-                                    </TableRow>
-                                  ))
-                              )}
-                            </TableBody>
-                          </Table>
-                        </div>
-                      ) : (
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                          {filteredReservations.filter(r => r.status === status).length === 0 ? (
-                            <div className="col-span-full h-32 flex items-center justify-center text-muted-foreground">
-                              No {status} reservations found for the selected date
-                            </div>
-                          ) : (
-                            filteredReservations
-                              .filter(r => r.status === status)
-                              .map((reservation) => (
-                                <Card key={reservation.id} className={`hover:shadow-md transition-shadow ${
-                                  reservation.status === "cancelled" ? "opacity-60" : ""
-                                }`}>
-                                  <CardHeader className="pb-2">
-                                    <div className="flex justify-between items-start">
-                                      <div>
-                                        <CardTitle className="text-base">{reservation.customerName}</CardTitle>
-                                        <CardDescription>{reservation.phone}</CardDescription>
-                                      </div>
-                                      <Badge className={getStatusBadgeColor(status)}>
-                                        {status.charAt(0).toUpperCase() + status.slice(1)}
-                                      </Badge>
-                                    </div>
-                                  </CardHeader>
-                                  <CardContent className="pb-2">
-                                    <div className="grid grid-cols-2 gap-2 text-sm">
-                                      <div className="flex items-center">
-                                        <Clock className="h-4 w-4 mr-2 text-muted-foreground" />
-                                        <span>{reservation.time}</span>
-                                      </div>
-                                      <div className="flex items-center">
-                                        <Users className="h-4 w-4 mr-2 text-muted-foreground" />
-                                        <span>{reservation.partySize} guests</span>
-                                      </div>
-                                      <div className="flex items-center">
-                                        <MapPin className="h-4 w-4 mr-2 text-muted-foreground" />
-                                        <span>{reservation.branch}</span>
-                                      </div>
-                                      <div className="flex items-center">
-                                        <Calendar className="h-4 w-4 mr-2 text-muted-foreground" />
-                                        <span>Table {reservation.tableNumber || "—"}</span>
-                                      </div>
-                                    </div>
-                                    {reservation.specialRequests && (
-                                      <div className="mt-3 text-sm">
-                                        <p className="text-muted-foreground">Notes:</p>
-                                        <p className="italic">{reservation.specialRequests}</p>
-                                      </div>
-                                    )}
-                                  </CardContent>
-                                  <CardFooter className="flex justify-end pt-2">
-                                    <Button 
-                                      variant="ghost" 
-                                      size="sm"
-                                      onClick={() => handleEditReservation(reservation)}
-                                    >
-                                      <Edit className="h-4 w-4 mr-2" />
-                                      Edit
-                                    </Button>
-                                    <DropdownMenu>
-                                      <DropdownMenuTrigger asChild>
-                                        <Button variant="ghost" size="sm">
-                                          <MoreVertical className="h-4 w-4" />
-                                        </Button>
-                                      </DropdownMenuTrigger>
-                                      <DropdownMenuContent align="end">
-                                        <DropdownMenuItem
-                                          onClick={() => handleStatusChange(reservation.id, "confirmed")}
-                                          disabled={status === "confirmed"}
-                                        >
-                                          <Check className="mr-2 h-4 w-4 text-green-600" />
-                                          Confirm
-                                        </DropdownMenuItem>
-                                        <DropdownMenuItem
-                                          onClick={() => handleStatusChange(reservation.id, "completed")}
-                                          disabled={status === "completed"}
-                                        >
-                                          <CheckCircle className="mr-2 h-4 w-4 text-blue-600" />
-                                          Mark as Completed
-                                        </DropdownMenuItem>
-                                        <DropdownMenuItem
-                                          onClick={() => handleStatusChange(reservation.id, "cancelled")}
-                                          disabled={status === "cancelled"}
-                                        >
-                                          <X className="mr-2 h-4 w-4 text-red-600" />
-                                          Cancel
-                                        </DropdownMenuItem>
-                                        <DropdownMenuSeparator />
-                                        <DropdownMenuItem
-                                          className="text-red-600"
-                                          onClick={() => handleDeleteReservation(reservation.id)}
-                                        >
-                                          <Trash2 className="mr-2 h-4 w-4" />
-                                          Delete
-                                        </DropdownMenuItem>
-                                      </DropdownMenuContent>
-                                    </DropdownMenu>
-                                  </CardFooter>
-                                </Card>
-                              ))
-                          )}
-                        </div>
-                      )}
-                    </TabsContent>
-                  ))}
-                </Tabs>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
+          </TabsContent>
+        </Tabs>
       </div>
     </RestaurantLayout>
   );
 };
 
+export { ReservationsPage };
 export default ReservationsPage;

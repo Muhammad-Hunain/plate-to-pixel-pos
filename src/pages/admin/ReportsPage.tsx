@@ -1,7 +1,27 @@
+
 import React, { useState } from "react";
 import AdminLayout from "@/components/layout/AdminLayout";
 import { DateRange } from "react-day-picker";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  BarChart,
+  Bar,
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+  PieChart,
+  Pie,
+  Cell,
+} from "recharts";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Progress } from "@/components/ui/progress";
+import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
 
 // Import refactored components
 import StatsCards from "@/components/reports/admin/StatsCards";
@@ -122,6 +142,41 @@ const averageOrderValueData = [
   { day: "Fri", value: 35.8 },
   { day: "Sat", value: 38.2 },
   { day: "Sun", value: 32.5 },
+];
+
+// Customer retention data
+const retentionData = [
+  { month: "Jan", retention: 78 },
+  { month: "Feb", retention: 76 },
+  { month: "Mar", retention: 80 },
+  { month: "Apr", retention: 82 },
+  { month: "May", retention: 85 },
+  { month: "Jun", retention: 84 },
+  { month: "Jul", retention: 86 },
+];
+
+// Customer acquisition channels
+const acquisitionData = [
+  { name: "Direct", value: 35 },
+  { name: "Social Media", value: 25 },
+  { name: "Search", value: 20 },
+  { name: "Referral", value: 15 },
+  { name: "Email", value: 5 },
+];
+
+// Customer lifetime value by segment
+const lifetimeValueData = [
+  { segment: "Premium", value: 1250 },
+  { segment: "Standard", value: 680 },
+  { segment: "Basic", value: 320 },
+  { segment: "Occasional", value: 150 },
+];
+
+// Feedback sentiment analysis
+const sentimentData = [
+  { name: "Positive", value: 65 },
+  { name: "Neutral", value: 25 },
+  { name: "Negative", value: 10 },
 ];
 
 // Mock transactions data
@@ -275,6 +330,9 @@ const ReportsPage = () => {
     setDateRange(range);
   };
 
+  // Colors for charts
+  const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042", "#8884d8", "#82ca9d"];
+
   return (
     <AdminLayout>
       <div className="space-y-6">
@@ -331,6 +389,212 @@ const ReportsPage = () => {
               popularItemsData={popularItemsData}
               averageOrderValueData={averageOrderValueData}
             />
+            
+            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+              {/* Customer Retention Chart */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Customer Retention</CardTitle>
+                  <CardDescription>Monthly retention rate (%)</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <ResponsiveContainer width="100%" height={350}>
+                    <LineChart data={retentionData}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="month" />
+                      <YAxis domain={[70, 90]} />
+                      <Tooltip />
+                      <Line
+                        type="monotone"
+                        dataKey="retention"
+                        stroke="#8884d8"
+                        strokeWidth={2}
+                        activeDot={{ r: 8 }}
+                      />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </CardContent>
+              </Card>
+
+              {/* Customer Acquisition Channels */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Acquisition Channels</CardTitle>
+                  <CardDescription>How customers find your business</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <ResponsiveContainer width="100%" height={350}>
+                    <PieChart>
+                      <Pie
+                        data={acquisitionData}
+                        cx="50%"
+                        cy="50%"
+                        labelLine={false}
+                        label={({ name, percent }) =>
+                          `${name}: ${(percent * 100).toFixed(0)}%`
+                        }
+                        outerRadius={80}
+                        fill="#8884d8"
+                        dataKey="value"
+                      >
+                        {acquisitionData.map((entry, index) => (
+                          <Cell
+                            key={`cell-${index}`}
+                            fill={COLORS[index % COLORS.length]}
+                          />
+                        ))}
+                      </Pie>
+                      <Tooltip />
+                    </PieChart>
+                  </ResponsiveContainer>
+                </CardContent>
+              </Card>
+
+              {/* Customer Lifetime Value */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Customer Lifetime Value</CardTitle>
+                  <CardDescription>Average value by segment ($)</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <ResponsiveContainer width="100%" height={350}>
+                    <BarChart data={lifetimeValueData}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="segment" />
+                      <YAxis />
+                      <Tooltip formatter={(value) => [`$${value}`, "Value"]} />
+                      <Bar dataKey="value" fill="#8884d8">
+                        {lifetimeValueData.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                        ))}
+                      </Bar>
+                    </BarChart>
+                  </ResponsiveContainer>
+                </CardContent>
+              </Card>
+
+              {/* Feedback Sentiment Analysis */}
+              <Card className="lg:col-span-2">
+                <CardHeader>
+                  <CardTitle>Feedback Sentiment</CardTitle>
+                  <CardDescription>Analysis of customer feedback and reviews</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div className="flex items-center justify-center">
+                      <ResponsiveContainer width="100%" height={300}>
+                        <PieChart>
+                          <Pie
+                            data={sentimentData}
+                            cx="50%"
+                            cy="50%"
+                            labelLine={false}
+                            label={({ name, percent }) =>
+                              `${name}: ${(percent * 100).toFixed(0)}%`
+                            }
+                            outerRadius={80}
+                            fill="#8884d8"
+                            dataKey="value"
+                          >
+                            <Cell key="cell-0" fill="#4ade80" />
+                            <Cell key="cell-1" fill="#94a3b8" />
+                            <Cell key="cell-2" fill="#f87171" />
+                          </Pie>
+                          <Tooltip />
+                        </PieChart>
+                      </ResponsiveContainer>
+                    </div>
+                    <div className="space-y-6 flex flex-col justify-center">
+                      <div>
+                        <div className="flex items-center justify-between mb-2">
+                          <div className="flex items-center">
+                            <div className="w-3 h-3 rounded-full bg-[#4ade80] mr-2" />
+                            <span className="font-medium">Positive</span>
+                          </div>
+                          <span>65%</span>
+                        </div>
+                        <Progress value={65} className="h-2 bg-gray-100" />
+                      </div>
+                      <div>
+                        <div className="flex items-center justify-between mb-2">
+                          <div className="flex items-center">
+                            <div className="w-3 h-3 rounded-full bg-[#94a3b8] mr-2" />
+                            <span className="font-medium">Neutral</span>
+                          </div>
+                          <span>25%</span>
+                        </div>
+                        <Progress value={25} className="h-2 bg-gray-100" />
+                      </div>
+                      <div>
+                        <div className="flex items-center justify-between mb-2">
+                          <div className="flex items-center">
+                            <div className="w-3 h-3 rounded-full bg-[#f87171] mr-2" />
+                            <span className="font-medium">Negative</span>
+                          </div>
+                          <span>10%</span>
+                        </div>
+                        <Progress value={10} className="h-2 bg-gray-100" />
+                      </div>
+                      <div className="pt-4">
+                        <p className="text-sm text-muted-foreground">
+                          Overall sentiment is positive with customer satisfaction increasing by 5% compared to previous month. Key areas of improvement: wait times and service speed.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Customer Engagement Metrics */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Engagement Overview</CardTitle>
+                  <CardDescription>Key customer interaction metrics</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-8">
+                  <div>
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="font-medium">App Engagement</span>
+                      <span className="text-sm text-muted-foreground">78%</span>
+                    </div>
+                    <Progress value={78} className="h-2" />
+                    <p className="text-xs text-muted-foreground mt-2">
+                      Percentage of customers actively using the platform
+                    </p>
+                  </div>
+                  <div>
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="font-medium">Loyalty Program</span>
+                      <span className="text-sm text-muted-foreground">62%</span>
+                    </div>
+                    <Progress value={62} className="h-2" />
+                    <p className="text-xs text-muted-foreground mt-2">
+                      Percentage of customers enrolled in the loyalty program
+                    </p>
+                  </div>
+                  <div>
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="font-medium">Newsletter Subscribers</span>
+                      <span className="text-sm text-muted-foreground">45%</span>
+                    </div>
+                    <Progress value={45} className="h-2" />
+                    <p className="text-xs text-muted-foreground mt-2">
+                      Percentage of customers subscribed to newsletters
+                    </p>
+                  </div>
+                  <div>
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="font-medium">Social Media Followers</span>
+                      <span className="text-sm text-muted-foreground">53%</span>
+                    </div>
+                    <Progress value={53} className="h-2" />
+                    <p className="text-xs text-muted-foreground mt-2">
+                      Percentage of customers following on social media
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
           </TabsContent>
 
           {/* Demographics Tab Content */}
