@@ -1,9 +1,17 @@
 
 import RestaurantLayout from "@/components/layout/RestaurantLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Bell, Utensils, DollarSign, ShoppingBag, TrendingUp, User } from "lucide-react";
+import { 
+  Bell, Utensils, DollarSign, ShoppingBag, TrendingUp, 
+  User, ArrowUpRight, Clock, CreditCard, Calendar 
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
+import { 
+  Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis,
+  BarChart, Bar, PieChart, Pie, Cell, Legend, CartesianGrid,
+  Area, AreaChart
+} from "recharts";
+import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 
 // Sample data for charts
 const revenueData = [
@@ -15,6 +23,16 @@ const revenueData = [
   { name: "15:00", value: 3200 },
   { name: "18:00", value: 4000 },
   { name: "21:00", value: 2700 },
+];
+
+const weeklyRevenueData = [
+  { name: "Mon", revenue: 2400, orders: 35 },
+  { name: "Tue", revenue: 1800, orders: 28 },
+  { name: "Wed", revenue: 2800, orders: 42 },
+  { name: "Thu", revenue: 3600, orders: 55 },
+  { name: "Fri", revenue: 4200, orders: 68 },
+  { name: "Sat", revenue: 5000, orders: 82 },
+  { name: "Sun", revenue: 4300, orders: 74 },
 ];
 
 const orderData = [
@@ -60,6 +78,15 @@ const popularItems = [
   { name: "Grilled Chicken", sold: 29, amount: "$406" },
 ];
 
+// Payment method data
+const paymentMethodData = [
+  { name: "Cash", value: 35 },
+  { name: "Credit Card", value: 45 },
+  { name: "Mobile Wallet", value: 20 },
+];
+
+const COLORS = ['#0088FE', '#00C49F', '#FFBB28'];
+
 export default function RestaurantDashboard() {
   return (
     <RestaurantLayout>
@@ -93,9 +120,10 @@ export default function RestaurantDashboard() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">$1,248.50</div>
-              <p className="text-xs text-muted-foreground">
-                +15% from yesterday
-              </p>
+              <div className="flex items-center text-xs text-success mt-1">
+                <ArrowUpRight className="h-3 w-3 mr-1" />
+                <span>15% from yesterday</span>
+              </div>
             </CardContent>
           </Card>
           
@@ -108,9 +136,10 @@ export default function RestaurantDashboard() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">42</div>
-              <p className="text-xs text-muted-foreground">
-                +8% from yesterday
-              </p>
+              <div className="flex items-center text-xs text-success mt-1">
+                <ArrowUpRight className="h-3 w-3 mr-1" />
+                <span>8% from yesterday</span>
+              </div>
             </CardContent>
           </Card>
           
@@ -123,9 +152,10 @@ export default function RestaurantDashboard() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">124</div>
-              <p className="text-xs text-muted-foreground">
-                +12% from yesterday
-              </p>
+              <div className="flex items-center text-xs text-success mt-1">
+                <ArrowUpRight className="h-3 w-3 mr-1" />
+                <span>12% from yesterday</span>
+              </div>
             </CardContent>
           </Card>
           
@@ -138,47 +168,113 @@ export default function RestaurantDashboard() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">$29.72</div>
-              <p className="text-xs text-muted-foreground">
-                +$2.14 from yesterday
-              </p>
+              <div className="flex items-center text-xs text-success mt-1">
+                <ArrowUpRight className="h-3 w-3 mr-1" />
+                <span>$2.14 from yesterday</span>
+              </div>
             </CardContent>
           </Card>
         </div>
 
-        <div className="grid gap-6 md:grid-cols-7">
-          <Card className="md:col-span-4 animate-slide-in">
-            <CardHeader>
-              <CardTitle>Daily Revenue</CardTitle>
+        <div className="grid gap-6 md:grid-cols-12">
+          <Card className="md:col-span-8 chart-container animate-slide-in">
+            <CardHeader className="pb-0">
+              <CardTitle className="text-lg font-semibold">Weekly Revenue & Orders</CardTitle>
             </CardHeader>
-            <CardContent>
-              <ResponsiveContainer width="100%" height={300}>
-                <LineChart data={revenueData}>
-                  <XAxis dataKey="name" stroke="#888888" fontSize={12} />
-                  <YAxis stroke="#888888" fontSize={12} />
+            <CardContent className="pt-4">
+              <ChartContainer config={{
+                revenue: { label: "Revenue" },
+                orders: { label: "Orders" }
+              }} className="h-[300px]">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={weeklyRevenueData} margin={{ top: 5, right: 20, bottom: 5, left: 0 }}>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" />
+                    <XAxis dataKey="name" stroke="hsl(var(--muted-foreground))" fontSize={12} tickLine={false} axisLine={false} />
+                    <YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} tickLine={false} axisLine={false} />
+                    <ChartTooltip
+                      content={<ChartTooltipContent />}
+                    />
+                    <Bar dataKey="revenue" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} name="Revenue" />
+                    <Bar dataKey="orders" fill="hsl(var(--secondary))" radius={[4, 4, 0, 0]} name="Orders" />
+                  </BarChart>
+                </ResponsiveContainer>
+              </ChartContainer>
+            </CardContent>
+          </Card>
+          
+          <Card className="md:col-span-4 chart-container animate-slide-in [animation-delay:100ms]">
+            <CardHeader className="pb-0">
+              <CardTitle className="text-lg font-semibold">Payment Methods</CardTitle>
+            </CardHeader>
+            <CardContent className="pt-4">
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={paymentMethodData}
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={70}
+                    outerRadius={90}
+                    fill="#8884d8"
+                    paddingAngle={5}
+                    dataKey="value"
+                    label={({name, percent}) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                  >
+                    {paymentMethodData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                    ))}
+                  </Pie>
+                  <Legend verticalAlign="bottom" />
                   <Tooltip />
-                  <Line 
+                </PieChart>
+              </ResponsiveContainer>
+            </CardContent>
+          </Card>
+        </div>
+
+        <div className="grid gap-6 md:grid-cols-12">
+          <Card className="md:col-span-7 chart-container animate-slide-in [animation-delay:150ms]">
+            <CardHeader className="pb-0">
+              <CardTitle className="text-lg font-semibold">Daily Revenue</CardTitle>
+            </CardHeader>
+            <CardContent className="pt-4">
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={revenueData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" />
+                  <XAxis dataKey="name" stroke="hsl(var(--muted-foreground))" fontSize={12} tickLine={false} axisLine={false} />
+                  <YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} tickLine={false} axisLine={false} />
+                  <Tooltip />
+                  <defs>
+                    <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.8}/>
+                      <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0.1}/>
+                    </linearGradient>
+                  </defs>
+                  <Area 
                     type="monotone" 
                     dataKey="value" 
                     stroke="hsl(var(--primary))" 
-                    strokeWidth={2} 
-                    name="Revenue" 
+                    fillOpacity={1}
+                    fill="url(#colorRevenue)" 
+                    strokeWidth={2}
+                    name="Revenue"
                     activeDot={{ r: 6 }} 
                   />
-                </LineChart>
+                </AreaChart>
               </ResponsiveContainer>
             </CardContent>
           </Card>
           
-          <Card className="md:col-span-3 animate-slide-in [animation-delay:100ms]">
+          <Card className="md:col-span-5 animate-slide-in [animation-delay:200ms]">
             <CardHeader>
-              <CardTitle>Popular Items</CardTitle>
+              <CardTitle className="text-lg font-semibold">Popular Items</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="space-y-4">
+              <div className="space-y-5">
                 {popularItems.map((item) => (
                   <div key={item.name} className="flex items-center gap-4">
-                    <div className="h-9 w-9 rounded-full bg-primary/10 flex items-center justify-center">
-                      <Utensils className="h-4 w-4 text-primary" />
+                    <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
+                      <Utensils className="h-5 w-5 text-primary" />
                     </div>
                     <div className="flex-1">
                       <div className="font-medium">{item.name}</div>
@@ -194,9 +290,13 @@ export default function RestaurantDashboard() {
           </Card>
         </div>
 
-        <Card className="animate-slide-in [animation-delay:200ms]">
-          <CardHeader>
-            <CardTitle>Live Orders</CardTitle>
+        <Card className="animate-slide-in [animation-delay:250ms]">
+          <CardHeader className="flex flex-row items-center justify-between">
+            <CardTitle className="text-lg font-semibold">Live Orders</CardTitle>
+            <Button size="sm" variant="outline" className="h-8">
+              <Clock className="h-4 w-4 mr-2" />
+              View All
+            </Button>
           </CardHeader>
           <CardContent>
             <div className="overflow-x-auto">
@@ -234,6 +334,64 @@ export default function RestaurantDashboard() {
             </div>
           </CardContent>
         </Card>
+
+        <div className="grid gap-6 md:grid-cols-2">
+          <Card className="data-card animate-slide-in [animation-delay:300ms]">
+            <CardHeader>
+              <CardTitle className="text-lg font-semibold">Upcoming Reservations</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {[
+                  { id: 1, name: "Sarah Johnson", time: "18:30", guests: 4, table: "Table 7" },
+                  { id: 2, name: "Michael Smith", time: "19:00", guests: 2, table: "Table 3" },
+                  { id: 3, name: "Emma Davis", time: "20:15", guests: 6, table: "Table 12" },
+                ].map((reservation) => (
+                  <div key={reservation.id} className="flex items-center gap-4">
+                    <div className="h-10 w-10 rounded-full bg-accent flex items-center justify-center">
+                      <Calendar className="h-5 w-5 text-primary" />
+                    </div>
+                    <div className="flex-1">
+                      <div className="font-medium">{reservation.name}</div>
+                      <div className="text-sm text-muted-foreground">
+                        {reservation.guests} guests · {reservation.table}
+                      </div>
+                    </div>
+                    <div className="font-medium">{reservation.time}</div>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="data-card animate-slide-in [animation-delay:350ms]">
+            <CardHeader>
+              <CardTitle className="text-lg font-semibold">Recent Payments</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {[
+                  { id: 1, method: "Visa ending in 4242", amount: "$78.50", time: "5 mins ago" },
+                  { id: 2, method: "Cash", amount: "$42.25", time: "15 mins ago" },
+                  { id: 3, method: "Apple Pay", amount: "$31.75", time: "32 mins ago" },
+                ].map((payment) => (
+                  <div key={payment.id} className="flex items-center gap-4">
+                    <div className="h-10 w-10 rounded-full bg-accent flex items-center justify-center">
+                      <CreditCard className="h-5 w-5 text-primary" />
+                    </div>
+                    <div className="flex-1">
+                      <div className="font-medium">{payment.method}</div>
+                      <div className="text-sm text-muted-foreground">
+                        {payment.time}
+                      </div>
+                    </div>
+                    <div className="font-medium">{payment.amount}</div>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
       </div>
     </RestaurantLayout>
   );
