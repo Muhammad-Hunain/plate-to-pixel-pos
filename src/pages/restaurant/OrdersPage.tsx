@@ -1,424 +1,329 @@
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import RestaurantLayout from "@/components/layout/RestaurantLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { toast } from "sonner";
-import { 
-  Utensils, Search, Filter, FileDown, Clock, Coffee, CheckCircle,
-  AlertCircle, ChevronRight, Printer, MoreVertical, Ban, RefreshCcw, 
-  UserCheck, ShoppingBag, CalendarIcon, User, ArrowUpDown, Banknote,
-  Receipt, Calendar, X, CreditCard, CircleDollarSign
-} from "lucide-react";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Label } from "@/components/ui/label";
-import { Badge } from "@/components/ui/badge";
-import { 
-  DropdownMenu, 
-  DropdownMenuContent, 
-  DropdownMenuItem, 
-  DropdownMenuSeparator, 
-  DropdownMenuTrigger 
-} from "@/components/ui/dropdown-menu";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { 
-  Table, 
-  TableBody, 
-  TableCell, 
-  TableHead, 
-  TableHeader, 
-  TableRow 
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
 } from "@/components/ui/table";
 import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectLabel,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import AnimatedDashboardCard from "@/components/dashboard/AnimatedDashboardCard";
 import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import {
-  Drawer,
-  DrawerContent,
-  DrawerDescription,
-  DrawerHeader,
-  DrawerTitle,
-  DrawerClose,
-  DrawerFooter,
-} from "@/components/ui/drawer";
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { format } from "date-fns";
-import { Calendar as CalendarComponent } from "@/components/ui/calendar";
+import { DateRange } from "react-day-picker";
+import { toast } from "sonner";
+import {
+  Search,
+  Calendar as CalendarIcon,
+  Filter,
+  MoreVertical,
+  FileDown,
+  Printer,
+  Eye,
+  RefreshCcw,
+  X,
+  Clock,
+  Utensils,
+  Package,
+  Bike,
+  CreditCard,
+  Banknote,
+  Receipt,
+  BarChart4,
+} from "lucide-react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
 
-// Mock data for branches
-const branches = [
-  { id: "1", name: "Downtown" },
-  { id: "2", name: "Westside" },
-  { id: "3", name: "Airport" },
-  { id: "4", name: "Mall Location" },
-];
+interface OrderItem {
+  id: string;
+  name: string;
+  quantity: number;
+  price: number;
+  modifiers?: string[];
+}
 
-// Mock data for orders
-const initialOrders = [
+interface Order {
+  id: string;
+  orderNumber: string;
+  customer: {
+    name: string;
+    phone?: string;
+    email?: string;
+    avatar?: string;
+  };
+  items: OrderItem[];
+  total: number;
+  status: "new" | "preparing" | "ready" | "completed" | "cancelled";
+  type: "dine-in" | "takeaway" | "delivery";
+  paymentMethod: "cash" | "card" | "online";
+  paymentStatus: "paid" | "pending" | "refunded";
+  table?: string;
+  staff: string;
+  branch: string;
+  createdAt: string;
+  notes?: string;
+}
+
+// Mock order data
+const mockOrders: Order[] = [
   {
-    id: "ORD-1234",
-    customer: "John Doe",
-    date: "2025-04-10T12:30:00",
+    id: "1",
+    orderNumber: "ORD-001",
+    customer: {
+      name: "Alex Johnson",
+      phone: "(555) 123-4567",
+      email: "alex@example.com",
+      avatar: "",
+    },
+    items: [
+      { id: "item1", name: "Margherita Pizza", quantity: 1, price: 12.99 },
+      { id: "item2", name: "Caesar Salad", quantity: 1, price: 8.99 },
+      { id: "item3", name: "Soft Drink", quantity: 2, price: 2.99, modifiers: ["No Ice"] },
+    ],
+    total: 27.96,
     status: "completed",
-    total: 38.50,
-    paymentMethod: "credit-card",
     type: "dine-in",
-    branch: "1",
-    server: "Emily Johnson",
+    paymentMethod: "card",
+    paymentStatus: "paid",
     table: "Table 5",
-    items: [
-      { id: "1", name: "Classic Burger", quantity: 2, price: 12.99, total: 25.98, modifiers: ["Extra Cheese", "No Onions"] },
-      { id: "4", name: "Iced Coffee", quantity: 2, price: 4.99, total: 9.98, modifiers: [] },
-      { id: "3", name: "Chocolate Cake", quantity: 1, price: 7.99, total: 7.99, modifiers: ["Add Ice Cream"] }
-    ],
-    subtotal: 43.95,
-    discount: 5.45,
-    tax: 3.51,
-    tip: 7.70
+    staff: "Miguel Rodriguez",
+    branch: "Downtown",
+    createdAt: "2023-04-10T10:30:00",
   },
   {
-    id: "ORD-1235",
-    customer: "Jane Smith",
-    date: "2025-04-10T13:15:00",
-    status: "in-progress",
-    total: 26.75,
-    paymentMethod: "cash",
+    id: "2",
+    orderNumber: "ORD-002",
+    customer: {
+      name: "Samantha Lee",
+      phone: "(555) 234-5678",
+      avatar: "",
+    },
+    items: [
+      { id: "item4", name: "Pepperoni Pizza", quantity: 1, price: 14.99 },
+      { id: "item5", name: "Garlic Bread", quantity: 1, price: 4.99 },
+    ],
+    total: 19.98,
+    status: "preparing",
     type: "takeaway",
-    branch: "1",
-    server: "Michael Brown",
-    table: null,
-    items: [
-      { id: "2", name: "Caesar Salad", quantity: 1, price: 9.99, total: 9.99, modifiers: ["Grilled Chicken"] },
-      { id: "5", name: "Chef's Special Pasta", quantity: 1, price: 16.99, total: 16.99, modifiers: [] }
-    ],
-    subtotal: 26.98,
-    discount: 0,
-    tax: 2.16,
-    tip: 0
+    paymentMethod: "cash",
+    paymentStatus: "paid",
+    staff: "Sara Johnson",
+    branch: "Downtown",
+    createdAt: "2023-04-10T12:45:00",
   },
   {
-    id: "ORD-1236",
-    customer: "Robert Wilson",
-    date: "2025-04-10T11:45:00",
-    status: "canceled",
-    total: 42.20,
-    paymentMethod: "wallet",
+    id: "3",
+    orderNumber: "ORD-003",
+    customer: {
+      name: "David Chen",
+      phone: "(555) 345-6789",
+      email: "david@example.com",
+      avatar: "",
+    },
+    items: [
+      { id: "item6", name: "Spaghetti Carbonara", quantity: 2, price: 15.99 },
+      { id: "item7", name: "Tiramisu", quantity: 1, price: 7.99 },
+      { id: "item8", name: "Sparkling Water", quantity: 2, price: 3.99 },
+    ],
+    total: 47.95,
+    status: "new",
     type: "delivery",
-    branch: "2",
-    server: "Sarah Davis",
-    table: null,
-    items: [
-      { id: "1", name: "Classic Burger", quantity: 1, price: 12.99, total: 12.99, modifiers: [] },
-      { id: "2", name: "Caesar Salad", quantity: 2, price: 9.99, total: 19.98, modifiers: ["No Croutons"] },
-      { id: "4", name: "Iced Coffee", quantity: 2, price: 4.99, total: 9.98, modifiers: ["Almond Milk"] }
-    ],
-    subtotal: 42.95,
-    discount: 5.00,
-    tax: 3.44,
-    tip: 8.44
+    paymentMethod: "online",
+    paymentStatus: "paid",
+    staff: "Emily Chang",
+    branch: "Uptown",
+    createdAt: "2023-04-10T13:15:00",
+    notes: "Please deliver to side entrance",
   },
   {
-    id: "ORD-1237",
-    customer: "Lisa Johnson",
-    date: "2025-04-10T10:30:00",
+    id: "4",
+    orderNumber: "ORD-004",
+    customer: {
+      name: "Michael Brown",
+      phone: "(555) 456-7890",
+      avatar: "",
+    },
+    items: [
+      { id: "item9", name: "Chicken Burger", quantity: 1, price: 11.99 },
+      { id: "item10", name: "French Fries", quantity: 1, price: 4.99 },
+      { id: "item11", name: "Milkshake", quantity: 1, price: 5.99 },
+    ],
+    total: 22.97,
     status: "ready",
-    total: 54.30,
-    paymentMethod: "credit-card",
     type: "dine-in",
-    branch: "3",
-    server: "Kevin Lee",
-    table: "Table 12",
-    items: [
-      { id: "5", name: "Chef's Special Pasta", quantity: 2, price: 16.99, total: 33.98, modifiers: [] },
-      { id: "3", name: "Chocolate Cake", quantity: 2, price: 7.99, total: 15.98, modifiers: [] },
-      { id: "4", name: "Iced Coffee", quantity: 1, price: 4.99, total: 4.99, modifiers: ["Flavored Syrup"] }
-    ],
-    subtotal: 54.95,
-    discount: 5.50,
-    tax: 4.40,
-    tip: 10.86
+    paymentMethod: "card",
+    paymentStatus: "paid",
+    table: "Table 2",
+    staff: "John Doe",
+    branch: "Downtown",
+    createdAt: "2023-04-10T14:30:00",
   },
   {
-    id: "ORD-1238",
-    customer: "Michael Roberts",
-    date: "2025-04-09T19:20:00",
-    status: "completed",
-    total: 22.50,
-    paymentMethod: "wallet",
+    id: "5",
+    orderNumber: "ORD-005",
+    customer: {
+      name: "Emma Wilson",
+      phone: "(555) 567-8901",
+      email: "emma@example.com",
+      avatar: "",
+    },
+    items: [
+      { id: "item12", name: "Veggie Bowl", quantity: 1, price: 13.99 },
+      { id: "item13", name: "Fruit Smoothie", quantity: 1, price: 6.99 },
+    ],
+    total: 20.98,
+    status: "cancelled",
     type: "takeaway",
-    branch: "4",
-    server: "Thomas Garcia",
-    table: null,
-    items: [
-      { id: "1", name: "Classic Burger", quantity: 1, price: 12.99, total: 12.99, modifiers: ["Bacon"] },
-      { id: "4", name: "Iced Coffee", quantity: 2, price: 4.99, total: 9.98, modifiers: [] }
-    ],
-    subtotal: 22.97,
-    discount: 2.30,
-    tax: 1.83,
-    tip: 0
+    paymentMethod: "online",
+    paymentStatus: "refunded",
+    staff: "Sara Johnson",
+    branch: "Uptown",
+    createdAt: "2023-04-10T11:15:00",
+    notes: "Customer canceled due to wait time",
   },
-  {
-    id: "ORD-1239",
-    customer: "Sarah Thompson",
-    date: "2025-04-09T18:45:00",
-    status: "completed",
-    total: 68.25,
-    paymentMethod: "credit-card",
-    type: "dine-in",
-    branch: "1",
-    server: "Emily Johnson",
-    table: "Table 8",
-    items: [
-      { id: "5", name: "Chef's Special Pasta", quantity: 2, price: 16.99, total: 33.98, modifiers: [] },
-      { id: "1", name: "Classic Burger", quantity: 1, price: 12.99, total: 12.99, modifiers: ["Double Patty"] },
-      { id: "2", name: "Caesar Salad", quantity: 1, price: 9.99, total: 9.99, modifiers: [] },
-      { id: "3", name: "Chocolate Cake", quantity: 1, price: 7.99, total: 7.99, modifiers: [] },
-      { id: "4", name: "Iced Coffee", quantity: 2, price: 4.99, total: 9.98, modifiers: [] }
-    ],
-    subtotal: 74.93,
-    discount: 10.00,
-    tax: 5.99,
-    tip: 13.65
-  },
-  {
-    id: "ORD-1240",
-    customer: "David Miller",
-    date: "2025-04-09T17:30:00",
-    status: "completed",
-    total: 36.45,
-    paymentMethod: "cash",
-    type: "dine-in",
-    branch: "2",
-    server: "Sarah Davis",
-    table: "Table 3",
-    items: [
-      { id: "2", name: "Caesar Salad", quantity: 2, price: 9.99, total: 19.98, modifiers: ["Shrimp"] },
-      { id: "4", name: "Iced Coffee", quantity: 3, price: 4.99, total: 14.97, modifiers: ["Extra Shot"] }
-    ],
-    subtotal: 34.95,
-    discount: 0,
-    tax: 2.80,
-    tip: 7.00
-  }
 ];
-
-// Status display configurations
-const orderStatusConfig = {
-  "placed": { label: "Placed", color: "bg-blue-100 text-blue-800", icon: AlertCircle },
-  "in-progress": { label: "Preparing", color: "bg-yellow-100 text-yellow-800", icon: Clock },
-  "ready": { label: "Ready", color: "bg-green-100 text-green-800", icon: CheckCircle },
-  "completed": { label: "Completed", color: "bg-green-700 text-white", icon: CheckCircle },
-  "canceled": { label: "Canceled", color: "bg-red-100 text-red-800", icon: X }
-};
-
-// Order type display configurations
-const orderTypeConfig = {
-  "dine-in": { label: "Dine-in", icon: Utensils },
-  "takeaway": { label: "Takeaway", icon: ShoppingBag },
-  "delivery": { label: "Delivery", icon: ShoppingBag }
-};
-
-// Payment method display configurations
-const paymentMethodConfig = {
-  "credit-card": { label: "Credit Card", icon: CreditCard },
-  "cash": { label: "Cash", icon: Banknote },
-  "wallet": { label: "Mobile Wallet", icon: CircleDollarSign }
-};
 
 export default function OrdersPage() {
-  const [orders, setOrders] = useState(initialOrders);
-  const [filteredOrders, setFilteredOrders] = useState(initialOrders);
+  const [orders, setOrders] = useState<Order[]>(mockOrders);
+  const [searchTerm, setSearchTerm] = useState("");
   const [activeTab, setActiveTab] = useState("all");
-  const [searchQuery, setSearchQuery] = useState("");
-  const [showFilters, setShowFilters] = useState(false);
-  
-  const [selectedOrder, setSelectedOrder] = useState<any>(null);
-  const [isOrderDetailOpen, setIsOrderDetailOpen] = useState(false);
-  
-  // Filter states
-  const [filterStatus, setFilterStatus] = useState<string | null>(null);
-  const [filterType, setFilterType] = useState<string | null>(null);
-  const [filterBranch, setFilterBranch] = useState<string | null>(null);
-  const [filterPaymentMethod, setFilterPaymentMethod] = useState<string | null>(null);
-  const [filterDateRange, setFilterDateRange] = useState<{from: Date | undefined, to: Date | undefined}>({
-    from: undefined,
-    to: undefined
+  const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
+  const [isOrderDetailsOpen, setIsOrderDetailsOpen] = useState(false);
+  const [date, setDate] = useState<DateRange | undefined>({
+    from: new Date(2023, 3, 10),
+    to: new Date(),
   });
 
-  // Export drawer state
-  const [isExportOpen, setIsExportOpen] = useState(false);
-  const [exportFormat, setExportFormat] = useState<"csv" | "pdf" | "doc">("csv");
+  // Filter orders based on search term, tab filter, and date range
+  const filteredOrders = orders.filter((order) => {
+    // Filter by search term
+    const matchesSearch =
+      searchTerm === "" ||
+      order.orderNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      order.customer.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (order.customer.phone && order.customer.phone.includes(searchTerm)) ||
+      (order.customer.email && order.customer.email.toLowerCase().includes(searchTerm.toLowerCase()));
 
-  // Apply filters whenever filter states change
-  useEffect(() => {
-    let result = [...initialOrders];
-    
     // Filter by tab
-    if (activeTab !== "all") {
-      result = result.filter(order => {
-        switch(activeTab) {
-          case "dine-in": return order.type === "dine-in";
-          case "takeaway": return order.type === "takeaway";
-          case "delivery": return order.type === "delivery";
-          default: return true;
-        }
-      });
-    }
-    
-    // Apply search
-    if (searchQuery) {
-      const query = searchQuery.toLowerCase();
-      result = result.filter(order => 
-        order.id.toLowerCase().includes(query) || 
-        order.customer.toLowerCase().includes(query)
-      );
-    }
-    
-    // Apply status filter
-    if (filterStatus) {
-      result = result.filter(order => order.status === filterStatus);
-    }
-    
-    // Apply type filter
-    if (filterType) {
-      result = result.filter(order => order.type === filterType);
-    }
-    
-    // Apply branch filter
-    if (filterBranch) {
-      result = result.filter(order => order.branch === filterBranch);
-    }
-    
-    // Apply payment method filter
-    if (filterPaymentMethod) {
-      result = result.filter(order => order.paymentMethod === filterPaymentMethod);
-    }
-    
-    // Apply date range filter
-    if (filterDateRange.from || filterDateRange.to) {
-      result = result.filter(order => {
-        const orderDate = new Date(order.date);
-        
-        if (filterDateRange.from && !filterDateRange.to) {
-          return orderDate >= filterDateRange.from;
-        }
-        
-        if (!filterDateRange.from && filterDateRange.to) {
-          return orderDate <= filterDateRange.to;
-        }
-        
-        if (filterDateRange.from && filterDateRange.to) {
-          return orderDate >= filterDateRange.from && orderDate <= filterDateRange.to;
-        }
-        
-        return true;
-      });
-    }
-    
-    setFilteredOrders(result);
-  }, [activeTab, searchQuery, filterStatus, filterType, filterBranch, filterPaymentMethod, filterDateRange]);
+    const matchesTab =
+      activeTab === "all" || order.status === activeTab || 
+      (activeTab === "dine-in" && order.type === "dine-in") ||
+      (activeTab === "takeaway" && order.type === "takeaway") ||
+      (activeTab === "delivery" && order.type === "delivery");
 
-  // Reset all filters
-  const handleResetFilters = () => {
-    setFilterStatus(null);
-    setFilterType(null);
-    setFilterBranch(null);
-    setFilterPaymentMethod(null);
-    setFilterDateRange({ from: undefined, to: undefined });
-    setSearchQuery("");
+    // Filter by date range
+    const orderDate = new Date(order.createdAt);
+    const matchesDateRange =
+      !date ||
+      !date.from ||
+      (date.from && orderDate >= date.from && (!date.to || orderDate <= date.to));
+
+    return matchesSearch && matchesTab && matchesDateRange;
+  });
+
+  const handleViewOrderDetails = (order: Order) => {
+    setSelectedOrder(order);
+    setIsOrderDetailsOpen(true);
   };
-  
-  // Handle order status update
-  const handleUpdateStatus = (orderId: string, newStatus: string) => {
-    const updatedOrders = orders.map(order => 
-      order.id === orderId ? { ...order, status: newStatus } : order
+
+  const handlePrintReceipt = (orderId: string) => {
+    toast.success(`Receipt for order #${orderId} sent to printer`);
+  };
+
+  const handleRefundOrder = (orderId: string) => {
+    const updatedOrders = orders.map((order) =>
+      order.id === orderId
+        ? { ...order, status: "cancelled" as const, paymentStatus: "refunded" as const }
+        : order
     );
     setOrders(updatedOrders);
-    
-    // Update selected order if it's the one being viewed
-    if (selectedOrder && selectedOrder.id === orderId) {
-      setSelectedOrder({ ...selectedOrder, status: newStatus });
-    }
-    
-    toast.success(`Order ${orderId} status updated to ${orderStatusConfig[newStatus as keyof typeof orderStatusConfig].label}`);
-  };
-  
-  // Handle export action
-  const handleExport = () => {
-    toast.success(`Exporting ${filteredOrders.length} orders as ${exportFormat.toUpperCase()}`);
-    setIsExportOpen(false);
-  };
-  
-  // Handle print action
-  const handlePrint = (orderId?: string) => {
-    if (orderId) {
-      toast.success(`Printing order ${orderId}`);
-    } else {
-      toast.success(`Printing ${filteredOrders.length} orders`);
-    }
-  };
-  
-  // View order details
-  const handleViewOrderDetails = (order: any) => {
-    setSelectedOrder(order);
-    setIsOrderDetailOpen(true);
+    toast.success(`Order #${orderId} has been refunded`);
   };
 
-  // Format date
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return format(date, "PPpp");
-  }
-  
-  // Status badge component
-  const StatusBadge = ({ status }: { status: string }) => {
-    const config = orderStatusConfig[status as keyof typeof orderStatusConfig];
-    const Icon = config.icon;
-    
-    return (
-      <div className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${config.color} transition-all duration-200`}>
-        <Icon className="mr-1 h-3 w-3" />
-        {config.label}
-      </div>
-    );
+  const handleExportData = () => {
+    toast.success("Orders data exported successfully!");
   };
-  
-  // Order type badge component
-  const OrderTypeBadge = ({ type }: { type: string }) => {
-    const config = orderTypeConfig[type as keyof typeof orderTypeConfig];
-    const Icon = config.icon;
-    
-    return (
-      <div className="inline-flex items-center text-xs text-muted-foreground">
-        <Icon className="mr-1 h-3 w-3" />
-        {config.label}
-      </div>
-    );
+
+  // Helper function to get style based on order status
+  const getStatusStyle = (status: Order["status"]) => {
+    switch (status) {
+      case "new":
+        return {
+          variant: "outline" as const,
+          color: "text-blue-600",
+          bg: "bg-blue-100",
+        };
+      case "preparing":
+        return {
+          variant: "outline" as const,
+          color: "text-amber-600",
+          bg: "bg-amber-100",
+        };
+      case "ready":
+        return {
+          variant: "default" as const,
+          color: "text-white",
+          bg: "bg-green-500",
+        };
+      case "completed":
+        return {
+          variant: "default" as const,
+          color: "text-white",
+          bg: "bg-primary",
+        };
+      case "cancelled":
+        return {
+          variant: "destructive" as const,
+          color: "text-white",
+          bg: "bg-destructive",
+        };
+    }
   };
-  
-  // Payment method badge component
-  const PaymentMethodBadge = ({ method }: { method: string }) => {
-    const config = paymentMethodConfig[method as keyof typeof paymentMethodConfig];
-    const Icon = config.icon;
-    
-    return (
-      <div className="inline-flex items-center text-xs">
-        <Icon className="mr-1 h-3 w-3" />
-        {config.label}
-      </div>
-    );
+
+  const getOrderTypeIcon = (type: Order["type"]) => {
+    switch (type) {
+      case "dine-in":
+        return <Utensils className="h-4 w-4" />;
+      case "takeaway":
+        return <Package className="h-4 w-4" />;
+      case "delivery":
+        return <Bike className="h-4 w-4" />;
+    }
+  };
+
+  const getPaymentMethodIcon = (method: Order["paymentMethod"]) => {
+    switch (method) {
+      case "card":
+        return <CreditCard className="h-4 w-4" />;
+      case "cash":
+        return <Banknote className="h-4 w-4" />;
+      case "online":
+        return <Receipt className="h-4 w-4" />;
+    }
   };
 
   return (
@@ -428,542 +333,459 @@ export default function OrdersPage() {
           <div>
             <h1 className="text-3xl font-bold tracking-tight">Order Management</h1>
             <p className="text-muted-foreground">
-              View and manage all your restaurant orders
+              View and manage all restaurant orders
             </p>
           </div>
           <div className="flex items-center gap-2">
-            <Button variant="outline" className="hover-scale" onClick={() => handlePrint()}>
-              <Printer className="mr-2 h-4 w-4" />
-              Print
-            </Button>
-            <Button variant="outline" className="hover-scale" onClick={() => setIsExportOpen(true)}>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="outline" className="hover-scale">
+                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  {date?.from ? (
+                    date.to ? (
+                      <>
+                        {format(date.from, "LLL dd, y")} - {format(date.to, "LLL dd, y")}
+                      </>
+                    ) : (
+                      format(date.from, "LLL dd, y")
+                    )
+                  ) : (
+                    "Date Range"
+                  )}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="end">
+                <Calendar
+                  initialFocus
+                  mode="range"
+                  defaultMonth={date?.from}
+                  selected={date}
+                  onSelect={(selectedDate) => setDate(selectedDate)}
+                  numberOfMonths={2}
+                />
+              </PopoverContent>
+            </Popover>
+            <Button variant="outline" className="hover-scale" onClick={handleExportData}>
               <FileDown className="mr-2 h-4 w-4" />
               Export
             </Button>
           </div>
         </div>
 
-        <Tabs defaultValue="all" value={activeTab} onValueChange={setActiveTab} className="animate-fade-in">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 gap-4">
-            <TabsList>
-              <TabsTrigger value="all" className="flex items-center gap-2">
-                <Receipt className="h-4 w-4" />
-                All Orders
-              </TabsTrigger>
-              <TabsTrigger value="dine-in" className="flex items-center gap-2">
-                <Utensils className="h-4 w-4" />
-                Dine-in
-              </TabsTrigger>
-              <TabsTrigger value="takeaway" className="flex items-center gap-2">
-                <ShoppingBag className="h-4 w-4" />
-                Takeaway
-              </TabsTrigger>
-              <TabsTrigger value="delivery" className="flex items-center gap-2">
-                <ShoppingBag className="h-4 w-4" />
-                Delivery
-              </TabsTrigger>
-            </TabsList>
-            
-            <div className="flex flex-col sm:flex-row items-center gap-2">
-              <div className="relative w-full sm:w-auto">
-                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="Search orders..."
-                  className="pl-9 w-full md:w-72"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                />
-              </div>
-              
-              <Button 
-                variant={showFilters ? "default" : "outline"} 
-                size="icon"
-                onClick={() => setShowFilters(!showFilters)}
-                className={showFilters ? "bg-primary text-primary-foreground" : ""}
-              >
-                <Filter className="h-4 w-4" />
-              </Button>
-            </div>
-          </div>
+        <div className="flex flex-col sm:flex-row gap-4">
+          <div className="w-full sm:w-2/3">
+            <Card className="animate-fade-in [animation-delay:100ms]">
+              <CardHeader className="flex flex-row items-center justify-between">
+                <CardTitle>Order History</CardTitle>
+                <div className="flex items-center space-x-2">
+                  <div className="relative">
+                    <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      type="search"
+                      placeholder="Search orders..."
+                      className="w-full sm:w-[250px] pl-8"
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                    />
+                  </div>
+                  <Button variant="outline" size="icon">
+                    <Filter className="h-4 w-4" />
+                  </Button>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <Tabs onValueChange={setActiveTab} value={activeTab}>
+                  <TabsList className="grid w-full grid-cols-7 mb-4">
+                    <TabsTrigger value="all">All</TabsTrigger>
+                    <TabsTrigger value="new">New</TabsTrigger>
+                    <TabsTrigger value="preparing">Preparing</TabsTrigger>
+                    <TabsTrigger value="ready">Ready</TabsTrigger>
+                    <TabsTrigger value="dine-in">Dine-in</TabsTrigger>
+                    <TabsTrigger value="takeaway">Takeaway</TabsTrigger>
+                    <TabsTrigger value="delivery">Delivery</TabsTrigger>
+                  </TabsList>
 
-          {showFilters && (
-            <Card className="mb-6 animate-fade-in">
-              <CardContent className="pt-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-                  <div>
-                    <Label htmlFor="filter-status">Order Status</Label>
-                    <Select value={filterStatus || ""} onValueChange={v => setFilterStatus(v === "" ? null : v)}>
-                      <SelectTrigger id="filter-status">
-                        <SelectValue placeholder="All Statuses" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="">All Statuses</SelectItem>
-                        <SelectItem value="placed">Placed</SelectItem>
-                        <SelectItem value="in-progress">In Progress</SelectItem>
-                        <SelectItem value="ready">Ready</SelectItem>
-                        <SelectItem value="completed">Completed</SelectItem>
-                        <SelectItem value="canceled">Canceled</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  
-                  <div>
-                    <Label htmlFor="filter-type">Order Type</Label>
-                    <Select value={filterType || ""} onValueChange={v => setFilterType(v === "" ? null : v)}>
-                      <SelectTrigger id="filter-type">
-                        <SelectValue placeholder="All Types" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="">All Types</SelectItem>
-                        <SelectItem value="dine-in">Dine-in</SelectItem>
-                        <SelectItem value="takeaway">Takeaway</SelectItem>
-                        <SelectItem value="delivery">Delivery</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  
-                  <div>
-                    <Label htmlFor="filter-branch">Branch</Label>
-                    <Select value={filterBranch || ""} onValueChange={v => setFilterBranch(v === "" ? null : v)}>
-                      <SelectTrigger id="filter-branch">
-                        <SelectValue placeholder="All Branches" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="">All Branches</SelectItem>
-                        {branches.map(branch => (
-                          <SelectItem key={branch.id} value={branch.id}>{branch.name}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  
-                  <div>
-                    <Label htmlFor="filter-payment">Payment Method</Label>
-                    <Select value={filterPaymentMethod || ""} onValueChange={v => setFilterPaymentMethod(v === "" ? null : v)}>
-                      <SelectTrigger id="filter-payment">
-                        <SelectValue placeholder="All Methods" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="">All Methods</SelectItem>
-                        <SelectItem value="credit-card">Credit Card</SelectItem>
-                        <SelectItem value="cash">Cash</SelectItem>
-                        <SelectItem value="wallet">Mobile Wallet</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  
-                  <div>
-                    <Label>Date Range</Label>
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <Button
-                          variant="outline"
-                          className="w-full justify-start text-left font-normal"
-                        >
-                          <CalendarIcon className="mr-2 h-4 w-4" />
-                          {filterDateRange.from ? (
-                            filterDateRange.to ? (
-                              <>
-                                {format(filterDateRange.from, "LLL dd")} - {format(filterDateRange.to, "LLL dd, y")}
-                              </>
-                            ) : (
-                              format(filterDateRange.from, "LLL dd, y")
-                            )
+                  <TabsContent value={activeTab} className="space-y-4">
+                    <div className="rounded-md border">
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead>Order #</TableHead>
+                            <TableHead>Customer</TableHead>
+                            <TableHead>Status</TableHead>
+                            <TableHead>Total</TableHead>
+                            <TableHead>Date & Time</TableHead>
+                            <TableHead className="text-right">Actions</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {filteredOrders.length === 0 ? (
+                            <TableRow>
+                              <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
+                                No orders found
+                              </TableCell>
+                            </TableRow>
                           ) : (
-                            <span>Pick a date</span>
+                            filteredOrders.map((order) => (
+                              <TableRow key={order.id} className="hover-scale-subtle">
+                                <TableCell className="font-medium">
+                                  <div className="flex items-center">
+                                    <span className="mr-2">{order.orderNumber}</span>
+                                    {getOrderTypeIcon(order.type)}
+                                  </div>
+                                </TableCell>
+                                <TableCell>
+                                  <div className="flex items-center space-x-3">
+                                    <Avatar className="h-6 w-6">
+                                      <AvatarImage src={order.customer.avatar} alt={order.customer.name} />
+                                      <AvatarFallback>{order.customer.name[0]}</AvatarFallback>
+                                    </Avatar>
+                                    <div>
+                                      <div className="font-medium">{order.customer.name}</div>
+                                      {order.type === "dine-in" && order.table && (
+                                        <div className="text-xs text-muted-foreground">{order.table}</div>
+                                      )}
+                                    </div>
+                                  </div>
+                                </TableCell>
+                                <TableCell>
+                                  <Badge variant={getStatusStyle(order.status).variant} className={getStatusStyle(order.status).bg}>
+                                    {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
+                                  </Badge>
+                                </TableCell>
+                                <TableCell>
+                                  <div className="flex flex-col">
+                                    <span>${order.total.toFixed(2)}</span>
+                                    <span className="text-xs text-muted-foreground flex items-center">
+                                      {getPaymentMethodIcon(order.paymentMethod)}
+                                      <span className="ml-1 capitalize">{order.paymentMethod}</span>
+                                    </span>
+                                  </div>
+                                </TableCell>
+                                <TableCell>
+                                  <div className="flex flex-col">
+                                    <span>{new Date(order.createdAt).toLocaleDateString()}</span>
+                                    <span className="text-xs text-muted-foreground">
+                                      {new Date(order.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                    </span>
+                                  </div>
+                                </TableCell>
+                                <TableCell className="text-right">
+                                  <DropdownMenu>
+                                    <DropdownMenuTrigger asChild>
+                                      <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                                        <MoreVertical className="h-4 w-4" />
+                                      </Button>
+                                    </DropdownMenuTrigger>
+                                    <DropdownMenuContent align="end">
+                                      <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                                      <DropdownMenuSeparator />
+                                      <DropdownMenuItem onClick={() => handleViewOrderDetails(order)}>
+                                        <Eye className="mr-2 h-4 w-4" />
+                                        View Details
+                                      </DropdownMenuItem>
+                                      <DropdownMenuItem onClick={() => handlePrintReceipt(order.id)}>
+                                        <Printer className="mr-2 h-4 w-4" />
+                                        Print Receipt
+                                      </DropdownMenuItem>
+                                      {(order.status !== "cancelled" && order.status !== "completed") && (
+                                        <DropdownMenuItem>
+                                          <RefreshCcw className="mr-2 h-4 w-4" />
+                                          Update Status
+                                        </DropdownMenuItem>
+                                      )}
+                                      {order.status !== "cancelled" && order.paymentStatus === "paid" && (
+                                        <DropdownMenuItem 
+                                          className="text-destructive"
+                                          onClick={() => handleRefundOrder(order.id)}
+                                        >
+                                          <X className="mr-2 h-4 w-4" />
+                                          Cancel & Refund
+                                        </DropdownMenuItem>
+                                      )}
+                                    </DropdownMenuContent>
+                                  </DropdownMenu>
+                                </TableCell>
+                              </TableRow>
+                            ))
                           )}
-                        </Button>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0" align="start">
-                        <CalendarComponent
-                          initialFocus
-                          mode="range"
-                          defaultMonth={filterDateRange.from}
-                          selected={filterDateRange}
-                          onSelect={setFilterDateRange}
-                          numberOfMonths={2}
-                        />
-                      </PopoverContent>
-                    </Popover>
-                  </div>
-                </div>
-                
-                <div className="flex justify-end mt-4">
-                  <Button variant="ghost" onClick={handleResetFilters}>Reset Filters</Button>
-                </div>
+                        </TableBody>
+                      </Table>
+                    </div>
+                  </TabsContent>
+                </Tabs>
               </CardContent>
             </Card>
-          )}
+          </div>
 
-          <TabsContent value="all" className="mt-0">
-            {renderOrdersTable()}
-          </TabsContent>
-          <TabsContent value="dine-in" className="mt-0">
-            {renderOrdersTable()}
-          </TabsContent>
-          <TabsContent value="takeaway" className="mt-0">
-            {renderOrdersTable()}
-          </TabsContent>
-          <TabsContent value="delivery" className="mt-0">
-            {renderOrdersTable()}
-          </TabsContent>
-        </Tabs>
+          <div className="w-full sm:w-1/3 space-y-4">
+            <AnimatedDashboardCard
+              title="Order Statistics"
+              delay={2}
+              className="animate-fade-in [animation-delay:200ms]"
+            >
+              <div className="grid grid-cols-2 gap-4">
+                <div className="flex flex-col border rounded-md p-3">
+                  <span className="text-xs text-muted-foreground">Today's Orders</span>
+                  <span className="text-2xl font-bold">24</span>
+                  <span className="text-xs text-emerald-500 mt-1">↑ 8.5% from yesterday</span>
+                </div>
+                <div className="flex flex-col border rounded-md p-3">
+                  <span className="text-xs text-muted-foreground">Revenue</span>
+                  <span className="text-2xl font-bold">$745.80</span>
+                  <span className="text-xs text-emerald-500 mt-1">↑ 12.3% from yesterday</span>
+                </div>
+                <div className="flex flex-col border rounded-md p-3">
+                  <span className="text-xs text-muted-foreground">Avg. Order Value</span>
+                  <span className="text-2xl font-bold">$31.07</span>
+                  <span className="text-xs text-emerald-500 mt-1">↑ 3.2% from yesterday</span>
+                </div>
+                <div className="flex flex-col border rounded-md p-3">
+                  <span className="text-xs text-muted-foreground">Completed Orders</span>
+                  <span className="text-2xl font-bold">22</span>
+                  <span className="text-xs text-muted-foreground mt-1">2 in progress</span>
+                </div>
+              </div>
 
-        {/* Order details dialog */}
-        <Dialog open={isOrderDetailOpen} onOpenChange={setIsOrderDetailOpen}>
-          <DialogContent className="sm:max-w-[800px]">
-            <DialogHeader>
-              <DialogTitle className="flex items-center justify-between">
-                <span>Order Details</span>
-                <StatusBadge status={selectedOrder?.status || "placed"} />
-              </DialogTitle>
-              <DialogDescription>
-                Order ID: {selectedOrder?.id} | {selectedOrder && formatDate(selectedOrder.date)}
-              </DialogDescription>
-            </DialogHeader>
-            
-            {selectedOrder && (
-              <div className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div>
-                    <h4 className="text-sm font-medium text-muted-foreground mb-1">Customer</h4>
-                    <p>{selectedOrder.customer}</p>
+              <div className="mt-6 space-y-3">
+                <div>
+                  <div className="flex justify-between items-center mb-1">
+                    <span className="text-sm font-medium">Order Type Breakdown</span>
+                    <span className="text-xs text-muted-foreground">Today</span>
                   </div>
-                  <div>
-                    <h4 className="text-sm font-medium text-muted-foreground mb-1">Branch</h4>
-                    <p>{branches.find(b => b.id === selectedOrder.branch)?.name}</p>
+                  <div className="flex items-center space-x-2">
+                    <div className="h-2 bg-primary rounded-full flex-1" style={{ width: "45%" }}></div>
+                    <div className="h-2 bg-amber-400 rounded-full flex-1" style={{ width: "30%" }}></div>
+                    <div className="h-2 bg-emerald-500 rounded-full flex-1" style={{ width: "25%" }}></div>
                   </div>
-                  <div>
-                    <h4 className="text-sm font-medium text-muted-foreground mb-1">Type</h4>
+                  <div className="flex text-xs mt-1 space-x-4">
                     <div className="flex items-center">
-                      <OrderTypeBadge type={selectedOrder.type} />
-                      {selectedOrder.table && <span className="ml-2">({selectedOrder.table})</span>}
+                      <div className="h-2 w-2 bg-primary rounded-full mr-1"></div>
+                      <span>Dine-in (45%)</span>
+                    </div>
+                    <div className="flex items-center">
+                      <div className="h-2 w-2 bg-amber-400 rounded-full mr-1"></div>
+                      <span>Takeaway (30%)</span>
+                    </div>
+                    <div className="flex items-center">
+                      <div className="h-2 w-2 bg-emerald-500 rounded-full mr-1"></div>
+                      <span>Delivery (25%)</span>
                     </div>
                   </div>
-                  <div>
-                    <h4 className="text-sm font-medium text-muted-foreground mb-1">Server</h4>
-                    <p>{selectedOrder.server}</p>
+                </div>
+
+                <div className="flex items-center justify-between border-t pt-3 mt-3">
+                  <Button variant="outline" className="w-full" size="sm">
+                    <BarChart4 className="mr-2 h-4 w-4" />
+                    View Full Report
+                  </Button>
+                </div>
+              </div>
+            </AnimatedDashboardCard>
+
+            <AnimatedDashboardCard
+              title="Recent Activity"
+              delay={3}
+              className="animate-fade-in [animation-delay:300ms]"
+            >
+              <div className="space-y-4">
+                <div className="flex items-start space-x-3">
+                  <div className="rounded-full bg-blue-100 p-2 mt-1">
+                    <Package className="h-3 w-3 text-blue-500" />
                   </div>
                   <div>
-                    <h4 className="text-sm font-medium text-muted-foreground mb-1">Payment Method</h4>
-                    <PaymentMethodBadge method={selectedOrder.paymentMethod} />
-                  </div>
-                  <div>
-                    <h4 className="text-sm font-medium text-muted-foreground mb-1">Total</h4>
-                    <p className="font-semibold">${selectedOrder.total.toFixed(2)}</p>
+                    <p className="text-sm font-medium">New takeaway order received</p>
+                    <p className="text-xs text-muted-foreground">
+                      Order #ORD-006 from William Taylor
+                    </p>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      <Clock className="inline h-3 w-3 mr-1" /> Just now
+                    </p>
                   </div>
                 </div>
-                
-                <div>
-                  <h4 className="font-medium mb-2">Order Items</h4>
+
+                <div className="flex items-start space-x-3">
+                  <div className="rounded-full bg-green-100 p-2 mt-1">
+                    <RefreshCcw className="h-3 w-3 text-green-500" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium">Order status updated</p>
+                    <p className="text-xs text-muted-foreground">
+                      Order #ORD-002 is now ready for pickup
+                    </p>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      <Clock className="inline h-3 w-3 mr-1" /> 5 minutes ago
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-start space-x-3">
+                  <div className="rounded-full bg-red-100 p-2 mt-1">
+                    <X className="h-3 w-3 text-red-500" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium">Order cancelled</p>
+                    <p className="text-xs text-muted-foreground">
+                      Order #ORD-005 has been cancelled and refunded
+                    </p>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      <Clock className="inline h-3 w-3 mr-1" /> 30 minutes ago
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </AnimatedDashboardCard>
+          </div>
+        </div>
+      </div>
+
+      {/* Order details dialog */}
+      <Dialog open={isOrderDetailsOpen} onOpenChange={setIsOrderDetailsOpen}>
+        <DialogContent className="sm:max-w-[550px]">
+          <DialogHeader>
+            <DialogTitle>Order Details</DialogTitle>
+            <DialogDescription>
+              {selectedOrder && `Order #${selectedOrder.orderNumber} - ${new Date(selectedOrder.createdAt).toLocaleString()}`}
+            </DialogDescription>
+          </DialogHeader>
+          
+          {selectedOrder && (
+            <div className="space-y-4">
+              {/* Customer information */}
+              <div>
+                <h3 className="text-sm font-semibold mb-1">Customer Information</h3>
+                <div className="flex items-center space-x-3 mb-2">
+                  <Avatar className="h-8 w-8">
+                    <AvatarImage src={selectedOrder.customer.avatar} alt={selectedOrder.customer.name} />
+                    <AvatarFallback>{selectedOrder.customer.name[0]}</AvatarFallback>
+                  </Avatar>
+                  <div>
+                    <div className="font-medium">{selectedOrder.customer.name}</div>
+                    {selectedOrder.customer.phone && (
+                      <div className="text-xs text-muted-foreground">{selectedOrder.customer.phone}</div>
+                    )}
+                  </div>
+                </div>
+                {selectedOrder.customer.email && (
+                  <div className="text-xs text-muted-foreground">Email: {selectedOrder.customer.email}</div>
+                )}
+                {selectedOrder.type === "dine-in" && selectedOrder.table && (
+                  <div className="text-xs text-muted-foreground mt-1">{selectedOrder.table}</div>
+                )}
+              </div>
+
+              {/* Order items */}
+              <div>
+                <h3 className="text-sm font-semibold mb-2">Order Items</h3>
+                <div className="border rounded-md">
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead className="w-[300px]">Item</TableHead>
-                        <TableHead>Quantity</TableHead>
-                        <TableHead>Price</TableHead>
-                        <TableHead className="text-right">Total</TableHead>
+                        <TableHead>Item</TableHead>
+                        <TableHead className="text-right">Qty</TableHead>
+                        <TableHead className="text-right">Price</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {selectedOrder.items.map((item: any) => (
+                      {selectedOrder.items.map((item) => (
                         <TableRow key={item.id}>
                           <TableCell>
                             <div>
-                              <div>{item.name}</div>
-                              {item.modifiers.length > 0 && (
-                                <div className="text-sm text-muted-foreground">
-                                  {item.modifiers.join(', ')}
+                              <div className="font-medium">{item.name}</div>
+                              {item.modifiers && item.modifiers.length > 0 && (
+                                <div className="text-xs text-muted-foreground">
+                                  {item.modifiers.join(", ")}
                                 </div>
                               )}
                             </div>
                           </TableCell>
-                          <TableCell>{item.quantity}</TableCell>
-                          <TableCell>${item.price.toFixed(2)}</TableCell>
-                          <TableCell className="text-right">${item.total.toFixed(2)}</TableCell>
+                          <TableCell className="text-right">{item.quantity}</TableCell>
+                          <TableCell className="text-right">${(item.price * item.quantity).toFixed(2)}</TableCell>
                         </TableRow>
                       ))}
                     </TableBody>
                   </Table>
                 </div>
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <h4 className="font-medium mb-2">Status Actions</h4>
-                    <div className="flex flex-wrap gap-2">
-                      {selectedOrder.status !== "placed" && (
-                        <Button 
-                          variant="outline" 
-                          size="sm"
-                          onClick={() => handleUpdateStatus(selectedOrder.id, "placed")}
-                        >
-                          Mark as Placed
-                        </Button>
-                      )}
-                      {selectedOrder.status !== "in-progress" && (
-                        <Button 
-                          variant="outline" 
-                          size="sm"
-                          onClick={() => handleUpdateStatus(selectedOrder.id, "in-progress")}
-                        >
-                          Mark as Preparing
-                        </Button>
-                      )}
-                      {selectedOrder.status !== "ready" && (
-                        <Button 
-                          variant="outline" 
-                          size="sm"
-                          onClick={() => handleUpdateStatus(selectedOrder.id, "ready")}
-                        >
-                          Mark as Ready
-                        </Button>
-                      )}
-                      {selectedOrder.status !== "completed" && (
-                        <Button 
-                          variant="default" 
-                          size="sm"
-                          onClick={() => handleUpdateStatus(selectedOrder.id, "completed")}
-                        >
-                          Complete Order
-                        </Button>
-                      )}
-                      {selectedOrder.status !== "canceled" && (
-                        <Button 
-                          variant="destructive" 
-                          size="sm"
-                          onClick={() => handleUpdateStatus(selectedOrder.id, "canceled")}
-                        >
-                          Cancel Order
-                        </Button>
-                      )}
-                    </div>
-                  </div>
-                  
-                  <div>
-                    <h4 className="font-medium mb-2">Order Summary</h4>
-                    <div className="space-y-2">
-                      <div className="flex justify-between">
-                        <span className="text-muted-foreground">Subtotal:</span>
-                        <span>${selectedOrder.subtotal.toFixed(2)}</span>
-                      </div>
-                      {selectedOrder.discount > 0 && (
-                        <div className="flex justify-between">
-                          <span className="text-muted-foreground">Discount:</span>
-                          <span>-${selectedOrder.discount.toFixed(2)}</span>
-                        </div>
-                      )}
-                      <div className="flex justify-between">
-                        <span className="text-muted-foreground">Tax:</span>
-                        <span>${selectedOrder.tax.toFixed(2)}</span>
-                      </div>
-                      {selectedOrder.tip > 0 && (
-                        <div className="flex justify-between">
-                          <span className="text-muted-foreground">Tip:</span>
-                          <span>${selectedOrder.tip.toFixed(2)}</span>
-                        </div>
-                      )}
-                      <div className="flex justify-between font-semibold pt-2 border-t">
-                        <span>Total:</span>
-                        <span>${selectedOrder.total.toFixed(2)}</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                
-                <div className="flex justify-end space-x-2 pt-4 border-t">
-                  <Button 
-                    variant="outline" 
-                    onClick={() => handlePrint(selectedOrder.id)}
-                  >
-                    <Printer className="mr-2 h-4 w-4" />
-                    Print Receipt
-                  </Button>
+                <div className="flex justify-between mt-2 font-medium">
+                  <span>Total</span>
+                  <span>${selectedOrder.total.toFixed(2)}</span>
                 </div>
               </div>
-            )}
-          </DialogContent>
-        </Dialog>
-        
-        {/* Export drawer */}
-        <Drawer open={isExportOpen} onOpenChange={setIsExportOpen}>
-          <DrawerContent>
-            <div className="mx-auto w-full max-w-sm">
-              <DrawerHeader>
-                <DrawerTitle>Export Orders</DrawerTitle>
-                <DrawerDescription>Choose your export format</DrawerDescription>
-              </DrawerHeader>
-              <div className="p-4 pb-0">
-                <div className="grid grid-cols-3 gap-2">
-                  <div 
-                    className={`flex flex-col items-center justify-center border rounded-md p-3 cursor-pointer transition-all ${exportFormat === 'csv' ? 'border-primary bg-primary/5' : 'hover:border-primary/50'}`}
-                    onClick={() => setExportFormat('csv')}
-                  >
-                    <FileDown className="h-6 w-6 mb-2" />
-                    <span className="text-sm font-medium">CSV</span>
-                    <span className="text-xs text-muted-foreground">Spreadsheet</span>
-                  </div>
-                  <div 
-                    className={`flex flex-col items-center justify-center border rounded-md p-3 cursor-pointer transition-all ${exportFormat === 'pdf' ? 'border-primary bg-primary/5' : 'hover:border-primary/50'}`}
-                    onClick={() => setExportFormat('pdf')}
-                  >
-                    <FileDown className="h-6 w-6 mb-2" />
-                    <span className="text-sm font-medium">PDF</span>
-                    <span className="text-xs text-muted-foreground">Document</span>
-                  </div>
-                  <div 
-                    className={`flex flex-col items-center justify-center border rounded-md p-3 cursor-pointer transition-all ${exportFormat === 'doc' ? 'border-primary bg-primary/5' : 'hover:border-primary/50'}`}
-                    onClick={() => setExportFormat('doc')}
-                  >
-                    <FileDown className="h-6 w-6 mb-2" />
-                    <span className="text-sm font-medium">DOC</span>
-                    <span className="text-xs text-muted-foreground">Word</span>
+              
+              {/* Order details */}
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label className="text-xs">Order Type</Label>
+                  <div className="flex items-center mt-1">
+                    {getOrderTypeIcon(selectedOrder.type)}
+                    <span className="ml-1 capitalize">{selectedOrder.type}</span>
                   </div>
                 </div>
-                
-                <div className="mt-4 text-sm text-muted-foreground">
-                  <p>This will export {filteredOrders.length} orders with current filters applied.</p>
+                <div>
+                  <Label className="text-xs">Status</Label>
+                  <div className="mt-1">
+                    <Badge variant={getStatusStyle(selectedOrder.status).variant}>
+                      {selectedOrder.status.charAt(0).toUpperCase() + selectedOrder.status.slice(1)}
+                    </Badge>
+                  </div>
+                </div>
+                <div>
+                  <Label className="text-xs">Payment Method</Label>
+                  <div className="flex items-center mt-1">
+                    {getPaymentMethodIcon(selectedOrder.paymentMethod)}
+                    <span className="ml-1 capitalize">{selectedOrder.paymentMethod}</span>
+                  </div>
+                </div>
+                <div>
+                  <Label className="text-xs">Payment Status</Label>
+                  <div className="mt-1">
+                    <Badge variant={selectedOrder.paymentStatus === "paid" ? "default" : selectedOrder.paymentStatus === "pending" ? "outline" : "destructive"}>
+                      {selectedOrder.paymentStatus.charAt(0).toUpperCase() + selectedOrder.paymentStatus.slice(1)}
+                    </Badge>
+                  </div>
+                </div>
+                <div>
+                  <Label className="text-xs">Branch</Label>
+                  <div className="mt-1">{selectedOrder.branch}</div>
+                </div>
+                <div>
+                  <Label className="text-xs">Staff</Label>
+                  <div className="mt-1">{selectedOrder.staff}</div>
                 </div>
               </div>
-              <DrawerFooter>
-                <Button onClick={handleExport}>Export Now</Button>
-                <DrawerClose asChild>
-                  <Button variant="outline">Cancel</Button>
-                </DrawerClose>
-              </DrawerFooter>
+
+              {/* Order notes */}
+              {selectedOrder.notes && (
+                <div>
+                  <Label className="text-xs">Notes</Label>
+                  <div className="border rounded-md p-2 mt-1 text-sm">
+                    {selectedOrder.notes}
+                  </div>
+                </div>
+              )}
             </div>
-          </DrawerContent>
-        </Drawer>
-      </div>
-    </RestaurantLayout>
-  );
-  
-  // Helper function to render orders table
-  function renderOrdersTable() {
-    if (filteredOrders.length === 0) {
-      return (
-        <Card>
-          <CardContent className="text-center py-10 animate-fade-in">
-            <Coffee className="mx-auto h-12 w-12 text-muted-foreground opacity-50 mb-4" />
-            <h3 className="text-lg font-medium">No orders found</h3>
-            <p className="text-muted-foreground mt-2 max-w-md mx-auto">
-              {searchQuery || filterStatus || filterType || filterBranch || filterPaymentMethod || filterDateRange.from || filterDateRange.to
-                ? "Try adjusting your filters to see more orders."
-                : "No orders have been placed yet."}
-            </p>
-            {(searchQuery || filterStatus || filterType || filterBranch || filterPaymentMethod || filterDateRange.from || filterDateRange.to) && (
-              <Button
-                variant="outline"
-                className="mt-4"
-                onClick={handleResetFilters}
+          )}
+
+          <DialogFooter className="gap-2">
+            <Button variant="outline" onClick={() => handlePrintReceipt(selectedOrder?.id || "")}>
+              <Printer className="mr-2 h-4 w-4" />
+              Print Receipt
+            </Button>
+            {selectedOrder && selectedOrder.status !== "cancelled" && selectedOrder.paymentStatus === "paid" && (
+              <Button 
+                variant="destructive"
+                onClick={() => {
+                  handleRefundOrder(selectedOrder.id);
+                  setIsOrderDetailsOpen(false);
+                }}
               >
-                Clear Filters
+                <X className="mr-2 h-4 w-4" />
+                Cancel & Refund
               </Button>
             )}
-          </CardContent>
-        </Card>
-      );
-    }
-    
-    return (
-      <Card className="animate-fade-in">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Order ID</TableHead>
-              <TableHead>Customer</TableHead>
-              <TableHead className="hidden md:table-cell">Date</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead className="hidden lg:table-cell">Type</TableHead>
-              <TableHead className="hidden lg:table-cell">Branch</TableHead>
-              <TableHead className="text-right">Total</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {filteredOrders.map((order) => {
-              const branchName = branches.find(branch => branch.id === order.branch)?.name;
-              
-              return (
-                <TableRow 
-                  key={order.id} 
-                  className="cursor-pointer hover:bg-muted/50 animate-fade-in"
-                  onClick={() => handleViewOrderDetails(order)}
-                >
-                  <TableCell className="font-medium">{order.id}</TableCell>
-                  <TableCell>
-                    <div className="flex items-center">
-                      <User className="h-4 w-4 mr-2 text-muted-foreground" />
-                      {order.customer}
-                    </div>
-                  </TableCell>
-                  <TableCell className="hidden md:table-cell">
-                    <div className="flex items-center">
-                      <Calendar className="h-4 w-4 mr-2 text-muted-foreground" />
-                      {format(new Date(order.date), "PPp")}
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <StatusBadge status={order.status} />
-                  </TableCell>
-                  <TableCell className="hidden lg:table-cell">
-                    <OrderTypeBadge type={order.type} />
-                  </TableCell>
-                  <TableCell className="hidden lg:table-cell">{branchName}</TableCell>
-                  <TableCell className="text-right font-medium">
-                    ${order.total.toFixed(2)}
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild onClick={e => e.stopPropagation()}>
-                        <Button variant="ghost" size="icon">
-                          <MoreVertical className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={e => {
-                          e.stopPropagation();
-                          handleViewOrderDetails(order);
-                        }}>
-                          <ChevronRight className="h-4 w-4 mr-2" /> View Details
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={e => {
-                          e.stopPropagation();
-                          handlePrint(order.id);
-                        }}>
-                          <Printer className="h-4 w-4 mr-2" /> Print Receipt
-                        </DropdownMenuItem>
-                        
-                        <DropdownMenuSeparator />
-                        
-                        {order.status !== "completed" && (
-                          <DropdownMenuItem onClick={e => {
-                            e.stopPropagation();
-                            handleUpdateStatus(order.id, "completed");
-                          }}>
-                            <CheckCircle className="h-4 w-4 mr-2" /> Mark as Completed
-                          </DropdownMenuItem>
-                        )}
-                        
-                        {order.status !== "canceled" && (
-                          <DropdownMenuItem 
-                            className="text-destructive focus:text-destructive"
-                            onClick={e => {
-                              e.stopPropagation();
-                              handleUpdateStatus(order.id, "canceled");
-                            }}
-                          >
-                            <Ban className="h-4 w-4 mr-2" /> Cancel Order
-                          </DropdownMenuItem>
-                        )}
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </TableCell>
-                </TableRow>
-              );
-            })}
-          </TableBody>
-        </Table>
-      </Card>
-    );
-  }
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </RestaurantLayout>
+  );
 }
