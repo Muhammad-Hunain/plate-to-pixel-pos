@@ -20,7 +20,8 @@ import {
   CheckCircle,
   AlertCircle,
   Check,
-  X
+  X,
+  Calendar as CalendarIcon
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import {
