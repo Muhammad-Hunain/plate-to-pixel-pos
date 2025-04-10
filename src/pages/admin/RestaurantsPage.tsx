@@ -1,5 +1,5 @@
-
 import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import AdminLayout from "@/components/layout/AdminLayout";
 import { 
   Table, TableBody, TableCaption, TableCell, 
@@ -20,6 +20,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
+import AnimatedStatsCard from "@/components/dashboard/AnimatedStatsCard";
 
 // Mock data for restaurants
 const restaurantData = [
@@ -99,6 +100,7 @@ export default function RestaurantsPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [sortBy, setSortBy] = useState("name");
   const [sortOrder, setSortOrder] = useState("asc");
+  const navigate = useNavigate();
 
   // Filter and sort restaurants
   const filteredRestaurants = restaurantData
@@ -153,65 +155,55 @@ export default function RestaurantsPage() {
               Manage restaurants on the platform
             </p>
           </div>
-          <Button>
+          <Button onClick={() => navigate("/admin/restaurants/add")}>
             <Plus className="mr-2 h-4 w-4" />
             Add Restaurant
           </Button>
         </div>
 
         <div className="grid gap-6 md:grid-cols-4">
-          <Card className="stat-card">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
-                Total Restaurants
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{restaurantData.length}</div>
-            </CardContent>
-          </Card>
+          <AnimatedStatsCard
+            title="Total Restaurants"
+            value={restaurantData.length}
+            icon={<Store className="h-4 w-4" />}
+            delay={0}
+          />
           
-          <Card className="stat-card">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
-                Active Restaurants
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">
-                {restaurantData.filter(r => r.status === "active").length}
-              </div>
-            </CardContent>
-          </Card>
+          <AnimatedStatsCard
+            title="Active Restaurants"
+            value={restaurantData.filter(r => r.status === "active").length}
+            icon={<Store className="h-4 w-4" />}
+            trend={{
+              value: "+2 this month",
+              positive: true
+            }}
+            delay={1}
+          />
           
-          <Card className="stat-card">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
-                Premium Plans
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">
-                {restaurantData.filter(r => r.plan === "Premium").length}
-              </div>
-            </CardContent>
-          </Card>
+          <AnimatedStatsCard
+            title="Premium Plans"
+            value={restaurantData.filter(r => r.plan === "Premium").length}
+            icon={<Store className="h-4 w-4" />}
+            trend={{
+              value: "+1 this month",
+              positive: true
+            }}
+            delay={2}
+          />
           
-          <Card className="stat-card">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
-                Average Rating
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">
-                {(restaurantData.reduce((acc, r) => acc + r.rating, 0) / restaurantData.length).toFixed(1)}
-              </div>
-            </CardContent>
-          </Card>
+          <AnimatedStatsCard
+            title="Average Rating"
+            value={(restaurantData.reduce((acc, r) => acc + r.rating, 0) / restaurantData.length).toFixed(1)}
+            icon={<Star className="h-4 w-4" />}
+            trend={{
+              value: "+0.2 this month",
+              positive: true
+            }}
+            delay={3}
+          />
         </div>
 
-        <div className="bg-background border rounded-lg">
+        <div className="bg-background border rounded-lg animate-fade-in">
           <div className="p-4 flex flex-col sm:flex-row gap-3 items-center justify-between border-b">
             <div className="relative w-full sm:max-w-xs">
               <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
@@ -272,7 +264,7 @@ export default function RestaurantsPage() {
               </TableHeader>
               <TableBody>
                 {filteredRestaurants.map((restaurant) => (
-                  <TableRow key={restaurant.id}>
+                  <TableRow key={restaurant.id} className="animate-fade-in">
                     <TableCell className="font-medium">{restaurant.id}</TableCell>
                     <TableCell>
                       <div className="flex items-center gap-2">

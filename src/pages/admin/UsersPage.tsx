@@ -1,5 +1,5 @@
-
 import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import AdminLayout from "@/components/layout/AdminLayout";
 import { 
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow 
@@ -19,6 +19,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
+import AnimatedStatsCard from "@/components/dashboard/AnimatedStatsCard";
 
 // Mock user data
 const userData = [
@@ -91,6 +92,7 @@ export default function UsersPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [sortBy, setSortBy] = useState("name");
   const [sortOrder, setSortOrder] = useState("asc");
+  const navigate = useNavigate();
 
   // Filter and sort users
   const filteredUsers = userData
@@ -151,71 +153,43 @@ export default function UsersPage() {
               Manage users and their permissions
             </p>
           </div>
-          <Button>
+          <Button onClick={() => navigate("/admin/users/add")}>
             <UserPlus className="mr-2 h-4 w-4" />
             Add User
           </Button>
         </div>
         
         <div className="grid gap-6 md:grid-cols-4">
-          <Card className="stat-card">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
-                Total Users
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="flex justify-between items-center">
-                <div className="text-2xl font-bold">{userData.length}</div>
-                <Users className="h-5 w-5 text-muted-foreground" />
-              </div>
-            </CardContent>
-          </Card>
+          <AnimatedStatsCard
+            title="Total Users"
+            value={userData.length}
+            icon={<Users className="h-4 w-4" />}
+            delay={0}
+          />
           
-          <Card className="stat-card">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
-                Admins
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="flex justify-between items-center">
-                <div className="text-2xl font-bold">{admins}</div>
-                <ShieldCheck className="h-5 w-5 text-muted-foreground" />
-              </div>
-            </CardContent>
-          </Card>
+          <AnimatedStatsCard
+            title="Admins"
+            value={admins}
+            icon={<ShieldCheck className="h-4 w-4" />}
+            delay={1}
+          />
           
-          <Card className="stat-card">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
-                Restaurant Owners
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="flex justify-between items-center">
-                <div className="text-2xl font-bold">{owners}</div>
-                <CircleUser className="h-5 w-5 text-muted-foreground" />
-              </div>
-            </CardContent>
-          </Card>
+          <AnimatedStatsCard
+            title="Restaurant Owners"
+            value={owners}
+            icon={<CircleUser className="h-4 w-4" />}
+            delay={2}
+          />
           
-          <Card className="stat-card">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
-                Staff Members
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="flex justify-between items-center">
-                <div className="text-2xl font-bold">{staff}</div>
-                <User className="h-5 w-5 text-muted-foreground" />
-              </div>
-            </CardContent>
-          </Card>
+          <AnimatedStatsCard
+            title="Staff Members"
+            value={staff}
+            icon={<User className="h-4 w-4" />}
+            delay={3}
+          />
         </div>
 
-        <div className="bg-background border rounded-lg">
+        <div className="bg-background border rounded-lg animate-fade-in">
           <div className="p-4 flex flex-col sm:flex-row gap-3 items-center justify-between border-b">
             <div className="relative w-full sm:max-w-xs">
               <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
@@ -275,7 +249,7 @@ export default function UsersPage() {
               </TableHeader>
               <TableBody>
                 {filteredUsers.map((user) => (
-                  <TableRow key={user.id}>
+                  <TableRow key={user.id} className="animate-fade-in">
                     <TableCell className="font-medium">{user.id}</TableCell>
                     <TableCell>
                       <div className="flex items-center gap-2">

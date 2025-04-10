@@ -20,6 +20,8 @@ import UsersPage from "./pages/admin/UsersPage";
 import ReportsPage from "./pages/admin/ReportsPage";
 import SettingsPage from "./pages/admin/SettingsPage";
 import ProfilePage from "./pages/admin/ProfilePage";
+import AddRestaurantPage from "./pages/admin/AddRestaurantPage";
+import AddUserPage from "./pages/admin/AddUserPage";
 
 // Restaurant Pages
 import RestaurantDashboard from "./pages/restaurant/RestaurantDashboard";
@@ -47,7 +49,9 @@ const App = () => {
               {/* Admin Routes */}
               <Route path="/admin/dashboard" element={<AdminDashboard />} />
               <Route path="/admin/restaurants" element={<RestaurantsPage />} />
+              <Route path="/admin/restaurants/add" element={<AddRestaurantPage />} />
               <Route path="/admin/users" element={<UsersPage />} />
+              <Route path="/admin/users/add" element={<AddUserPage />} />
               <Route path="/admin/reports" element={<ReportsPage />} />
               <Route path="/admin/settings" element={<SettingsPage />} />
               <Route path="/admin/profile" element={<ProfilePage />} />
