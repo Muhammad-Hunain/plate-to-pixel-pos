@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import RestaurantLayout from "@/components/layout/RestaurantLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -37,16 +36,6 @@ import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
 
 interface OrderItem {
   id: string;
@@ -238,53 +227,16 @@ export default function KitchenPage() {
   const [soundEnabled, setSoundEnabled] = useState(true);
   const [compactView, setCompactView] = useState(false);
   const [intervalId, setIntervalId] = useState<number | null>(null);
-  
-  // New state for break management and timer
-  const [isOnBreak, setIsOnBreak] = useState(false);
-  const [breakStartTime, setBreakStartTime] = useState<Date | null>(null);
-  const [breakTime, setBreakTime] = useState(0); // Break time in seconds
-  const [timerDialogOpen, setTimerDialogOpen] = useState(false);
-  const [timerMinutes, setTimerMinutes] = useState("5");
-  const [timerSeconds, setTimerSeconds] = useState(0);
-  const [timerActive, setTimerActive] = useState(false);
-  const [timerEndTime, setTimerEndTime] = useState<Date | null>(null);
 
   // Setup timer to update elapsed time
   useEffect(() => {
     const id = window.setInterval(() => {
-      // Update orders' elapsed time
       setOrders(prevOrders => 
         prevOrders.map(order => ({
           ...order,
           elapsedTime: order.status !== "completed" ? order.elapsedTime + 1 : order.elapsedTime
         }))
       );
-      
-      // Update break time if on break
-      if (isOnBreak && breakStartTime) {
-        setBreakTime(Math.floor((new Date().getTime() - breakStartTime.getTime()) / 1000));
-      }
-      
-      // Update timer if active
-      if (timerActive && timerEndTime) {
-        const remainingTime = Math.max(0, Math.floor((timerEndTime.getTime() - new Date().getTime()) / 1000));
-        
-        if (remainingTime <= 0) {
-          setTimerActive(false);
-          toast.success("Timer completed!", {
-            description: "Your set timer has finished."
-          });
-          
-          if (soundEnabled) {
-            // Play timer sound
-            const audio = new Audio("/notification-sound.mp3");
-            audio.volume = 0.7;
-            audio.play().catch(e => console.log("Audio play error:", e));
-          }
-        }
-        
-        setTimerSeconds(remainingTime);
-      }
     }, 1000);
     
     setIntervalId(id);
@@ -344,68 +296,13 @@ export default function KitchenPage() {
       if (intervalId) window.clearInterval(intervalId);
       clearTimeout(newOrderNotification);
     };
-  }, [soundEnabled, isOnBreak, breakStartTime, timerActive, timerEndTime]);
+  }, [soundEnabled]);
 
   // Format time display
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
     return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
-  };
-
-  // Format timer display
-  const formatTimerDisplay = () => {
-    if (!timerActive) return "00:00";
-    const minutes = Math.floor(timerSeconds / 60);
-    const seconds = timerSeconds % 60;
-    return `${minutes < 10 ? '0' : ''}${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
-  };
-
-  // Handle break start/end
-  const toggleBreak = () => {
-    if (isOnBreak) {
-      // End break
-      setIsOnBreak(false);
-      toast.success("Break ended", {
-        description: `Break duration: ${formatTime(breakTime)}`
-      });
-      setBreakTime(0);
-      setBreakStartTime(null);
-    } else {
-      // Start break
-      setIsOnBreak(true);
-      setBreakStartTime(new Date());
-      toast.success("Break started", {
-        description: "Your break time is now being tracked"
-      });
-    }
-  };
-
-  // Handle timer setup
-  const startTimer = () => {
-    const minutes = parseInt(timerMinutes) || 0;
-    if (minutes <= 0) {
-      toast.error("Please set a valid time");
-      return;
-    }
-    
-    const endTime = new Date();
-    endTime.setMinutes(endTime.getMinutes() + minutes);
-    setTimerEndTime(endTime);
-    
-    setTimerActive(true);
-    setTimerSeconds(minutes * 60);
-    setTimerDialogOpen(false);
-    
-    toast.success(`Timer set for ${minutes} minute${minutes !== 1 ? 's' : ''}`);
-  };
-
-  // Cancel active timer
-  const cancelTimer = () => {
-    setTimerActive(false);
-    setTimerEndTime(null);
-    setTimerSeconds(0);
-    toast.info("Timer cancelled");
   };
 
   // Calculate order completion percentage
@@ -642,74 +539,15 @@ export default function KitchenPage() {
           >
             <div className="flex flex-col items-center justify-center">
               <div className="text-4xl font-mono font-bold text-primary mb-2">
-                {timerActive ? (
-                  <span className="text-amber-500">{formatTimerDisplay()}</span>
-                ) : (
-                  new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})
-                )}
+                {new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
               </div>
               <div className="flex gap-2">
-                <Button 
-                  variant={isOnBreak ? "default" : "outline"} 
-                  size="sm" 
-                  className={isOnBreak ? "bg-amber-500 hover:bg-amber-600 text-xs" : "text-xs"}
-                  onClick={toggleBreak}
-                >
-                  {isOnBreak ? (
-                    <>
-                      <Pause className="h-3 w-3 mr-1" /> {formatTime(breakTime)}
-                    </>
-                  ) : (
-                    <>
-                      <Play className="h-3 w-3 mr-1" /> Start Break
-                    </>
-                  )}
+                <Button variant="outline" size="sm" className="text-xs">
+                  <Play className="h-3 w-3 mr-1" /> Start Break
                 </Button>
-                
-                {timerActive ? (
-                  <Button 
-                    variant="destructive" 
-                    size="sm" 
-                    className="text-xs"
-                    onClick={cancelTimer}
-                  >
-                    <CircleX className="h-3 w-3 mr-1" /> Cancel
-                  </Button>
-                ) : (
-                  <Dialog open={timerDialogOpen} onOpenChange={setTimerDialogOpen}>
-                    <DialogTrigger asChild>
-                      <Button variant="outline" size="sm" className="text-xs">
-                        <AlarmClock className="h-3 w-3 mr-1" /> Set Timer
-                      </Button>
-                    </DialogTrigger>
-                    <DialogContent className="sm:max-w-[425px]">
-                      <DialogHeader>
-                        <DialogTitle>Set Kitchen Timer</DialogTitle>
-                        <DialogDescription>
-                          Set a timer for food preparation or other kitchen tasks.
-                        </DialogDescription>
-                      </DialogHeader>
-                      <div className="py-4 space-y-4">
-                        <div className="space-y-2">
-                          <Label htmlFor="timer-minutes">Minutes</Label>
-                          <Input
-                            id="timer-minutes"
-                            type="number"
-                            min="1"
-                            max="60"
-                            value={timerMinutes}
-                            onChange={(e) => setTimerMinutes(e.target.value)}
-                            className="w-full"
-                          />
-                        </div>
-                      </div>
-                      <DialogFooter>
-                        <Button variant="outline" onClick={() => setTimerDialogOpen(false)}>Cancel</Button>
-                        <Button onClick={startTimer}>Start Timer</Button>
-                      </DialogFooter>
-                    </DialogContent>
-                  </Dialog>
-                )}
+                <Button variant="outline" size="sm" className="text-xs">
+                  <AlarmClock className="h-3 w-3 mr-1" /> Set Timer
+                </Button>
               </div>
             </div>
           </AnimatedDashboardCard>
