@@ -53,3 +53,32 @@ import { toast } from "sonner";
 import { Checkbox } from "@/components/ui/checkbox";
 import AnimatedStatsCard from "@/components/dashboard/AnimatedStatsCard";
 import SubscriptionPlanBadge from "@/components/subscription/SubscriptionPlanBadge";
+
+const UsersPage = () => {
+  return (
+    <AdminLayout>
+      <div className="space-y-6">
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight">Users</h1>
+            <p className="text-muted-foreground">
+              Manage users on the platform
+            </p>
+          </div>
+          <Button onClick={() => {}}>
+            <Plus className="mr-2 h-4 w-4" />
+            Add User
+          </Button>
+        </div>
+        
+        <div className="bg-background border rounded-lg animate-fade-in">
+          <div className="p-4">
+            <h2>Users content will go here</h2>
+          </div>
+        </div>
+      </div>
+    </AdminLayout>
+  );
+};
+
+export default UsersPage;

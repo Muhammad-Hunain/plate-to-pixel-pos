@@ -10,7 +10,8 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { 
   Plus, Search, Store, MapPin, Star, Edit, Trash2, 
-  Eye, MoreHorizontal, ArrowUpDown, Download, ListFilter, Check, SlidersHorizontal
+  Eye, MoreHorizontal, ArrowUpDown, Download, ListFilter, Check, SlidersHorizontal,
+  FileText
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -52,7 +53,7 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import AnimatedStatsCard from "@/components/dashboard/AnimatedStatsCard";
-import SubscriptionPlanBadge from "@/components/ui/SubscriptionPlanBadge";
+import SubscriptionPlanBadge from "@/components/subscription/SubscriptionPlanBadge";
 
 const restaurantData = [
   { 
