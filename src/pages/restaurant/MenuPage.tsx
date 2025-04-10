@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { 
   Menu as MenuIcon, Search, Plus, Edit, Trash2, ImagePlus, 
   DollarSign, Tag, AlertTriangle, Filter, SlidersHorizontal, 
@@ -318,10 +318,8 @@ export default function MenuPage() {
             price: values.price,
             image: values.image || item.image,
             branches: [values.branchAvailability || "all"],
-            isActive: values.isActive,
-            isFeatured: values.isFeatured,
-            nutritionalInfo: values.nutritionalInfo || item.nutritionalInfo,
-            preparationTime: values.preparationTime || item.preparationTime,
+            isActive: values.isAvailable,
+            isFeatured: values.isFeatured || item.isFeatured,
           } 
         : item
       );
@@ -335,8 +333,8 @@ export default function MenuPage() {
         description: values.description || "",
         price: values.price,
         image: values.image || "https://via.placeholder.com/150",
-        isActive: values.isActive,
-        isFeatured: values.isFeatured,
+        isActive: values.isAvailable,
+        isFeatured: values.isFeatured || false,
         branches: [values.branchAvailability || "all"],
         allergens: values.nutritionalInfo?.allergens ? [values.nutritionalInfo.allergens] : [],
         nutrition: {
@@ -347,7 +345,6 @@ export default function MenuPage() {
         },
         variants: [],
         modifiers: [],
-        preparationTime: values.preparationTime || ""
       };
       setMenuItems([...menuItems, newItem]);
       toast.success("Menu item created successfully!");
@@ -822,45 +819,4 @@ export default function MenuPage() {
                   control={categoryForm.control}
                   name="isActive"
                   render={({ field }) => (
-                    <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3">
-                      <div className="space-y-0.5">
-                        <FormLabel>Active Status</FormLabel>
-                        <FormDescription>Inactive categories won't appear in menus</FormDescription>
-                      </div>
-                      <FormControl>
-                        <Switch
-                          checked={field.value}
-                          onCheckedChange={field.onChange}
-                        />
-                      </FormControl>
-                    </FormItem>
-                  )}
-                />
-                <DialogFooter>
-                  <Button type="submit">{editingCategory ? "Save Changes" : "Create Category"}</Button>
-                </DialogFooter>
-              </form>
-            </Form>
-          </DialogContent>
-        </Dialog>
-
-        <Dialog open={showNewItemDialog} onOpenChange={setShowNewItemDialog}>
-          <DialogContent className="sm:max-w-[600px]">
-            <DialogHeader>
-              <DialogTitle>{editingItem ? "Edit Menu Item" : "Add New Menu Item"}</DialogTitle>
-              <DialogDescription>
-                {editingItem ? "Edit your menu item details." : "Create a new menu item."}
-              </DialogDescription>
-            </DialogHeader>
-            
-            <AddMenuItemForm 
-              onSubmit={handleItemSubmit}
-              initialData={editingItem}
-              categories={categories}
-            />
-          </DialogContent>
-        </Dialog>
-      </div>
-    </RestaurantLayout>
-  );
-}
+                    <FormItem className="flex flex-row items-center justify-
