@@ -306,30 +306,42 @@ const UsersPage = () => {
           <AnimatedStatsCard 
             title="Total Users" 
             value="1,234" 
-            trend="+12%" 
-            trendDirection="up"
+            trend={{
+              value: "+12%",
+              positive: true
+            }}
             icon={<Users className="h-4 w-4" />} 
+            delay={0}
           />
           <AnimatedStatsCard 
             title="Active Users" 
             value="986" 
-            trend="+5%" 
-            trendDirection="up"
+            trend={{
+              value: "+5%",
+              positive: true
+            }}
             icon={<Check className="h-4 w-4" />} 
+            delay={1}
           />
           <AnimatedStatsCard 
             title="New This Month" 
             value="128" 
-            trend="+22%" 
-            trendDirection="up"
+            trend={{
+              value: "+22%",
+              positive: true
+            }}
             icon={<UserPlus className="h-4 w-4" />} 
+            delay={2}
           />
           <AnimatedStatsCard 
             title="Premium Users" 
             value="345" 
-            trend="+8%" 
-            trendDirection="up"
+            trend={{
+              value: "+8%",
+              positive: true
+            }}
             icon={<ShieldCheck className="h-4 w-4" />} 
+            delay={3}
           />
         </div>
 
