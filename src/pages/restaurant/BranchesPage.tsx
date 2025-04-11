@@ -30,6 +30,18 @@ import AddBranchForm from "@/components/branches/AddBranchForm";
 import BranchDetailsView from "@/components/branches/BranchDetailsView";
 
 // Sample branch data
+const initialBranchData = {
+  name: "",
+  address: "",
+  manager: "",
+  contact: "",
+  status: "active" as "active" | "maintenance" | "closed", // Type assertion to match the expected type
+  openingTime: "08:00",
+  closingTime: "22:00",
+  taxRate: 8.5,
+  notes: "",
+};
+
 const branches = [
   {
     id: 1,

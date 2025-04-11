@@ -1,543 +1,681 @@
-
-import React, { useState, useMemo, useRef } from "react";
+import { useState, useEffect, useRef } from "react";
+import RestaurantLayout from "@/components/layout/RestaurantLayout";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Badge } from "@/components/ui/badge";
-import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Separator } from "@/components/ui/separator";
 import {
-  Filter,
-  Layers,
-  MapPin,
-  MoreVertical,
-  Printer,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge";
+import {
   Search,
-  ShoppingCart,
-  Utensils,
+  Plus,
+  Minus,
+  X,
+  Percent,
+  Calculator,
+  Printer,
+  Receipt,
 } from "lucide-react";
+import { useReactToPrint } from 'react-to-print';
+import { format } from 'date-fns';
 
-import RestaurantLayout from "@/components/layout/RestaurantLayout";
-import { useToast } from "@/hooks/use-toast";
-import { useReactToPrint } from "react-to-print";
-
-// Menu items data
-const menuItems = [
-  {
-    id: 1,
-    name: "Classic Burger",
-    price: 12.99,
-    category: "burgers",
-    image: "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=300&h=200&fit=crop",
-  },
-  {
-    id: 2,
-    name: "Cheese Pizza",
-    price: 14.99,
-    category: "pizza",
-    image: "https://images.unsplash.com/photo-1513104890138-7c749659a591?w=300&h=200&fit=crop",
-  },
-  {
-    id: 3,
-    name: "Caesar Salad",
-    price: 8.99,
-    category: "salads",
-    image: "https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=300&h=200&fit=crop",
-  },
-  {
-    id: 4,
-    name: "Chicken Wings",
-    price: 10.99,
-    category: "appetizers",
-    image: "https://images.unsplash.com/photo-1567620832903-9fc6debc209f?w=300&h=200&fit=crop",
-  },
-  {
-    id: 5,
-    name: "Spaghetti",
-    price: 13.99,
-    category: "pasta",
-    image: "https://images.unsplash.com/photo-1563379926898-05f4575a45d8?w=300&h=200&fit=crop",
-  },
-  {
-    id: 6,
-    name: "French Fries",
-    price: 4.99,
-    category: "sides",
-    image: "https://images.unsplash.com/photo-1573080496219-bb080dd4f877?w=300&h=200&fit=crop",
-  },
-  {
-    id: 7,
-    name: "Chocolate Cake",
-    price: 6.99,
-    category: "desserts",
-    image: "https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=300&h=200&fit=crop",
-  },
-  {
-    id: 8,
-    name: "Iced Tea",
-    price: 3.99,
-    category: "drinks",
-    image: "https://images.unsplash.com/photo-1556679343-c7306c1976bc?w=300&h=200&fit=crop",
-  },
-  {
-    id: 9,
-    name: "Veggie Burger",
-    price: 11.99,
-    category: "burgers",
-    image: "https://images.unsplash.com/photo-1550317138-10000687a72b?w=300&h=200&fit=crop",
-  },
-  {
-    id: 10,
-    name: "Pepperoni Pizza",
-    price: 15.99,
-    category: "pizza",
-    image: "https://images.unsplash.com/photo-1534308983496-4fabb1a015ee?w=300&h=200&fit=crop",
-  },
+// Mock data for menu items
+const mockMenuItems = [
+  { id: "1", name: "Margherita Pizza", price: 12.99, category: "Pizza" },
+  { id: "2", name: "Pepperoni Pizza", price: 14.99, category: "Pizza" },
+  { id: "3", name: "Chicken Alfredo Pasta", price: 15.50, category: "Pasta" },
+  { id: "4", name: "Spaghetti Bolognese", price: 13.75, category: "Pasta" },
+  { id: "5", name: "Classic Cheeseburger", price: 10.99, category: "Burgers" },
+  { id: "6", name: "BBQ Bacon Burger", price: 12.50, category: "Burgers" },
+  { id: "7", name: "Caesar Salad", price: 8.99, category: "Salads" },
+  { id: "8", name: "Greek Salad", price: 9.50, category: "Salads" },
+  { id: "9", name: "Coca-Cola", price: 2.50, category: "Beverages" },
+  { id: "10", name: "Iced Tea", price: 2.75, category: "Beverages" },
+  { id: "11", name: "Chocolate Cake", price: 6.50, category: "Desserts" },
+  { id: "12", name: "Apple Pie", price: 5.99, category: "Desserts" },
 ];
 
-interface MenuItem {
-  id: number;
+// Type definition for menu items
+type MenuItem = {
+  id: string;
   name: string;
   price: number;
   category: string;
-  image: string;
-}
+};
 
-interface CartItem extends MenuItem {
+// Type definition for cart items
+type CartItem = {
+  menuItem: MenuItem;
   quantity: number;
-}
+};
 
-const PosPage = () => {
-  const { toast } = useToast();
+export default function PosPage() {
+  const [menuItems, setMenuItems] = useState<MenuItem[]>(mockMenuItems);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState("All");
   const [cart, setCart] = useState<CartItem[]>([]);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [orderType, setOrderType] = useState("dine-in");
-  const [tableNumber, setTableNumber] = useState("");
-  const [deliveryAddress, setDeliveryAddress] = useState("");
-  const receiptRef = useRef<HTMLDivElement>(null);
+  const [discount, setDiscount] = useState(0);
+  const [taxRate, setTaxRate] = useState(0.08); // Default tax rate of 8%
+  const [paymentMethod, setPaymentMethod] = useState("cash");
+  const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
+  const [tenderedAmount, setTenderedAmount] = useState("");
+  const [changeDue, setChangeDue] = useState(0);
+  const [isCalculatorOpen, setIsCalculatorOpen] = useState(false);
+  const [calculatorValue, setCalculatorValue] = useState("0");
+  const [isDiscountPercentage, setIsDiscountPercentage] = useState(false);
+  const [isTaxPercentage, setIsTaxPercentage] = useState(true);
 
-  const handlePrint = useReactToPrint({
-    content: () => receiptRef.current,
+  const componentRef = useRef(null);
+
+  // Function to handle printing the order receipt
+  const { ref: printRef, handlePrint } = useReactToPrint({
+    // Remove the 'content' property and use documentTitle instead
     documentTitle: "Order Receipt",
-    onAfterPrint: () => {
-      toast({
-        title: "Receipt printed",
-        description: "The order receipt has been sent to the printer.",
-      });
-    }
+    // We'll handle providing the content in the component ref
   });
 
-  const handleAddToCart = (item: MenuItem) => {
-    const existingItem = cart.find((cartItem) => cartItem.id === item.id);
-    if (existingItem) {
-      setCart(
-        cart.map((cartItem) =>
-          cartItem.id === item.id
-            ? { ...cartItem, quantity: cartItem.quantity + 1 }
-            : cartItem
-        )
-      );
+  useEffect(() => {
+    // Calculate change due when tendered amount changes
+    const tendered = parseFloat(tenderedAmount);
+    if (!isNaN(tendered)) {
+      const total = calculateTotal();
+      setChangeDue(Math.max(0, tendered - total));
     } else {
-      setCart([...cart, { ...item, quantity: 1 }]);
+      setChangeDue(0);
     }
+  }, [tenderedAmount, cart, discount, taxRate]);
 
-    toast({
-      title: "Added to order",
-      description: `${item.name} has been added to the order.`,
-    });
-  };
+  // Filter menu items based on search term and selected category
+  const filteredMenuItems = menuItems.filter((item) => {
+    const matchesSearch =
+      searchTerm === "" ||
+      item.name.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesCategory =
+      selectedCategory === "All" || item.category === selectedCategory;
+    return matchesSearch && matchesCategory;
+  });
 
-  const handleRemoveFromCart = (id: number) => {
-    const itemToRemove = cart.find((item) => item.id === id);
-    if (itemToRemove && itemToRemove.quantity === 1) {
-      setCart(cart.filter((item) => item.id !== id));
-    } else {
-      setCart(
-        cart.map((item) =>
-          item.id === id ? { ...item, quantity: item.quantity - 1 } : item
-        )
+  // Function to add a menu item to the cart
+  const addToCart = (menuItem: MenuItem) => {
+    const existingCartItem = cart.find(
+      (cartItem) => cartItem.menuItem.id === menuItem.id
+    );
+
+    if (existingCartItem) {
+      const updatedCart = cart.map((cartItem) =>
+        cartItem.menuItem.id === menuItem.id
+          ? { ...cartItem, quantity: cartItem.quantity + 1 }
+          : cartItem
       );
+      setCart(updatedCart);
+    } else {
+      setCart([...cart, { menuItem, quantity: 1 }]);
     }
   };
 
-  const handlePlaceOrder = () => {
-    if (cart.length === 0) {
-      toast({
-        title: "No items in order",
-        description: "Please add items to the order before placing it.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    if (orderType === "dine-in" && !tableNumber) {
-      toast({
-        title: "Table number required",
-        description: "Please enter a table number for dine-in orders.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    if (orderType === "delivery" && !deliveryAddress) {
-      toast({
-        title: "Delivery address required",
-        description: "Please enter a delivery address.",
-        variant: "destructive",
-      });
-      return;
-    }
-    
-    toast({
-      title: "Order placed",
-      description: `Order with ${cart.length} items has been placed successfully.`,
-    });
-    
-    console.log("Order placed:", {
-      items: cart,
-      orderType,
-      tableNumber,
-      deliveryAddress
-    });
-    
-    setCart([]);
-    setTableNumber("");
-    setDeliveryAddress("");
+  // Function to remove a menu item from the cart
+  const removeFromCart = (menuItem: MenuItem) => {
+    const updatedCart = cart.filter(
+      (cartItem) => cartItem.menuItem.id !== menuItem.id
+    );
+    setCart(updatedCart);
   };
 
-  const calculateTotal = () => {
+  // Function to increase the quantity of a cart item
+  const increaseQuantity = (menuItem: MenuItem) => {
+    const updatedCart = cart.map((cartItem) =>
+      cartItem.menuItem.id === menuItem.id
+        ? { ...cartItem, quantity: cartItem.quantity + 1 }
+        : cartItem
+    );
+    setCart(updatedCart);
+  };
+
+  // Function to decrease the quantity of a cart item
+  const decreaseQuantity = (menuItem: MenuItem) => {
+    const updatedCart = cart.map((cartItem) =>
+      cartItem.menuItem.id === menuItem.id
+        ? cartItem.quantity > 1
+          ? { ...cartItem, quantity: cartItem.quantity - 1 }
+          : { ...cartItem, quantity: 1 } // Prevent quantity from going below 1
+        : cartItem
+    );
+    setCart(updatedCart);
+  };
+
+  // Function to calculate subtotal of the cart
+  const calculateSubtotal = () => {
     return cart.reduce(
-      (total, item) => total + item.price * item.quantity,
+      (total, cartItem) => total + cartItem.menuItem.price * cartItem.quantity,
       0
     );
   };
 
-  const filteredItems = useMemo(() => {
-    return menuItems.filter((item) => {
-      return item.name
-        .toLowerCase()
-        .includes(searchQuery.toLowerCase());
-    });
-  }, [searchQuery]);
+  // Function to calculate discount amount
+  const calculateDiscountAmount = () => {
+    const subtotal = calculateSubtotal();
+    return isDiscountPercentage ? (subtotal * discount) / 100 : discount;
+  };
 
-  // Group items by category
-  const itemsByCategory = useMemo(() => {
-    const groups: Record<string, MenuItem[]> = {};
-    filteredItems.forEach(item => {
-      if (!groups[item.category]) {
-        groups[item.category] = [];
+  // Function to calculate tax amount
+  const calculateTaxAmount = () => {
+    const subtotal = calculateSubtotal();
+    const discountAmount = calculateDiscountAmount();
+    const taxableAmount = subtotal - discountAmount;
+    return isTaxPercentage ? taxableAmount * taxRate : taxRate;
+  };
+
+  // Function to calculate total amount
+  const calculateTotal = () => {
+    const subtotal = calculateSubtotal();
+    const discountAmount = calculateDiscountAmount();
+    const taxAmount = calculateTaxAmount();
+    return subtotal - discountAmount + taxAmount;
+  };
+
+  // Function to handle opening the payment modal
+  const handleOpenPaymentModal = () => {
+    setIsPaymentModalOpen(true);
+  };
+
+  // Function to handle closing the payment modal
+  const handleClosePaymentModal = () => {
+    setIsPaymentModalOpen(false);
+    setTenderedAmount("");
+    setChangeDue(0);
+  };
+
+  // Function to handle processing the payment
+  const handleProcessPayment = () => {
+    // Here, you would typically integrate with a payment gateway
+    // For this example, we'll just clear the cart and close the modal
+    setCart([]);
+    handleClosePaymentModal();
+    alert("Payment processed successfully!");
+  };
+
+  // Function to handle calculator input
+  const handleCalculatorInput = (value: string) => {
+    if (calculatorValue === "0") {
+      setCalculatorValue(value);
+    } else {
+      setCalculatorValue(calculatorValue + value);
+    }
+  };
+
+  // Function to handle calculator clear
+  const handleCalculatorClear = () => {
+    setCalculatorValue("0");
+  };
+
+  // Function to handle calculator backspace
+  const handleCalculatorBackspace = () => {
+    if (calculatorValue.length === 1) {
+      setCalculatorValue("0");
+    } else {
+      setCalculatorValue(calculatorValue.slice(0, -1));
+    }
+  };
+
+  // Function to handle calculator equals
+  const handleCalculatorEquals = () => {
+    try {
+      // eslint-disable-next-line no-eval
+      const result = eval(calculatorValue);
+      setCalculatorValue(result.toString());
+    } catch (error) {
+      setCalculatorValue("Error");
+    }
+  };
+
+  // Function to apply calculator value to discount or tax
+  const applyCalculatorValue = () => {
+    const value = parseFloat(calculatorValue);
+    if (!isNaN(value)) {
+      if (isDiscountPercentage) {
+        setDiscount(value);
+      } else {
+        setTaxRate(value / 100);
       }
-      groups[item.category].push(item);
-    });
-    return groups;
-  }, [filteredItems]);
+    }
+    setIsCalculatorOpen(false);
+  };
 
-  // Group cart items by category
-  const cartByCategory = useMemo(() => {
-    const groups: Record<string, CartItem[]> = {};
-    cart.forEach(item => {
-      if (!groups[item.category]) {
-        groups[item.category] = [];
-      }
-      groups[item.category].push(item);
-    });
-    return groups;
-  }, [cart]);
+  // Function to clear the cart
+  const clearCart = () => {
+    setCart([]);
+    setDiscount(0);
+    setTaxRate(0.08);
+    setPaymentMethod("cash");
+    setIsPaymentModalOpen(false);
+    setTenderedAmount("");
+    setChangeDue(0);
+  };
 
-  // Transform categories for display
-  const categories = useMemo(() => {
-    return Object.keys(itemsByCategory).map(category => ({
-      id: category,
-      name: category.charAt(0).toUpperCase() + category.slice(1)
-    }));
-  }, [itemsByCategory]);
+  // Get unique categories from menu items
+  const categories = ["All", ...new Set(menuItems.map((item) => item.category))];
 
   return (
     <RestaurantLayout>
-      <div className="p-6 h-full">
-        <div className="flex flex-col lg:flex-row h-full gap-6">
-          {/* Left side - Menu Items */}
-          <div className="w-full lg:w-2/3 flex flex-col">
-            <div className="flex flex-col md:flex-row justify-between mb-4 gap-4">
-              <div className="flex items-center space-x-2">
-                <h1 className="text-2xl font-bold">Point of Sale</h1>
-                {tableNumber && (
-                  <Badge variant="outline" className="ml-2">
-                    Table {tableNumber}
-                  </Badge>
-                )}
-              </div>
+      <div className="container space-y-6 animate-fade-in">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight">Point of Sale</h1>
+            <p className="text-muted-foreground">
+              Efficiently process transactions and manage orders
+            </p>
+          </div>
+          <div className="flex items-center gap-2">
+            <Button variant="outline" className="flex items-center gap-2">
+              <Receipt className="h-4 w-4" />
+              <span className="hidden sm:inline">View Transactions</span>
+            </Button>
+          </div>
+        </div>
 
-              <div className="flex gap-2">
-                <div className="relative flex-grow">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {/* Menu Section */}
+          <Card className="col-span-2">
+            <CardHeader className="flex items-center justify-between">
+              <CardTitle>Menu</CardTitle>
+              <div className="flex items-center space-x-2">
+                <div className="relative">
                   <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
                   <Input
                     type="search"
-                    placeholder="Search items..."
-                    className="pl-8 w-full md:w-[200px]"
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
+                    placeholder="Search menu items..."
+                    className="pl-8"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
                   />
                 </div>
-                <Button variant="outline" size="icon">
-                  <Filter className="h-4 w-4" />
-                </Button>
+                <Select onValueChange={setSelectedCategory} defaultValue={selectedCategory}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Category" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {categories.map((category) => (
+                      <SelectItem key={category} value={category}>
+                        {category}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
-            </div>
-
-            {/* Scrollable menu */}
-            <div className="overflow-y-auto pr-2" style={{ maxHeight: "calc(100vh - 220px)" }}>
-              <div className="space-y-6">
-                {categories.map((category) => (
-                  <div key={category.id} className="space-y-3">
-                    <div className="flex items-center gap-2">
-                      <Layers className="h-4 w-4 text-muted-foreground" />
-                      <h2 className="text-lg font-semibold">{category.name}</h2>
-                    </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-                      {itemsByCategory[category.id].map((item) => (
-                        <div
-                          key={item.id}
-                          className="cursor-pointer rounded-lg border bg-card text-card-foreground shadow-sm overflow-hidden hover:shadow-md transition-all"
-                          onClick={() => handleAddToCart(item)}
-                        >
-                          <div className="relative">
-                            <img
-                              src={item.image}
-                              alt={item.name}
-                              className="w-full h-[120px] object-cover"
-                            />
-                          </div>
-                          <div className="p-4">
-                            <h3 className="font-medium">{item.name}</h3>
-                            <div className="flex justify-between items-center mt-1">
-                              <span className="text-muted-foreground text-sm">
-                                {item.category}
-                              </span>
-                              <span className="font-bold">${item.price.toFixed(2)}</span>
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
+            </CardHeader>
+            <CardContent className="p-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                {filteredMenuItems.map((item) => (
+                  <Button
+                    key={item.id}
+                    variant="secondary"
+                    className="justify-between hover-scale"
+                    onClick={() => addToCart(item)}
+                  >
+                    <span>{item.name}</span>
+                    <span className="font-medium">${item.price.toFixed(2)}</span>
+                  </Button>
                 ))}
               </div>
-            </div>
-          </div>
+            </CardContent>
+          </Card>
 
-          {/* Right side - Cart */}
-          <div className="w-full lg:w-1/3 h-full flex flex-col border rounded-lg p-4 bg-card text-card-foreground shadow-sm">
-            <div className="flex justify-between items-center mb-4">
-              <div className="flex items-center">
-                <ShoppingCart className="h-5 w-5 mr-2" />
-                <h2 className="text-xl font-bold">Current Order</h2>
-              </div>
-              <Button variant="ghost" size="icon">
-                <MoreVertical className="h-4 w-4" />
-              </Button>
-            </div>
-            
-            {/* Order type tabs */}
-            <Tabs value={orderType} onValueChange={setOrderType} className="mb-4">
-              <TabsList className="grid grid-cols-3 w-full">
-                <TabsTrigger value="dine-in">Dine In</TabsTrigger>
-                <TabsTrigger value="takeout">Takeout</TabsTrigger>
-                <TabsTrigger value="delivery">Delivery</TabsTrigger>
-              </TabsList>
-            </Tabs>
-            
-            {/* Order type specific inputs */}
-            {orderType === "dine-in" && (
-              <div className="mb-4">
-                <div className="flex items-center gap-2">
-                  <MapPin className="h-4 w-4 text-muted-foreground" />
-                  <Input 
-                    placeholder="Table Number" 
-                    value={tableNumber}
-                    onChange={(e) => setTableNumber(e.target.value)}
-                  />
-                </div>
-              </div>
-            )}
-            
-            {orderType === "delivery" && (
-              <div className="mb-4">
-                <div className="flex flex-col gap-2">
-                  <div className="flex items-center gap-2">
-                    <MapPin className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-                    <span className="text-sm font-medium">Delivery Address</span>
-                  </div>
-                  <Textarea 
-                    placeholder="Enter delivery address" 
-                    value={deliveryAddress}
-                    onChange={(e) => setDeliveryAddress(e.target.value)}
-                    className="min-h-[80px]"
-                  />
-                </div>
-              </div>
-            )}
-
-            <div className="flex-grow overflow-y-auto mb-4">
-              {cart.length === 0 ? (
-                <div className="text-center py-12 text-muted-foreground">
-                  <Utensils className="mx-auto h-12 w-12 mb-4 opacity-20" />
-                  <p>No items in the order yet</p>
-                  <p className="text-sm">Add items from the menu</p>
-                </div>
-              ) : (
-                <div className="space-y-4">
-                  {/* Group cart items by category */}
-                  {Object.entries(cartByCategory).map(([category, items]) => (
-                    <div key={category} className="space-y-2">
-                      <h3 className="text-sm font-medium text-muted-foreground capitalize">
-                        {category}
-                      </h3>
-                      <div className="space-y-2">
-                        {items.map((item) => (
-                          <div
-                            key={item.id}
-                            className="flex justify-between items-center border-b pb-2"
-                          >
-                            <div className="flex items-center">
-                              <div className="ml-3">
-                                <p className="font-medium">{item.name}</p>
-                                <p className="text-sm text-muted-foreground">
-                                  ${item.price.toFixed(2)} x {item.quantity}
-                                </p>
-                              </div>
-                            </div>
-                            <div className="flex items-center gap-2">
-                              <span className="font-bold">
-                                ${(item.price * item.quantity).toFixed(2)}
-                              </span>
-                              <div className="flex items-center border rounded-md">
-                                <Button
-                                  variant="ghost"
-                                  size="icon"
-                                  className="h-8 w-8 p-0"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    handleRemoveFromCart(item.id);
-                                  }}
-                                >
-                                  -
-                                </Button>
-                                <span className="w-8 text-center">
-                                  {item.quantity}
-                                </span>
-                                <Button
-                                  variant="ghost"
-                                  size="icon"
-                                  className="h-8 w-8 p-0"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    handleAddToCart(item);
-                                  }}
-                                >
-                                  +
-                                </Button>
-                              </div>
-                            </div>
+          {/* Order Summary Section */}
+          <Card className="col-span-1">
+            <CardHeader>
+              <CardTitle>Order Summary</CardTitle>
+            </CardHeader>
+            <CardContent className="p-4 space-y-4">
+              <ScrollArea className="h-[300px]">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Item</TableHead>
+                      <TableHead className="text-right">Qty</TableHead>
+                      <TableHead className="text-right">Price</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {cart.map((cartItem) => (
+                      <TableRow key={cartItem.menuItem.id}>
+                        <TableCell className="font-medium">{cartItem.menuItem.name}</TableCell>
+                        <TableCell className="text-right">
+                          <div className="flex items-center justify-end space-x-2">
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => decreaseQuantity(cartItem.menuItem)}
+                            >
+                              <Minus className="h-4 w-4" />
+                            </Button>
+                            <span>{cartItem.quantity}</span>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => increaseQuantity(cartItem.menuItem)}
+                            >
+                              <Plus className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => removeFromCart(cartItem.menuItem)}
+                            >
+                              <X className="h-4 w-4" />
+                            </Button>
                           </div>
-                        ))}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
+                        </TableCell>
+                        <TableCell className="text-right">
+                          ${(cartItem.menuItem.price * cartItem.quantity).toFixed(2)}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                    {cart.length === 0 && (
+                      <TableRow>
+                        <TableCell colSpan={3} className="text-center text-muted-foreground">
+                          No items in cart
+                        </TableCell>
+                      </TableRow>
+                    )}
+                  </TableBody>
+                </Table>
+              </ScrollArea>
 
-            <div className="border-t pt-4">
+              <Separator />
+
               <div className="space-y-2">
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Subtotal</span>
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="discount">Discount:</Label>
+                  <div className="flex items-center space-x-2">
+                    <Input
+                      type="number"
+                      id="discount"
+                      className="w-24 text-right"
+                      value={discount.toString()}
+                      onChange={(e) => setDiscount(parseFloat(e.target.value))}
+                    />
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        setIsDiscountPercentage(!isDiscountPercentage);
+                        setIsCalculatorOpen(true);
+                      }}
+                    >
+                      {isDiscountPercentage ? <Percent className="h-4 w-4 mr-1" /> : "$"}
+                    </Button>
+                  </div>
+                </div>
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="tax">Tax:</Label>
+                  <div className="flex items-center space-x-2">
+                    <Input
+                      type="number"
+                      id="tax"
+                      className="w-24 text-right"
+                      value={(taxRate * 100).toFixed(2)}
+                      onChange={(e) => setTaxRate(parseFloat(e.target.value) / 100)}
+                    />
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        setIsTaxPercentage(!isTaxPercentage);
+                        setIsCalculatorOpen(true);
+                      }}
+                    >
+                      {isTaxPercentage ? <Percent className="h-4 w-4 mr-1" /> : "$"}
+                    </Button>
+                  </div>
+                </div>
+              </div>
+
+              <Separator />
+
+              <div className="space-y-2">
+                <div className="flex items-center justify-between font-medium">
+                  <span>Subtotal:</span>
+                  <span>${calculateSubtotal().toFixed(2)}</span>
+                </div>
+                <div className="flex items-center justify-between font-medium">
+                  <span>Discount:</span>
+                  <span>${calculateDiscountAmount().toFixed(2)}</span>
+                </div>
+                <div className="flex items-center justify-between font-medium">
+                  <span>Tax:</span>
+                  <span>${calculateTaxAmount().toFixed(2)}</span>
+                </div>
+                <div className="flex items-center justify-between text-lg font-bold">
+                  <span>Total:</span>
                   <span>${calculateTotal().toFixed(2)}</span>
                 </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Tax (10%)</span>
-                  <span>${(calculateTotal() * 0.1).toFixed(2)}</span>
-                </div>
-                <div className="flex justify-between text-lg font-bold">
-                  <span>Total</span>
-                  <span>${(calculateTotal() * 1.1).toFixed(2)}</span>
-                </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-3 mt-4">
+              <Button className="w-full" onClick={handleOpenPaymentModal}>
+                Process Payment
+              </Button>
+              <Button variant="ghost" className="w-full" onClick={clearCart}>
+                Clear Cart
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Payment Modal */}
+        {isPaymentModalOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
+            <Card className="max-w-md w-full">
+              <CardHeader>
+                <CardTitle>Process Payment</CardTitle>
+              </CardHeader>
+              <CardContent className="grid gap-4">
+                <div className="grid grid-cols-3 items-center gap-4">
+                  <Label htmlFor="payment-method" className="text-right">
+                    Payment Method
+                  </Label>
+                  <Select
+                    id="payment-method"
+                    defaultValue={paymentMethod}
+                    onValueChange={setPaymentMethod}
+                    className="col-span-2"
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select payment method" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="cash">Cash</SelectItem>
+                      <SelectItem value="credit">Credit Card</SelectItem>
+                      <SelectItem value="debit">Debit Card</SelectItem>
+                      <SelectItem value="mobile">Mobile Payment</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="grid grid-cols-3 items-center gap-4">
+                  <Label htmlFor="tendered-amount" className="text-right">
+                    Tendered Amount
+                  </Label>
+                  <Input
+                    type="number"
+                    id="tendered-amount"
+                    className="col-span-2 text-right"
+                    placeholder="0.00"
+                    value={tenderedAmount}
+                    onChange={(e) => setTenderedAmount(e.target.value)}
+                  />
+                </div>
+                <div className="grid grid-cols-3 items-center gap-4">
+                  <Label className="text-right">Change Due</Label>
+                  <div className="col-span-2 font-medium">
+                    ${changeDue.toFixed(2)}
+                  </div>
+                </div>
+              </CardContent>
+              <div className="flex justify-end space-x-2 p-4">
+                <Button variant="secondary" size="sm" onClick={handleClosePaymentModal}>
+                  Cancel
+                </Button>
+                <Button size="sm" onClick={handleProcessPayment}>
+                  Process Payment
+                </Button>
                 <Button 
                   variant="outline" 
-                  className="gap-1" 
-                  disabled={cart.length === 0}
-                  onClick={handlePrint}
+                  size="sm" 
+                  className="ml-2" 
+                  onClick={handlePrint} // Use handlePrint directly, without passing the event
                 >
                   <Printer className="h-4 w-4 mr-1" />
-                  Print Receipt
+                  Print
                 </Button>
-                <Button 
-                  className="gap-1"
-                  onClick={handlePlaceOrder}
-                  disabled={cart.length === 0}
-                >
-                  <ShoppingCart className="h-4 w-4 mr-1" />
-                  Place Order
+              </div>
+            </Card>
+          </div>
+        )}
+
+        {/* Calculator Modal */}
+        {isCalculatorOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
+            <Card className="max-w-md w-full">
+              <CardHeader>
+                <CardTitle>Calculator</CardTitle>
+              </CardHeader>
+              <CardContent className="grid gap-4">
+                <Input
+                  type="text"
+                  className="text-right text-2xl font-medium"
+                  value={calculatorValue}
+                  readOnly
+                />
+                <div className="grid grid-cols-4 gap-2">
+                  <Button variant="secondary" onClick={() => handleCalculatorInput("7")}>
+                    7
+                  </Button>
+                  <Button variant="secondary" onClick={() => handleCalculatorInput("8")}>
+                    8
+                  </Button>
+                  <Button variant="secondary" onClick={() => handleCalculatorInput("9")}>
+                    9
+                  </Button>
+                  <Button variant="outline" onClick={() => handleCalculatorBackspace()}>
+                    &#9003;
+                  </Button>
+                  <Button variant="secondary" onClick={() => handleCalculatorInput("4")}>
+                    4
+                  </Button>
+                  <Button variant="secondary" onClick={() => handleCalculatorInput("5")}>
+                    5
+                  </Button>
+                  <Button variant="secondary" onClick={() => handleCalculatorInput("6")}>
+                    6
+                  </Button>
+                  <Button variant="outline" onClick={() => handleCalculatorClear()}>
+                    C
+                  </Button>
+                  <Button variant="secondary" onClick={() => handleCalculatorInput("1")}>
+                    1
+                  </Button>
+                  <Button variant="secondary" onClick={() => handleCalculatorInput("2")}>
+                    2
+                  </Button>
+                  <Button variant="secondary" onClick={() => handleCalculatorInput("3")}>
+                    3
+                  </Button>
+                  <Button variant="outline" onClick={() => handleCalculatorInput("+")}>
+                    +
+                  </Button>
+                  <Button variant="secondary" onClick={() => handleCalculatorInput("0")}>
+                    0
+                  </Button>
+                  <Button variant="secondary" onClick={() => handleCalculatorInput(".")}>
+                    .
+                  </Button>
+                  <Button variant="outline" onClick={() => handleCalculatorInput("-")}>
+                    -
+                  </Button>
+                  <Button variant="outline" onClick={() => handleCalculatorEquals()}>
+                    =
+                  </Button>
+                </div>
+              </CardContent>
+              <div className="flex justify-end space-x-2 p-4">
+                <Button variant="secondary" size="sm" onClick={() => setIsCalculatorOpen(false)}>
+                  Cancel
                 </Button>
+                <Button size="sm" onClick={applyCalculatorValue}>
+                  Apply
+                </Button>
+              </div>
+            </Card>
+          </div>
+        )}
+        
+        {/* Receipt Component (Hidden) */}
+        <div style={{ display: 'none' }}>
+          <div ref={printRef} className="p-4">
+            <div className="text-center mb-4">
+              <h2 className="text-2xl font-bold">Restaurant Name</h2>
+              <p>123 Main Street, City, State</p>
+              <p>Date: {format(new Date(), 'PPP pp')}</p>
+            </div>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Item</TableHead>
+                  <TableHead className="text-right">Qty</TableHead>
+                  <TableHead className="text-right">Price</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {cart.map((cartItem) => (
+                  <TableRow key={cartItem.menuItem.id}>
+                    <TableCell className="font-medium">{cartItem.menuItem.name}</TableCell>
+                    <TableCell className="text-right">{cartItem.quantity}</TableCell>
+                    <TableCell className="text-right">
+                      ${(cartItem.menuItem.price * cartItem.quantity).toFixed(2)}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+            <div className="mt-4 space-y-2">
+              <div className="flex items-center justify-between font-medium">
+                <span>Subtotal:</span>
+                <span>${calculateSubtotal().toFixed(2)}</span>
+              </div>
+              <div className="flex items-center justify-between font-medium">
+                <span>Discount:</span>
+                <span>${calculateDiscountAmount().toFixed(2)}</span>
+              </div>
+              <div className="flex items-center justify-between font-medium">
+                <span>Tax:</span>
+                <span>${calculateTaxAmount().toFixed(2)}</span>
+              </div>
+              <div className="flex items-center justify-between text-lg font-bold">
+                <span>Total:</span>
+                <span>${calculateTotal().toFixed(2)}</span>
               </div>
             </div>
-
-            {/* Hidden Receipt for printing */}
-            <div className="hidden">
-              <div ref={receiptRef} className="p-6 max-w-[300px]">
-                <div className="text-center mb-4">
-                  <h2 className="font-bold text-xl">Restaurant Name</h2>
-                  <p className="text-sm text-muted-foreground">123 Main Street, City</p>
-                  <p className="text-sm text-muted-foreground">Tel: (123) 456-7890</p>
-                </div>
-
-                <div className="mb-4">
-                  <p><strong>Order Type:</strong> {orderType === 'dine-in' ? `Dine In (Table ${tableNumber})` : orderType === 'delivery' ? 'Delivery' : 'Takeout'}</p>
-                  <p><strong>Date:</strong> {new Date().toLocaleDateString()}</p>
-                  <p><strong>Time:</strong> {new Date().toLocaleTimeString()}</p>
-                </div>
-
-                <div className="border-t border-b py-2 mb-4">
-                  <table className="w-full">
-                    <thead>
-                      <tr className="text-left">
-                        <th>Item</th>
-                        <th className="text-right">Qty</th>
-                        <th className="text-right">Price</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {cart.map((item) => (
-                        <tr key={item.id}>
-                          <td>{item.name}</td>
-                          <td className="text-right">{item.quantity}</td>
-                          <td className="text-right">${(item.price * item.quantity).toFixed(2)}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-
-                <div className="space-y-1 text-right">
-                  <p><strong>Subtotal:</strong> ${calculateTotal().toFixed(2)}</p>
-                  <p><strong>Tax (10%):</strong> ${(calculateTotal() * 0.1).toFixed(2)}</p>
-                  <p className="text-lg font-bold"><strong>Total:</strong> ${(calculateTotal() * 1.1).toFixed(2)}</p>
-                </div>
-
-                <div className="mt-6 text-center text-sm">
-                  <p>Thank you for your order!</p>
-                  <p>Please come again</p>
-                </div>
-              </div>
+            <div className="text-center mt-4">
+              <p>Thank you for your order!</p>
             </div>
           </div>
         </div>
       </div>
     </RestaurantLayout>
   );
-};
-
-export default PosPage;
+}

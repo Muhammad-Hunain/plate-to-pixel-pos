@@ -37,7 +37,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { DatePickerWithRange } from "@/components/ui/date-range-picker";
+import { DateRangePicker } from "@/components/ui/date-range-picker";
 import { DateRange } from "react-day-picker";
 import { addDays, format, subDays } from "date-fns";
 import AnimatedDashboardCard from "@/components/dashboard/AnimatedDashboardCard";
@@ -353,9 +353,10 @@ export default function InventoryHistoryPage() {
               </div>
               <div className="flex gap-2 w-full sm:w-auto flex-wrap">
                 <div className="w-full sm:w-auto">
-                  <DatePickerWithRange
-                    value={dateRange}
-                    onChange={(newRange) => setDateRange(newRange)}
+                  <DateRangePicker
+                    initialDateFrom={dateRange?.from}
+                    initialDateTo={dateRange?.to}
+                    onUpdate={setDateRange}
                   />
                 </div>
                 <Select onValueChange={setSelectedType} defaultValue={selectedType}>
