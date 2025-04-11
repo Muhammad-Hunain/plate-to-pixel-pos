@@ -20,6 +20,7 @@ import UsersPage from "./pages/admin/UsersPage";
 import ReportsPage from "./pages/admin/ReportsPage";
 import SettingsPage from "./pages/admin/SettingsPage";
 import ProfilePage from "./pages/admin/ProfilePage";
+import MyProfilePage from "./pages/admin/MyProfilePage";
 import AddRestaurantPage from "./pages/admin/AddRestaurantPage";
 import AddUserPage from "./pages/admin/AddUserPage";
 import EditUserPage from "./pages/admin/EditUserPage";
@@ -39,6 +40,7 @@ import InventoryPage from "./pages/restaurant/InventoryPage";
 import InventoryHistoryPage from "./pages/restaurant/InventoryHistoryPage";
 import RestaurantReportsPage from "./pages/restaurant/ReportsPage";
 import RestaurantSettingsPage from "./pages/restaurant/SettingsPage";
+import RestaurantProfilePage from "./pages/restaurant/ProfilePage";
 import TransactionsPage from "./pages/restaurant/TransactionsPage";
 
 const queryClient = new QueryClient();
@@ -70,6 +72,7 @@ const App = () => {
               <Route path="/admin/reports" element={<ReportsPage />} />
               <Route path="/admin/settings" element={<SettingsPage />} />
               <Route path="/admin/profile" element={<ProfilePage />} />
+              <Route path="/admin/my-profile" element={<MyProfilePage />} />
               
               {/* Subscription Routes */}
               <Route path="/admin/subscription/add" element={<AddSubscriptionPlanPage />} />
@@ -89,6 +92,7 @@ const App = () => {
               <Route path="/restaurant/reports" element={<RestaurantReportsPage />} />
               <Route path="/restaurant/transactions" element={<TransactionsPage />} />
               <Route path="/restaurant/settings" element={<RestaurantSettingsPage />} />
+              <Route path="/restaurant/profile" element={<RestaurantProfilePage />} />
               
               {/* Catch-all route for 404 */}
               <Route path="*" element={<NotFound />} />
