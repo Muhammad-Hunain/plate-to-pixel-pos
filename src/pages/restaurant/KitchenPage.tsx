@@ -36,7 +36,6 @@ import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import ExportDropdown from "@/components/reports/ExportDropdown";
 
 interface OrderItem {
   id: string;
@@ -60,7 +59,7 @@ interface KitchenOrder {
   priority: "normal" | "high" | "rush";
   timeReceived: string;
   estimatedCompletionTime?: string;
-  elapsedTime: number; // in seconds;
+  elapsedTime: number; // in seconds
   assignedTo?: string;
 }
 

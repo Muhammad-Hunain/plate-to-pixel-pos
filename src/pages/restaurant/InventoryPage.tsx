@@ -1,5 +1,5 @@
+
 import { useState } from "react";
-import { Link } from "react-router-dom";
 import RestaurantLayout from "@/components/layout/RestaurantLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -71,6 +71,7 @@ import {
 } from "@/components/ui/select";
 import { Progress } from "@/components/ui/progress";
 
+// Interfaces
 interface InventoryItem {
   id: string;
   name: string;
@@ -88,6 +89,7 @@ interface InventoryItem {
   linkedMenu?: string[];
 }
 
+// Mock data
 const mockInventoryItems: InventoryItem[] = [
   {
     id: "1",
@@ -259,19 +261,24 @@ export default function InventoryPage() {
     },
   });
 
+  // Filter inventory items based on search, category, branch, and tab
   const filteredItems = inventoryItems.filter((item) => {
+    // Filter by search term
     const matchesSearch =
       searchTerm === "" ||
       item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       item.category.toLowerCase().includes(searchTerm.toLowerCase()) ||
       item.supplier.toLowerCase().includes(searchTerm.toLowerCase());
 
+    // Filter by category
     const matchesCategory =
       selectedCategory === "All Categories" || item.category === selectedCategory;
 
+    // Filter by branch
     const matchesBranch =
       selectedBranch === "All Branches" || item.branch === selectedBranch;
 
+    // Filter by tab (status)
     const matchesTab =
       activeTab === "all" || item.status === activeTab;
 
@@ -301,12 +308,14 @@ export default function InventoryPage() {
     };
 
     if (currentItem) {
+      // Edit existing item
       const updatedItems = inventoryItems.map((item) =>
         item.id === currentItem.id ? { ...item, ...newItem, id: item.id } : item
       );
       setInventoryItems(updatedItems);
       toast.success(`Inventory item "${newItem.name}" updated successfully!`);
     } else {
+      // Add new item
       setInventoryItems([...inventoryItems, newItem]);
       toast.success(`Inventory item "${newItem.name}" added successfully!`);
     }
@@ -357,6 +366,7 @@ export default function InventoryPage() {
     setIsTransferDialogOpen(true);
   };
 
+  // Helper function to get badge style based on item status
   const getStatusBadge = (status: InventoryItem["status"]) => {
     switch (status) {
       case "in-stock":
@@ -1075,11 +1085,9 @@ export default function InventoryPage() {
                 </div>
                 
                 <div className="flex items-center justify-between border-t pt-3 mt-2">
-                  <Button variant="outline" className="w-full" size="sm" asChild>
-                    <Link to="/restaurant/inventory/history">
-                      <History className="mr-2 h-4 w-4" />
-                      Inventory History
-                    </Link>
+                  <Button variant="outline" className="w-full" size="sm">
+                    <History className="mr-2 h-4 w-4" />
+                    Inventory History
                   </Button>
                 </div>
               </div>

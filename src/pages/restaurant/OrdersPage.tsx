@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import RestaurantLayout from "@/components/layout/RestaurantLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -61,8 +60,6 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import ExportDropdown from "@/components/reports/ExportDropdown";
-import { Link } from "react-router-dom";
 
 interface OrderItem {
   id: string;
@@ -405,7 +402,10 @@ export default function OrdersPage() {
                 />
               </PopoverContent>
             </Popover>
-            <ExportDropdown />
+            <Button variant="outline" className="hover-scale" onClick={handleExportData}>
+              <FileDown className="mr-2 h-4 w-4" />
+              Export
+            </Button>
           </div>
         </div>
 
@@ -612,16 +612,9 @@ export default function OrdersPage() {
                 </div>
 
                 <div className="flex items-center justify-between border-t pt-3 mt-3">
-                  <Button
-                    variant="outline"
-                    className="w-full"
-                    size="sm"
-                    asChild
-                  >
-                    <Link to="/restaurant/orders/report">
-                      <BarChart4 className="mr-2 h-4 w-4" />
-                      View Full Report
-                    </Link>
+                  <Button variant="outline" className="w-full" size="sm">
+                    <BarChart4 className="mr-2 h-4 w-4" />
+                    View Full Report
                   </Button>
                 </div>
               </div>
@@ -841,35 +834,73 @@ export default function OrdersPage() {
       </Dialog>
 
       <Dialog open={isStatusUpdateOpen} onOpenChange={setIsStatusUpdateOpen}>
-        <DialogContent className="sm:max-w-[400px]">
+        <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
             <DialogTitle>Update Order Status</DialogTitle>
             <DialogDescription>
               {selectedOrder && `Change the status for order #${selectedOrder.orderNumber}`}
             </DialogDescription>
           </DialogHeader>
+          
           <div className="space-y-4 py-4">
             <div className="space-y-2">
-              <Label htmlFor="status">Status</Label>
-              <Select value={newStatus} onValueChange={(value) => setNewStatus(value as any)}>
+              <Label htmlFor="status">Select New Status</Label>
+              <Select 
+                value={newStatus} 
+                onValueChange={(value) => setNewStatus(value as Order["status"])}
+              >
                 <SelectTrigger>
-                  <SelectValue placeholder="Select new status" />
+                  <SelectValue placeholder="Select status" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="new">New</SelectItem>
-                  <SelectItem value="preparing">Preparing</SelectItem>
-                  <SelectItem value="ready">Ready</SelectItem>
-                  <SelectItem value="completed">Completed</SelectItem>
-                  <SelectItem value="cancelled">Cancelled</SelectItem>
+                  <SelectItem value="new">
+                    <div className="flex items-center">
+                      <Clock className="h-4 w-4 mr-2 text-blue-500" />
+                      New
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="preparing">
+                    <div className="flex items-center">
+                      <CookingPot className="h-4 w-4 mr-2 text-amber-500" />
+                      Preparing
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="ready">
+                    <div className="flex items-center">
+                      <ThumbsUp className="h-4 w-4 mr-2 text-green-500" />
+                      Ready
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="completed">
+                    <div className="flex items-center">
+                      <CheckCircle className="h-4 w-4 mr-2 text-primary" />
+                      Completed
+                    </div>
+                  </SelectItem>
                 </SelectContent>
               </Select>
             </div>
+            
+            {selectedOrder && selectedOrder.status !== newStatus && (
+              <div className="rounded-md bg-muted p-3">
+                <div className="flex items-center space-x-2">
+                  <div className="p-2 rounded-full bg-primary/20">
+                    <RefreshCcw className="h-4 w-4 text-primary" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium">Status will change from <span className="font-semibold">{selectedOrder?.status}</span> to <span className="font-semibold">{newStatus}</span></p>
+                    <p className="text-xs text-muted-foreground">This will update the order status and notify relevant staff</p>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
+
           <DialogFooter>
-            <Button variant="outline" onClick={() => setIsStatusUpdateOpen(false)}>
-              Cancel
+            <Button variant="outline" onClick={() => setIsStatusUpdateOpen(false)}>Cancel</Button>
+            <Button onClick={handleUpdateStatus} disabled={selectedOrder?.status === newStatus}>
+              Update Status
             </Button>
-            <Button onClick={handleUpdateStatus}>Update</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

@@ -1,21 +1,31 @@
 
-import React from "react";
+import { useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 
-interface AuthLayoutProps {
+type AuthLayoutProps = {
   children: React.ReactNode;
 }
 
-const AuthLayout: React.FC<AuthLayoutProps> = ({ children }) => {
+export default function AuthLayout({ children }: AuthLayoutProps) {
+  const navigate = useNavigate();
+
+  // Check if user is already logged in
+  useEffect(() => {
+    const userRole = localStorage.getItem("userRole");
+    if (userRole === "admin") {
+      navigate("/admin/dashboard");
+    } else if (userRole === "restaurant") {
+      navigate("/restaurant/dashboard");
+    }
+  }, [navigate]);
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100 dark:bg-gray-900 p-4">
-      <div className="w-full max-w-md">
-        <div className="flex justify-center mb-8">
-          <div className="text-primary font-bold text-3xl">Restaurant POS</div>
-        </div>
-        {children}
+    <div className="flex min-h-screen flex-col items-center justify-center bg-background p-4">
+      <div className="mb-8 text-center">
+        <h1 className="text-3xl font-bold">POS System</h1>
+        <p className="text-muted-foreground">Restaurant Management Solution</p>
       </div>
+      {children}
     </div>
   );
-};
-
-export default AuthLayout;
+}
