@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import RestaurantLayout from "@/components/layout/RestaurantLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -31,7 +30,7 @@ import {
   Filter,
   Calendar as CalendarIcon,
   FileDown,
-  FilePdf,
+  FileText,
   FileSpreadsheet,
   BarChart4,
   PieChart,
@@ -388,7 +387,7 @@ export default function OrderReportPage() {
                 <DropdownMenuLabel>Export Options</DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={handleExportPDF}>
-                  <FilePdf className="mr-2 h-4 w-4" />
+                  <FileText className="mr-2 h-4 w-4" />
                   Export as PDF
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={handleExportCSV}>

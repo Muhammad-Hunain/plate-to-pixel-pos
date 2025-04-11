@@ -8,7 +8,7 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator
 } from "@/components/ui/dropdown-menu";
-import { FileDown, FilePdf, FileSpreadsheet } from "lucide-react";
+import { FileDown, FileText, FileSpreadsheet } from "lucide-react";
 import { toast } from "sonner";
 
 interface ExportDropdownProps {
@@ -62,7 +62,7 @@ export default function ExportDropdown({
         <DropdownMenuLabel>Export Options</DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuItem onClick={handleExportPDF}>
-          <FilePdf className="mr-2 h-4 w-4" />
+          <FileText className="mr-2 h-4 w-4" />
           Export as PDF
         </DropdownMenuItem>
         <DropdownMenuItem onClick={handleExportCSV}>
