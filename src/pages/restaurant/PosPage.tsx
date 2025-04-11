@@ -125,7 +125,7 @@ const PosPage = () => {
         description: "The order receipt has been sent to the printer.",
       });
     },
-    content: () => receiptRef.current,
+    contentRef: receiptRef,
   });
 
   const handleAddToCart = (item: MenuItem) => {
@@ -461,7 +461,7 @@ const PosPage = () => {
                   variant="outline" 
                   className="gap-1 text-xs md:text-sm" 
                   disabled={cart.length === 0}
-                  onClick={handlePrint}
+                  onClick={() => handlePrint()}
                 >
                   <Printer className="h-3 w-3 md:h-4 md:w-4 mr-1" />
                   Print Receipt

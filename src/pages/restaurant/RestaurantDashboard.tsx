@@ -1,4 +1,3 @@
-
 import RestaurantLayout from "@/components/layout/RestaurantLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { 
@@ -13,7 +12,6 @@ import {
 } from "recharts";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 
-// Sample data for charts
 const revenueData = [
   { name: "00:00", value: 1200 },
   { name: "03:00", value: 800 },
@@ -70,7 +68,6 @@ const orderData = [
   },
 ];
 
-// Popular items data
 const popularItems = [
   { name: "Classic Burger", sold: 43, amount: "$473" },
   { name: "Caesar Salad", sold: 38, amount: "$342" },
@@ -78,7 +75,6 @@ const popularItems = [
   { name: "Grilled Chicken", sold: 29, amount: "$406" },
 ];
 
-// Payment method data
 const paymentMethodData = [
   { name: "Cash", value: 35 },
   { name: "Credit Card", value: 45 },
@@ -299,14 +295,14 @@ export default function RestaurantDashboard() {
             </Button>
           </CardHeader>
           <CardContent>
-            <div className="overflow-x-auto">
+            <div className="table-responsive-sm">
               <table className="w-full">
                 <thead>
                   <tr className="border-b">
                     <th className="px-4 py-3 text-left text-sm font-medium text-muted-foreground">Order</th>
                     <th className="px-4 py-3 text-left text-sm font-medium text-muted-foreground">Items</th>
-                    <th className="px-4 py-3 text-left text-sm font-medium text-muted-foreground">Status</th>
-                    <th className="px-4 py-3 text-left text-sm font-medium text-muted-foreground">Time</th>
+                    <th className="px-4 py-3 text-left text-sm font-medium text-muted-foreground d-none d-sm-table-cell">Status</th>
+                    <th className="px-4 py-3 text-left text-sm font-medium text-muted-foreground d-none d-md-table-cell">Time</th>
                     <th className="px-4 py-3 text-right text-sm font-medium text-muted-foreground">Total</th>
                   </tr>
                 </thead>
@@ -315,7 +311,7 @@ export default function RestaurantDashboard() {
                     <tr key={order.id} className="border-b">
                       <td className="px-4 py-3 text-sm font-medium">{order.table}</td>
                       <td className="px-4 py-3 text-sm">{order.items} items</td>
-                      <td className="px-4 py-3 text-sm">
+                      <td className="px-4 py-3 text-sm d-none d-sm-table-cell">
                         <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium
                           ${order.status === "Ready" ? "bg-green-100 text-green-800" : ""}
                           ${order.status === "Preparing" ? "bg-yellow-100 text-yellow-800" : ""}
@@ -325,7 +321,7 @@ export default function RestaurantDashboard() {
                           {order.status}
                         </span>
                       </td>
-                      <td className="px-4 py-3 text-sm text-muted-foreground">{order.time}</td>
+                      <td className="px-4 py-3 text-sm text-muted-foreground d-none d-md-table-cell">{order.time}</td>
                       <td className="px-4 py-3 text-sm text-right font-medium">{order.total}</td>
                     </tr>
                   ))}

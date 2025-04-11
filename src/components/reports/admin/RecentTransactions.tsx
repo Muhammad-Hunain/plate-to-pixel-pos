@@ -34,13 +34,13 @@ const RecentTransactions: React.FC<RecentTransactionsProps> = ({ transactions, o
         </Button>
       </CardHeader>
       <CardContent>
-        <div className="rounded-md border">
+        <div className="table-responsive-sm">
           <Table>
             <TableHeader>
               <TableRow>
                 <TableHead>ID</TableHead>
-                <TableHead>Customer</TableHead>
-                <TableHead>Date & Time</TableHead>
+                <TableHead className="hidden sm:table-cell">Customer</TableHead>
+                <TableHead className="hidden md:table-cell">Date & Time</TableHead>
                 <TableHead>Amount</TableHead>
                 <TableHead>Status</TableHead>
               </TableRow>
@@ -49,8 +49,8 @@ const RecentTransactions: React.FC<RecentTransactionsProps> = ({ transactions, o
               {transactions.slice(0, 5).map((transaction) => (
                 <TableRow key={transaction.id}>
                   <TableCell className="font-medium">{transaction.id}</TableCell>
-                  <TableCell>{transaction.customer}</TableCell>
-                  <TableCell>
+                  <TableCell className="hidden sm:table-cell">{transaction.customer}</TableCell>
+                  <TableCell className="hidden md:table-cell">
                     {transaction.date} {transaction.time}
                   </TableCell>
                   <TableCell>${transaction.amount.toFixed(2)}</TableCell>

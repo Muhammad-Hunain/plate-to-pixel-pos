@@ -1,3 +1,5 @@
+@import 'bootstrap/dist/css/bootstrap.min.css';
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -151,5 +153,21 @@
   
   .responsive-grid {
     @apply grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 md:gap-4 lg:gap-6;
+  }
+
+  .table-responsive-sm {
+    @apply block w-full overflow-x-auto;
+  }
+  
+  .responsive-tabs {
+    @apply flex overflow-x-auto pb-2;
+  }
+  
+  .responsive-tabs::-webkit-scrollbar {
+    height: 3px;
+  }
+  
+  .responsive-tabs::-webkit-scrollbar-thumb {
+    @apply bg-primary/40 rounded-full;
   }
 }

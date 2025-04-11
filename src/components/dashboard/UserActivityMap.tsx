@@ -1,4 +1,3 @@
-
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Globe, MapPin, Users } from "lucide-react";
@@ -17,6 +16,22 @@ const data = [
 const COLORS = [
   '#8884d8', '#83a6ed', '#8dd1e1', '#82ca9d', '#a4de6c', '#d0ed57'
 ];
+
+const LabelText = ({ x, y, value }) => {
+  return (
+    <text
+      x={x}
+      y={y}
+      dy={-10}
+      fill="#374151"
+      fontSize={12}
+      textAnchor="middle"
+      style={{ overflow: 'hidden', textOverflow: 'ellipsis' as any }}
+    >
+      {value}
+    </text>
+  );
+};
 
 export default function UserActivityMap() {
   const isMobile = useIsMobile();
