@@ -1,258 +1,247 @@
-import React, { useState } from 'react';
-import RestaurantLayout from "@/components/layout/RestaurantLayout";
-import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
-import { Textarea } from "@/components/ui/textarea";
-import { useToast } from "@/hooks/use-toast";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import { MoreVertical } from "lucide-react";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
 
+import { useState } from "react";
+import RestaurantLayout from "@/components/layout/RestaurantLayout";
+import AddBranchForm from "@/components/branches/AddBranchForm";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Plus, Search, Edit, Trash2, MapPin } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { toast } from "sonner";
+
+// Define the Branch type
 type Branch = {
   id: string;
   name: string;
   address: string;
-  city: string;
-  state: string;
-  zipCode: string;
-  phoneNumber: string;
-  email: string;
+  manager: string;
+  contact: string;
   status: "active" | "maintenance" | "closed";
+  openingTime: string;
+  closingTime: string;
+  taxRate: number;
   notes?: string;
 };
 
-const BranchesPage = () => {
-  const { toast } = useToast();
-  const [branches, setBranches] = useState<Branch[]>([]);
-  const [isFormOpen, setIsFormOpen] = useState(false);
+// Initial branches data
+const initialBranches: Branch[] = [
+  {
+    id: "1",
+    name: "Downtown Branch",
+    address: "123 Main St, Downtown",
+    manager: "John Smith",
+    contact: "(555) 123-4567",
+    status: "active",
+    openingTime: "08:00",
+    closingTime: "22:00",
+    taxRate: 8.5,
+    notes: "Our flagship location in the heart of downtown"
+  },
+  {
+    id: "2",
+    name: "Westside Location",
+    address: "456 West Ave, Westside",
+    manager: "Sarah Johnson",
+    contact: "(555) 987-6543",
+    status: "active",
+    openingTime: "07:00",
+    closingTime: "21:00",
+    taxRate: 7.25,
+    notes: "Popular for breakfast service"
+  },
+  {
+    id: "3",
+    name: "Mall Outlet",
+    address: "789 Shopping Center, Mall Level 2",
+    manager: "Michael Brown",
+    contact: "(555) 456-7890",
+    status: "maintenance",
+    openingTime: "10:00",
+    closingTime: "21:00",
+    taxRate: 9.0,
+    notes: "Currently undergoing renovation"
+  }
+];
 
-  const handleSave = (formData) => {
-    // Convert string status to the correct type
-    const newBranch = {
-      ...formData,
-      status: formData.status as "active" | "maintenance" | "closed",
+export default function BranchesPage() {
+  const [branches, setBranches] = useState<Branch[]>(initialBranches);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [showAddBranchDialog, setShowAddBranchDialog] = useState(false);
+  const [editingBranch, setEditingBranch] = useState<Branch | null>(null);
+
+  const filteredBranches = branches.filter(branch => 
+    branch.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    branch.address.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  const handleAddEditBranch = (formValues: any) => {
+    // For fixing the type error with status
+    const formattedBranch = {
+      ...formValues,
+      status: formValues.status as "active" | "maintenance" | "closed",
     };
-    
-    // Add the branch and update state
-    setBranches([...branches, newBranch]);
-    setIsFormOpen(false);
-    toast({
-      title: "Branch added",
-      description: `${formData.name} has been successfully added.`,
-    });
+
+    if (editingBranch) {
+      setBranches(branches.map(branch => 
+        branch.id === editingBranch.id ? { ...branch, ...formattedBranch } : branch
+      ));
+      toast.success(`${formValues.name} branch has been updated!`);
+    } else {
+      const newBranch = {
+        id: `${branches.length + 1}`,
+        ...formattedBranch
+      };
+      setBranches([...branches, newBranch]);
+      toast.success(`${formValues.name} branch has been added!`);
+    }
+    setShowAddBranchDialog(false);
+    setEditingBranch(null);
   };
 
-  const handleEdit = (id: string, updatedBranch: Branch) => {
-    setBranches(branches.map(branch => branch.id === id ? updatedBranch : branch));
-    toast({
-      title: "Branch updated",
-      description: `${updatedBranch.name} has been successfully updated.`,
-    });
-  };
-
-  const handleDelete = (id: string) => {
+  const handleDeleteBranch = (id: string) => {
     setBranches(branches.filter(branch => branch.id !== id));
-    toast({
-      title: "Branch deleted",
-      description: "Branch has been successfully deleted.",
-    });
+    toast.success("Branch has been deleted!");
+  };
+
+  const getStatusColor = (status: Branch["status"]) => {
+    switch (status) {
+      case "active": return "success";
+      case "maintenance": return "warning";
+      case "closed": return "destructive";
+      default: return "secondary";
+    }
   };
 
   return (
     <RestaurantLayout>
-      <div className="p-8 max-w-7xl mx-auto">
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
+      <div className="space-y-6 animate-fade-in">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight mb-2">Branches</h1>
-            <p className="text-muted-foreground">Manage your restaurant branches</p>
+            <h1 className="text-3xl font-bold tracking-tight">Branch Management</h1>
+            <p className="text-muted-foreground">
+              Manage your restaurant locations and branches
+            </p>
           </div>
-          <div className="flex gap-2 mt-4 md:mt-0">
-            <Button onClick={() => setIsFormOpen(true)}>Add Branch</Button>
+          <div className="flex items-center gap-2">
+            <Button onClick={() => setShowAddBranchDialog(true)}>
+              <Plus className="mr-2 h-4 w-4" />
+              Add New Branch
+            </Button>
           </div>
         </div>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Branch List</CardTitle>
-            <CardDescription>View and manage your restaurant branches.</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="rounded-md border">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Name</TableHead>
-                    <TableHead>Address</TableHead>
-                    <TableHead>City</TableHead>
-                    <TableHead>State</TableHead>
-                    <TableHead>Zip Code</TableHead>
-                    <TableHead>Phone Number</TableHead>
-                    <TableHead>Email</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {branches.map((branch) => (
-                    <TableRow key={branch.id}>
-                      <TableCell>{branch.name}</TableCell>
-                      <TableCell>{branch.address}</TableCell>
-                      <TableCell>{branch.city}</TableCell>
-                      <TableCell>{branch.state}</TableCell>
-                      <TableCell>{branch.zipCode}</TableCell>
-                      <TableCell>{branch.phoneNumber}</TableCell>
-                      <TableCell>{branch.email}</TableCell>
-                      <TableCell>{branch.status}</TableCell>
-                      <TableCell className="text-right">
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" className="h-8 w-8 p-0">
-                              <span className="sr-only">Open menu</span>
-                              <MoreVertical className="h-4 w-4" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                            <DropdownMenuItem onClick={() => handleEdit(branch.id, branch)}>
-                              Edit
-                            </DropdownMenuItem>
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem onClick={() => handleDelete(branch.id)}>
-                              Delete
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
-          </CardContent>
-        </Card>
+        <div className="flex items-center gap-2 w-full max-w-md mb-6">
+          <div className="relative flex-1">
+            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Search branches..."
+              className="pl-9 w-full"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+          </div>
+        </div>
 
-        {isFormOpen && <BranchForm onSave={handleSave} onClose={() => setIsFormOpen(false)} />}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {filteredBranches.map(branch => (
+            <Card key={branch.id} className="hover:shadow-md transition-all">
+              <CardHeader className="pb-2 flex flex-row justify-between items-start">
+                <div>
+                  <CardTitle className="text-xl flex items-center gap-2">
+                    <MapPin className="h-5 w-5 text-primary" />
+                    {branch.name}
+                  </CardTitle>
+                </div>
+                <Badge variant={getStatusColor(branch.status)}>
+                  {branch.status.charAt(0).toUpperCase() + branch.status.slice(1)}
+                </Badge>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div>
+                  <div className="text-sm font-medium">Address:</div>
+                  <div className="text-sm text-muted-foreground">{branch.address}</div>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <div className="text-sm font-medium">Manager:</div>
+                    <div className="text-sm text-muted-foreground">{branch.manager}</div>
+                  </div>
+                  <div>
+                    <div className="text-sm font-medium">Contact:</div>
+                    <div className="text-sm text-muted-foreground">{branch.contact}</div>
+                  </div>
+                </div>
+                <div className="grid grid-cols-3 gap-2">
+                  <div>
+                    <div className="text-sm font-medium">Opening:</div>
+                    <div className="text-sm text-muted-foreground">{branch.openingTime}</div>
+                  </div>
+                  <div>
+                    <div className="text-sm font-medium">Closing:</div>
+                    <div className="text-sm text-muted-foreground">{branch.closingTime}</div>
+                  </div>
+                  <div>
+                    <div className="text-sm font-medium">Tax Rate:</div>
+                    <div className="text-sm text-muted-foreground">{branch.taxRate}%</div>
+                  </div>
+                </div>
+                <div className="flex justify-end gap-2 pt-2">
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={() => {
+                      setEditingBranch(branch);
+                      setShowAddBranchDialog(true);
+                    }}
+                  >
+                    <Edit className="h-4 w-4 mr-1" />
+                    Edit
+                  </Button>
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    className="text-destructive hover:bg-destructive/10 hover:text-destructive"
+                    onClick={() => handleDeleteBranch(branch.id)}
+                  >
+                    <Trash2 className="h-4 w-4 mr-1" />
+                    Delete
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+
+        {filteredBranches.length === 0 && (
+          <div className="text-center py-12">
+            <MapPin className="h-12 w-12 text-muted-foreground opacity-50 mx-auto mb-4" />
+            <h3 className="text-lg font-medium">No branches found</h3>
+            <p className="text-muted-foreground mt-2 mb-4">
+              {searchQuery ? "Try adjusting your search query." : "Get started by adding your first branch location."}
+            </p>
+            {searchQuery && (
+              <Button variant="outline" onClick={() => setSearchQuery("")}>
+                Clear Search
+              </Button>
+            )}
+          </div>
+        )}
+
+        <Dialog open={showAddBranchDialog} onOpenChange={setShowAddBranchDialog}>
+          <DialogContent className="sm:max-w-[600px]">
+            <DialogHeader>
+              <DialogTitle>{editingBranch ? "Edit Branch" : "Add New Branch"}</DialogTitle>
+            </DialogHeader>
+            <AddBranchForm 
+              onSubmit={handleAddEditBranch} 
+              defaultValues={editingBranch || undefined} 
+              title={editingBranch ? "Edit Branch Details" : "Add New Branch Location"} 
+              submitLabel={editingBranch ? "Update Branch" : "Create Branch"}
+            />
+          </DialogContent>
+        </Dialog>
       </div>
     </RestaurantLayout>
   );
-};
-
-type BranchFormProps = {
-  onSave: (formData: any) => void;
-  onClose: () => void;
-};
-
-const BranchForm: React.FC<BranchFormProps> = ({ onSave, onClose }) => {
-  const [name, setName] = useState("");
-  const [address, setAddress] = useState("");
-  const [city, setCity] = useState("");
-  const [state, setState] = useState("");
-  const [zipCode, setZipCode] = useState("");
-  const [phoneNumber, setPhoneNumber] = useState("");
-  const [email, setEmail] = useState("");
-  const [status, setStatus] = useState<"active" | "maintenance" | "closed">("active");
-  const [notes, setNotes] = useState("");
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    const formData = {
-      id: Math.random().toString(36).substring(7),
-      name,
-      address,
-      city,
-      state,
-      zipCode,
-      phoneNumber,
-      email,
-      status,
-      notes,
-    };
-    onSave(formData);
-    onClose();
-  };
-
-  return (
-    <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-      <Card className="max-w-md w-full">
-        <CardHeader>
-          <CardTitle>Add Branch</CardTitle>
-          <CardDescription>Add a new restaurant branch to your list.</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <Label htmlFor="name">Name</Label>
-              <Input type="text" id="name" value={name} onChange={(e) => setName(e.target.value)} required />
-            </div>
-            <div>
-              <Label htmlFor="address">Address</Label>
-              <Input type="text" id="address" value={address} onChange={(e) => setAddress(e.target.value)} required />
-            </div>
-            <div>
-              <Label htmlFor="city">City</Label>
-              <Input type="text" id="city" value={city} onChange={(e) => setCity(e.target.value)} required />
-            </div>
-            <div>
-              <Label htmlFor="state">State</Label>
-              <Input type="text" id="state" value={state} onChange={(e) => setState(e.target.value)} required />
-            </div>
-            <div>
-              <Label htmlFor="zipCode">Zip Code</Label>
-              <Input type="text" id="zipCode" value={zipCode} onChange={(e) => setZipCode(e.target.value)} required />
-            </div>
-            <div>
-              <Label htmlFor="phoneNumber">Phone Number</Label>
-              <Input type="tel" id="phoneNumber" value={phoneNumber} onChange={(e) => setPhoneNumber(e.target.value)} required />
-            </div>
-            <div>
-              <Label htmlFor="email">Email</Label>
-              <Input type="email" id="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
-            </div>
-            <div>
-              <Label htmlFor="status">Status</Label>
-              <select id="status" value={status} onChange={(e) => setStatus(e.target.value as "active" | "maintenance" | "closed")} className="w-full rounded-md border shadow-sm focus:border-primary focus:ring-primary">
-                <option value="active">Active</option>
-                <option value="maintenance">Maintenance</option>
-                <option value="closed">Closed</option>
-              </select>
-            </div>
-            <div>
-              <Label htmlFor="notes">Notes</Label>
-              <Textarea id="notes" value={notes} onChange={(e) => setNotes(e.target.value)} />
-            </div>
-            <div className="flex justify-end gap-2">
-              <Button type="button" variant="secondary" onClick={onClose}>Cancel</Button>
-              <Button type="submit">Save</Button>
-            </div>
-          </form>
-        </CardContent>
-      </Card>
-    </div>
-  );
-};
-
-export { BranchesPage };
-export default BranchesPage;
+}

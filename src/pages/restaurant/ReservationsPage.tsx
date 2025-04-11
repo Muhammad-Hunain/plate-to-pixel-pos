@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import RestaurantLayout from "@/components/layout/RestaurantLayout";
 import { Button } from "@/components/ui/button";
@@ -37,6 +38,7 @@ import ReservationDetails from '@/components/reservations/ReservationDetails';
 import ReservationCalendar from '@/components/reservations/ReservationCalendar';
 import { useToast } from "@/hooks/use-toast";
 
+// Mock data for reservations
 const reservationsData = [
   {
     id: "RES001",
@@ -202,53 +204,6 @@ const ReservationsPage = () => {
     });
   };
 
-  // Define columns for the responsive table
-  const columns = [
-    { header: "ID", accessorKey: "id" },
-    { header: "Customer", accessorKey: "name" },
-    { header: "Time", accessorKey: "time" },
-    { header: "Guests", accessorKey: "guests" },
-    { 
-      header: "Table", 
-      accessorKey: "tableNumber",
-      className: "hidden sm:table-cell" // Hide on small screens
-    },
-    { 
-      header: "Status", 
-      accessorKey: "status",
-      cell: (reservation) => getStatusBadge(reservation.status)
-    },
-    { 
-      header: "Contact", 
-      accessorKey: "contact",
-      className: "hidden md:table-cell" // Hide on small screens
-    },
-    { 
-      header: "Notes", 
-      accessorKey: "notes",
-      className: "hidden lg:table-cell max-w-[200px] truncate", // Hide on small/medium screens
-      cell: (reservation) => (
-        <div className="max-w-[200px] truncate" title={reservation.notes}>
-          {reservation.notes || "-"}
-        </div>
-      )
-    },
-    { 
-      header: "Actions", 
-      accessorKey: "actions",
-      cell: (reservation) => (
-        <Button 
-          variant="ghost" 
-          size="icon"
-          onClick={() => handleViewDetails(reservation)}
-          title="View Details"
-        >
-          <Eye className="h-4 w-4" />
-        </Button>
-      )
-    }
-  ];
-
   return (
     <RestaurantLayout>
       <div className="p-8 max-w-7xl mx-auto">
@@ -298,12 +253,12 @@ const ReservationsPage = () => {
 
         <Card className="mb-6">
           <CardContent className="p-0">
-            <div className="responsive-tabs py-4 px-2">
+            <div className="flex overflow-x-auto py-4 px-2">
               {days.map((day) => (
                 <Button
                   key={day}
                   variant={activeDay === day ? "default" : "ghost"}
-                  className="rounded-full px-4 mx-1 whitespace-nowrap flex-shrink-0"
+                  className="rounded-full px-4 mx-1 whitespace-nowrap"
                   onClick={() => setActiveDay(day)}
                 >
                   {day}
@@ -314,17 +269,16 @@ const ReservationsPage = () => {
         </Card>
 
         <Tabs defaultValue="list">
-          <TabsList className="mb-4 responsive-tabs">
+          <TabsList className="mb-4">
             <TabsTrigger value="list">List View</TabsTrigger>
             <TabsTrigger value="table">Table View</TabsTrigger>
           </TabsList>
           
           <TabsContent value="list" className="space-y-4">
-            <div className="flex gap-2 mb-4 responsive-tabs">
+            <div className="flex gap-2 mb-4 overflow-x-auto">
               <Button 
                 variant={statusFilter === "all" ? "default" : "outline"} 
                 size="sm"
-                className="flex-shrink-0"
                 onClick={() => setStatusFilter("all")}
               >
                 All
@@ -332,7 +286,6 @@ const ReservationsPage = () => {
               <Button 
                 variant={statusFilter === "confirmed" ? "default" : "outline"} 
                 size="sm"
-                className="flex-shrink-0"
                 onClick={() => setStatusFilter("confirmed")}
               >
                 Confirmed
@@ -340,7 +293,6 @@ const ReservationsPage = () => {
               <Button 
                 variant={statusFilter === "pending" ? "default" : "outline"} 
                 size="sm"
-                className="flex-shrink-0"
                 onClick={() => setStatusFilter("pending")}
               >
                 Pending
@@ -348,7 +300,6 @@ const ReservationsPage = () => {
               <Button 
                 variant={statusFilter === "waiting" ? "default" : "outline"} 
                 size="sm"
-                className="flex-shrink-0"
                 onClick={() => setStatusFilter("waiting")}
               >
                 Waiting
@@ -356,7 +307,6 @@ const ReservationsPage = () => {
               <Button 
                 variant={statusFilter === "cancelled" ? "default" : "outline"} 
                 size="sm"
-                className="flex-shrink-0"
                 onClick={() => setStatusFilter("cancelled")}
               >
                 Cancelled
@@ -364,11 +314,55 @@ const ReservationsPage = () => {
             </div>
 
             <div className="rounded-md border">
-              <ResponsiveTable 
-                data={filteredReservations}
-                columns={columns}
-                emptyMessage="No reservations found"
-              />
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>ID</TableHead>
+                    <TableHead>Customer</TableHead>
+                    <TableHead>Time</TableHead>
+                    <TableHead>Guests</TableHead>
+                    <TableHead>Table</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Contact</TableHead>
+                    <TableHead>Notes</TableHead>
+                    <TableHead>Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {filteredReservations.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={9} className="text-center h-24">
+                        No reservations found
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    filteredReservations.map((reservation) => (
+                      <TableRow key={reservation.id}>
+                        <TableCell className="font-medium">{reservation.id}</TableCell>
+                        <TableCell>{reservation.name}</TableCell>
+                        <TableCell>{reservation.time}</TableCell>
+                        <TableCell>{reservation.guests}</TableCell>
+                        <TableCell>{reservation.tableNumber}</TableCell>
+                        <TableCell>{getStatusBadge(reservation.status)}</TableCell>
+                        <TableCell>{reservation.contact}</TableCell>
+                        <TableCell className="max-w-[200px] truncate" title={reservation.notes}>
+                          {reservation.notes || "-"}
+                        </TableCell>
+                        <TableCell>
+                          <Button 
+                            variant="ghost" 
+                            size="icon"
+                            onClick={() => handleViewDetails(reservation)}
+                            title="View Details"
+                          >
+                            <Eye className="h-4 w-4" />
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  )}
+                </TableBody>
+              </Table>
             </div>
           </TabsContent>
           
