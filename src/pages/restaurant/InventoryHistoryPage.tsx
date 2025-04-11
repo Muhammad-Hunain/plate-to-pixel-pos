@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import RestaurantLayout from "@/components/layout/RestaurantLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -370,8 +369,8 @@ export default function InventoryHistoryPage() {
                 />
               </div>
               <DateRangePicker
-                value={dateRange}
-                onChange={setDateRange}
+                date={dateRange}
+                setDate={setDateRange}
               />
             </div>
           </CardHeader>

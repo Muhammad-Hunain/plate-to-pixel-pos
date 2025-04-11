@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -118,7 +117,7 @@ const PosPage = () => {
 
   const handlePrint = useReactToPrint({
     content: () => receiptRef.current,
-    documentTitle: "Order Receipt",
+    documentTitle: 'Receipt',
     onAfterPrint: () => {
       toast({
         title: "Receipt printed",
@@ -469,7 +468,7 @@ const PosPage = () => {
                   variant="outline" 
                   className="gap-1" 
                   disabled={cart.length === 0}
-                  onClick={handlePrint}
+                  onClick={() => handlePrint()}
                 >
                   <Printer className="h-4 w-4 mr-1" />
                   Print Receipt

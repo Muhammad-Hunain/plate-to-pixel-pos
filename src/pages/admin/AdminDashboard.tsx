@@ -43,8 +43,8 @@ export default function AdminDashboard() {
             title="Total Restaurants"
             value="124"
             icon={<Building className="h-4 w-4 text-muted-foreground" />}
-            change="+6%"
-            changeLabel="from last month"
+            trend="+6%"
+            trendLabel="from last month"
             delay={0}
           />
           
@@ -52,8 +52,8 @@ export default function AdminDashboard() {
             title="Total Users"
             value="3,721"
             icon={<Users className="h-4 w-4 text-muted-foreground" />}
-            change="+12%"
-            changeLabel="from last month"
+            trend="+12%"
+            trendLabel="from last month"
             delay={100}
           />
           
@@ -61,8 +61,8 @@ export default function AdminDashboard() {
             title="Monthly Revenue"
             value="$48,294"
             icon={<DollarSign className="h-4 w-4 text-muted-foreground" />}
-            change="+8%"
-            changeLabel="from last month"
+            trend="+8%"
+            trendLabel="from last month"
             delay={200}
           />
           
@@ -70,8 +70,8 @@ export default function AdminDashboard() {
             title="Active Subscriptions"
             value="105"
             icon={<CreditCard className="h-4 w-4 text-muted-foreground" />}
-            change="+3%"
-            changeLabel="from last month"
+            trend="+3%"
+            trendLabel="from last month"
             delay={300}
           />
         </div>
@@ -88,7 +88,7 @@ export default function AdminDashboard() {
           <TabsContent value="overview" className="space-y-4">
             {/* Charts Row */}
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-              <AnimatedDashboardCard className="lg:col-span-2" delay={0}>
+              <AnimatedDashboardCard className="lg:col-span-2" delay={0} title="Sales Performance">
                 <CardHeader>
                   <CardTitle>Sales Performance</CardTitle>
                 </CardHeader>
@@ -97,7 +97,7 @@ export default function AdminDashboard() {
                 </CardContent>
               </AnimatedDashboardCard>
               
-              <AnimatedDashboardCard delay={100}>
+              <AnimatedDashboardCard delay={100} title="Growth Metrics">
                 <CardHeader>
                   <CardTitle>Growth Metrics</CardTitle>
                 </CardHeader>
@@ -126,7 +126,7 @@ export default function AdminDashboard() {
 
             {/* Branch Performance and User Map */}
             <div className="grid gap-4 md:grid-cols-2">
-              <AnimatedDashboardCard delay={200}>
+              <AnimatedDashboardCard delay={200} title="Top Restaurants">
                 <CardHeader>
                   <CardTitle>Top Restaurants</CardTitle>
                 </CardHeader>
@@ -135,7 +135,7 @@ export default function AdminDashboard() {
                 </CardContent>
               </AnimatedDashboardCard>
               
-              <AnimatedDashboardCard delay={300}>
+              <AnimatedDashboardCard delay={300} title="User Distribution">
                 <CardHeader>
                   <CardTitle>User Distribution</CardTitle>
                 </CardHeader>
