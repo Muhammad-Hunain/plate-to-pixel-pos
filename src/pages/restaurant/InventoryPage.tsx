@@ -1085,7 +1085,12 @@ export default function InventoryPage() {
                 </div>
                 
                 <div className="flex items-center justify-between border-t pt-3 mt-2">
-                  <Button variant="outline" className="w-full" size="sm">
+                  <Button 
+                    variant="outline" 
+                    className="w-full" 
+                    size="sm"
+                    onClick={() => window.location.href = "/restaurant/inventory/history"}
+                  >
                     <History className="mr-2 h-4 w-4" />
                     Inventory History
                   </Button>

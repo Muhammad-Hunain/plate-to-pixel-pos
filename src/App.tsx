@@ -36,6 +36,7 @@ import KitchenPage from "./pages/restaurant/KitchenPage";
 import EmployeesPage from "./pages/restaurant/EmployeesPage";
 import ReservationsPage from "./pages/restaurant/ReservationsPage";
 import InventoryPage from "./pages/restaurant/InventoryPage";
+import InventoryHistoryPage from "./pages/restaurant/InventoryHistoryPage";
 import RestaurantReportsPage from "./pages/restaurant/ReportsPage";
 import RestaurantSettingsPage from "./pages/restaurant/SettingsPage";
 
@@ -83,6 +84,7 @@ const App = () => {
               <Route path="/restaurant/employees" element={<EmployeesPage />} />
               <Route path="/restaurant/reservations" element={<ReservationsPage />} />
               <Route path="/restaurant/inventory" element={<InventoryPage />} />
+              <Route path="/restaurant/inventory/history" element={<InventoryHistoryPage />} />
               <Route path="/restaurant/reports" element={<RestaurantReportsPage />} />
               <Route path="/restaurant/settings" element={<RestaurantSettingsPage />} />
               
