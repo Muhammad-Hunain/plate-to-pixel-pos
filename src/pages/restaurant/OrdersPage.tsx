@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import RestaurantLayout from "@/components/layout/RestaurantLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -832,3 +833,46 @@ export default function OrdersPage() {
                 }}
               >
                 <X className="mr-2 h-4 w-4" />
+                Cancel & Refund
+              </Button>
+            )}
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={isStatusUpdateOpen} onOpenChange={setIsStatusUpdateOpen}>
+        <DialogContent className="sm:max-w-[400px]">
+          <DialogHeader>
+            <DialogTitle>Update Order Status</DialogTitle>
+            <DialogDescription>
+              {selectedOrder && `Change the status for order #${selectedOrder.orderNumber}`}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="status">Status</Label>
+              <Select value={newStatus} onValueChange={(value) => setNewStatus(value as any)}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select new status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="new">New</SelectItem>
+                  <SelectItem value="preparing">Preparing</SelectItem>
+                  <SelectItem value="ready">Ready</SelectItem>
+                  <SelectItem value="completed">Completed</SelectItem>
+                  <SelectItem value="cancelled">Cancelled</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsStatusUpdateOpen(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleUpdateStatus}>Update</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </RestaurantLayout>
+  );
+}

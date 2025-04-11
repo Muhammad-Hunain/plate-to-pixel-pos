@@ -1,5 +1,6 @@
+
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import DashboardPage from "./pages/DashboardPage";
+import DashboardPage from "./pages/restaurant/RestaurantDashboard";
 import BranchesPage from "./pages/restaurant/BranchesPage";
 import InventoryPage from "./pages/restaurant/InventoryPage";
 import KitchenPage from "./pages/restaurant/KitchenPage";
