@@ -7,8 +7,6 @@ import {
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { Badge } from "@/components/ui/badge";
-import { TrendingUp, TrendingDown } from "lucide-react";
 
 interface BranchPerformanceChartProps {
   data: any[];
@@ -33,22 +31,6 @@ const BranchPerformanceChart: React.FC<BranchPerformanceChartProps> = ({
   const [selectedMetric, setSelectedMetric] = useState<string>(defaultMetric);
   const [chartType, setChartType] = useState<"line" | "bar" | "pie">("line");
 
-  // Calculate overall trends
-  const calculateTrend = () => {
-    if (data.length < 2) return { value: 0, isPositive: true };
-    
-    const branch = selectedBranch.toLowerCase();
-    const firstValue = data[0][branch] || 0;
-    const lastValue = data[data.length - 1][branch] || 0;
-    const change = lastValue - firstValue;
-    const percentChange = firstValue === 0 ? 0 : (change / firstValue) * 100;
-    
-    return {
-      value: Math.abs(percentChange).toFixed(1),
-      isPositive: percentChange >= 0
-    };
-  };
-
   const formatChartData = () => {
     if (chartType === "pie" && selectedBranch === "All Branches") {
       // For pie chart, we want to show distribution across branches for the selected metric
@@ -70,7 +52,6 @@ const BranchPerformanceChart: React.FC<BranchPerformanceChartProps> = ({
   };
 
   const chartData = formatChartData();
-  const trend = calculateTrend();
 
   const renderLineChart = () => (
     <ResponsiveContainer width="100%" height={350}>
@@ -152,20 +133,6 @@ const BranchPerformanceChart: React.FC<BranchPerformanceChartProps> = ({
           <div>
             <CardTitle className="text-xl">{title}</CardTitle>
             {description && <CardDescription>{description}</CardDescription>}
-            {/* Show trend indicator */}
-            <div className="flex items-center mt-1 text-sm">
-              {trend.isPositive ? (
-                <Badge variant="outline" className="flex items-center gap-1 text-green-600 bg-green-50 border-green-200">
-                  <TrendingUp className="h-3 w-3" /> 
-                  +{trend.value}% overall
-                </Badge>
-              ) : (
-                <Badge variant="outline" className="flex items-center gap-1 text-red-600 bg-red-50 border-red-200">
-                  <TrendingDown className="h-3 w-3" /> 
-                  -{trend.value}% overall
-                </Badge>
-              )}
-            </div>
           </div>
           <div className="flex flex-wrap gap-2">
             <Select value={selectedMetric} onValueChange={setSelectedMetric}>

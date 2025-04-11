@@ -1,7 +1,7 @@
 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Globe, MapPin, Users } from "lucide-react";
+import { Check, Globe, MapPin, Users } from "lucide-react";
 import { ResponsiveContainer, ComposedChart, Bar, XAxis, YAxis, Cell, Tooltip, CartesianGrid } from 'recharts';
 
 const data = [

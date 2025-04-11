@@ -88,7 +88,7 @@ export default function SalesPerformanceChart() {
         <div className="h-[350px]">
           <ResponsiveContainer width="100%" height="100%">
             <AreaChart
-              data={dataMap[timeframe as keyof typeof dataMap]}
+              data={dataMap[timeframe]}
               margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
             >
               <defs>
