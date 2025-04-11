@@ -1,6 +1,6 @@
 
 import { Link } from "react-router-dom";
-import { ChevronDown, LogOut, User, Settings } from "lucide-react";
+import { Bell, ChevronDown, LogOut, User, Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -12,7 +12,6 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
-import { NotificationList } from "@/components/notifications/NotificationList";
 
 type AppHeaderProps = {
   role: string;
@@ -37,7 +36,9 @@ export default function AppHeader({ role }: AppHeaderProps) {
         </div>
         
         <div className="flex items-center space-x-4">
-          <NotificationList />
+          <Button variant="ghost" size="icon">
+            <Bell className="h-5 w-5" />
+          </Button>
 
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
