@@ -43,7 +43,7 @@ export default function AdminDashboard() {
             title="Total Restaurants"
             value="124"
             icon={<Building className="h-4 w-4 text-muted-foreground" />}
-            trend="+6%"
+            trend={{ value: "+6%", positive: true }}
             trendLabel="from last month"
             delay={0}
           />
@@ -52,7 +52,7 @@ export default function AdminDashboard() {
             title="Total Users"
             value="3,721"
             icon={<Users className="h-4 w-4 text-muted-foreground" />}
-            trend="+12%"
+            trend={{ value: "+12%", positive: true }}
             trendLabel="from last month"
             delay={100}
           />
@@ -61,7 +61,7 @@ export default function AdminDashboard() {
             title="Monthly Revenue"
             value="$48,294"
             icon={<DollarSign className="h-4 w-4 text-muted-foreground" />}
-            trend="+8%"
+            trend={{ value: "+8%", positive: true }}
             trendLabel="from last month"
             delay={200}
           />
@@ -70,7 +70,7 @@ export default function AdminDashboard() {
             title="Active Subscriptions"
             value="105"
             icon={<CreditCard className="h-4 w-4 text-muted-foreground" />}
-            trend="+3%"
+            trend={{ value: "+3%", positive: true }}
             trendLabel="from last month"
             delay={300}
           />
@@ -131,7 +131,16 @@ export default function AdminDashboard() {
                   <CardTitle>Top Restaurants</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <BranchPerformanceChart />
+                  <BranchPerformanceChart 
+                    data={[
+                      { name: "Branch A", value: 35 },
+                      { name: "Branch B", value: 27 },
+                      { name: "Branch C", value: 18 },
+                      { name: "Branch D", value: 15 },
+                      { name: "Branch E", value: 5 }
+                    ]}
+                    title="Performance by Branch"
+                  />
                 </CardContent>
               </AnimatedDashboardCard>
               

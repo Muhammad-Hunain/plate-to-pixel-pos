@@ -1,7 +1,22 @@
 import { useState } from "react";
 import RestaurantLayout from "@/components/layout/RestaurantLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import {
   Table,
   TableBody,
@@ -10,260 +25,232 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { DateRange } from "react-day-picker";
 import { DateRangePicker } from "@/components/ui/date-range-picker";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { DateRange } from "react-day-picker";
 import {
   Calendar,
+  ChevronDown,
   Download,
-  FileDown,
   Filter,
-  LayoutGrid,
-  LineChart,
-  MoreHorizontal,
-  Package,
+  Plus,
   Search,
-  Warehouse,
 } from "lucide-react";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import AnimatedStatsCard from "@/components/dashboard/AnimatedStatsCard";
-import { toast } from "sonner";
-import ExportDropdown from "@/components/common/ExportDropdown";
-import { addDays } from "date-fns";
-
-// Types
-interface InventoryHistoryItem {
-  id: string;
-  date: string;
-  itemName: string;
-  itemCategory: string;
-  branch: string;
-  previousQuantity: number;
-  newQuantity: number;
-  change: number;
-  unit: string;
-  type: "restock" | "use" | "transfer" | "adjustment" | "waste";
-  staff: string;
-  notes?: string;
-}
-
-// Mock data for the inventory history
-const mockInventoryHistory: InventoryHistoryItem[] = [
-  {
-    id: "1",
-    date: "2025-04-08T10:30:00",
-    itemName: "All-purpose Flour",
-    itemCategory: "Dry Goods",
-    branch: "Downtown",
-    previousQuantity: 30,
-    newQuantity: 45,
-    change: 15,
-    unit: "kg",
-    type: "restock",
-    staff: "John Smith",
-    notes: "Regular weekly delivery"
-  },
-  {
-    id: "2",
-    date: "2025-04-08T12:45:00",
-    itemName: "Mozzarella Cheese",
-    itemCategory: "Dairy",
-    branch: "Downtown",
-    previousQuantity: 15,
-    newQuantity: 12,
-    change: -3,
-    unit: "kg",
-    type: "use",
-    staff: "Maria Garcia",
-    notes: "Used for lunch service"
-  },
-  {
-    id: "3",
-    date: "2025-04-07T14:20:00",
-    itemName: "Tomato Sauce",
-    itemCategory: "Sauces",
-    branch: "Downtown",
-    previousQuantity: 10,
-    newQuantity: 8,
-    change: -2,
-    unit: "liters",
-    type: "use",
-    staff: "Maria Garcia"
-  },
-  {
-    id: "4",
-    date: "2025-04-06T09:15:00",
-    itemName: "Chicken Breast",
-    itemCategory: "Meat",
-    branch: "Downtown",
-    previousQuantity: 20,
-    newQuantity: 25,
-    change: 5,
-    unit: "kg",
-    type: "restock",
-    staff: "John Smith",
-    notes: "Emergency restock due to high demand"
-  },
-  {
-    id: "5",
-    date: "2025-04-05T16:40:00",
-    itemName: "Olive Oil",
-    itemCategory: "Oils",
-    branch: "Downtown",
-    previousQuantity: 8,
-    newQuantity: 5,
-    change: -3,
-    unit: "liters",
-    type: "transfer",
-    staff: "Alex Johnson",
-    notes: "Transferred to Uptown branch"
-  },
-  {
-    id: "6",
-    date: "2025-04-04T11:10:00",
-    itemName: "Paper Napkins",
-    itemCategory: "Supplies",
-    branch: "Downtown",
-    previousQuantity: 10,
-    newQuantity: 30,
-    change: 20,
-    unit: "packs",
-    type: "restock",
-    staff: "John Smith"
-  },
-  {
-    id: "7",
-    date: "2025-04-03T14:30:00",
-    itemName: "Chicken Breast",
-    itemCategory: "Meat",
-    branch: "Downtown",
-    previousQuantity: 22,
-    newQuantity: 20,
-    change: -2,
-    unit: "kg",
-    type: "waste",
-    staff: "Maria Garcia",
-    notes: "Expired product"
-  },
-  {
-    id: "8",
-    date: "2025-04-02T10:00:00",
-    itemName: "Mozzarella Cheese",
-    itemCategory: "Dairy",
-    branch: "Downtown",
-    previousQuantity: 18,
-    newQuantity: 15,
-    change: -3,
-    unit: "kg",
-    type: "use",
-    staff: "Maria Garcia"
-  },
-  {
-    id: "9",
-    date: "2025-04-01T09:30:00",
-    itemName: "All-purpose Flour",
-    itemCategory: "Dry Goods",
-    branch: "Downtown",
-    previousQuantity: 25,
-    newQuantity: 30,
-    change: 5,
-    unit: "kg",
-    type: "adjustment",
-    staff: "Alex Johnson",
-    notes: "Inventory count correction"
-  },
-  {
-    id: "10",
-    date: "2025-03-31T15:20:00",
-    itemName: "Tomato Sauce",
-    itemCategory: "Sauces",
-    branch: "Downtown",
-    previousQuantity: 12,
-    newQuantity: 10,
-    change: -2,
-    unit: "liters",
-    type: "use",
-    staff: "Maria Garcia"
-  }
-];
-
-// Available branches
-const branches = [
-  "All Branches",
-  "Downtown",
-  "Uptown",
-  "Westside",
-  "Airport"
-];
-
-// Available categories
-const categories = [
-  "All Categories",
-  "Dry Goods",
-  "Dairy",
-  "Meat",
-  "Seafood",
-  "Produce",
-  "Oils",
-  "Sauces",
-  "Spices",
-  "Beverages",
-  "Supplies",
-  "Packaging"
-];
 
 export default function InventoryHistoryPage() {
+  const [searchQuery, setSearchQuery] = useState("");
+  const [dateRange, setDateRange] = useState<DateRange>({
+    from: new Date(2023, 0, 20),
+    to: new Date(),
+  });
+
+  // Types
+  interface InventoryHistoryItem {
+    id: string;
+    date: string;
+    itemName: string;
+    itemCategory: string;
+    branch: string;
+    previousQuantity: number;
+    newQuantity: number;
+    change: number;
+    unit: string;
+    type: "restock" | "use" | "transfer" | "adjustment" | "waste";
+    staff: string;
+    notes?: string;
+  }
+
+  // Mock data for the inventory history
+  const mockInventoryHistory: InventoryHistoryItem[] = [
+    {
+      id: "1",
+      date: "2025-04-08T10:30:00",
+      itemName: "All-purpose Flour",
+      itemCategory: "Dry Goods",
+      branch: "Downtown",
+      previousQuantity: 30,
+      newQuantity: 45,
+      change: 15,
+      unit: "kg",
+      type: "restock",
+      staff: "John Smith",
+      notes: "Regular weekly delivery"
+    },
+    {
+      id: "2",
+      date: "2025-04-08T12:45:00",
+      itemName: "Mozzarella Cheese",
+      itemCategory: "Dairy",
+      branch: "Downtown",
+      previousQuantity: 15,
+      newQuantity: 12,
+      change: -3,
+      unit: "kg",
+      type: "use",
+      staff: "Maria Garcia",
+      notes: "Used for lunch service"
+    },
+    {
+      id: "3",
+      date: "2025-04-07T14:20:00",
+      itemName: "Tomato Sauce",
+      itemCategory: "Sauces",
+      branch: "Downtown",
+      previousQuantity: 10,
+      newQuantity: 8,
+      change: -2,
+      unit: "liters",
+      type: "use",
+      staff: "Maria Garcia"
+    },
+    {
+      id: "4",
+      date: "2025-04-06T09:15:00",
+      itemName: "Chicken Breast",
+      itemCategory: "Meat",
+      branch: "Downtown",
+      previousQuantity: 20,
+      newQuantity: 25,
+      change: 5,
+      unit: "kg",
+      type: "restock",
+      staff: "John Smith",
+      notes: "Emergency restock due to high demand"
+    },
+    {
+      id: "5",
+      date: "2025-04-05T16:40:00",
+      itemName: "Olive Oil",
+      itemCategory: "Oils",
+      branch: "Downtown",
+      previousQuantity: 8,
+      newQuantity: 5,
+      change: -3,
+      unit: "liters",
+      type: "transfer",
+      staff: "Alex Johnson",
+      notes: "Transferred to Uptown branch"
+    },
+    {
+      id: "6",
+      date: "2025-04-04T11:10:00",
+      itemName: "Paper Napkins",
+      itemCategory: "Supplies",
+      branch: "Downtown",
+      previousQuantity: 10,
+      newQuantity: 30,
+      change: 20,
+      unit: "packs",
+      type: "restock",
+      staff: "John Smith"
+    },
+    {
+      id: "7",
+      date: "2025-04-03T14:30:00",
+      itemName: "Chicken Breast",
+      itemCategory: "Meat",
+      branch: "Downtown",
+      previousQuantity: 22,
+      newQuantity: 20,
+      change: -2,
+      unit: "kg",
+      type: "waste",
+      staff: "Maria Garcia",
+      notes: "Expired product"
+    },
+    {
+      id: "8",
+      date: "2025-04-02T10:00:00",
+      itemName: "Mozzarella Cheese",
+      itemCategory: "Dairy",
+      branch: "Downtown",
+      previousQuantity: 18,
+      newQuantity: 15,
+      change: -3,
+      unit: "kg",
+      type: "use",
+      staff: "Maria Garcia"
+    },
+    {
+      id: "9",
+      date: "2025-04-01T09:30:00",
+      itemName: "All-purpose Flour",
+      itemCategory: "Dry Goods",
+      branch: "Downtown",
+      previousQuantity: 25,
+      newQuantity: 30,
+      change: 5,
+      unit: "kg",
+      type: "adjustment",
+      staff: "Alex Johnson",
+      notes: "Inventory count correction"
+    },
+    {
+      id: "10",
+      date: "2025-03-31T15:20:00",
+      itemName: "Tomato Sauce",
+      itemCategory: "Sauces",
+      branch: "Downtown",
+      previousQuantity: 12,
+      newQuantity: 10,
+      change: -2,
+      unit: "liters",
+      type: "use",
+      staff: "Maria Garcia"
+    }
+  ];
+
+  // Available branches
+  const branches = [
+    "All Branches",
+    "Downtown",
+    "Uptown",
+    "Westside",
+    "Airport"
+  ];
+
+  // Available categories
+  const categories = [
+    "All Categories",
+    "Dry Goods",
+    "Dairy",
+    "Meat",
+    "Seafood",
+    "Produce",
+    "Oils",
+    "Sauces",
+    "Spices",
+    "Beverages",
+    "Supplies",
+    "Packaging"
+  ];
+
   const [inventoryHistory, setInventoryHistory] = useState<InventoryHistoryItem[]>(mockInventoryHistory);
-  const [searchTerm, setSearchTerm] = useState("");
   const [activeTab, setActiveTab] = useState("all");
   const [selectedBranch, setSelectedBranch] = useState("All Branches");
   const [selectedCategory, setSelectedCategory] = useState("All Categories");
   const [viewMode, setViewMode] = useState<"list" | "grid">("list");
-  const [dateRange, setDateRange] = useState<DateRange | undefined>({
-    from: addDays(new Date(), -7),
-    to: new Date(),
-  });
 
-  // Filter inventory history based on search, branch, category, date range, and tab
   const filteredHistory = inventoryHistory.filter((item) => {
-    // Filter by search term
     const matchesSearch =
-      searchTerm === "" ||
-      item.itemName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      item.staff.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      item.type.toLowerCase().includes(searchTerm.toLowerCase());
+      searchQuery === "" ||
+      item.itemName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      item.staff.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      item.type.toLowerCase().includes(searchQuery.toLowerCase());
 
-    // Filter by branch
     const matchesBranch =
       selectedBranch === "All Branches" || item.branch === selectedBranch;
 
-    // Filter by category
     const matchesCategory =
       selectedCategory === "All Categories" || item.itemCategory === selectedCategory;
 
-    // Filter by date range
     const itemDate = new Date(item.date);
     const matchesDateRange =
       !dateRange?.from ||
       !dateRange?.to ||
       (itemDate >= dateRange.from && itemDate <= dateRange.to);
 
-    // Filter by tab (type)
     const matchesTab =
       activeTab === "all" || activeTab === item.type;
 
@@ -274,7 +261,6 @@ export default function InventoryHistoryPage() {
     toast.success(`Exported inventory history as ${format.toUpperCase()}`);
   };
 
-  // Helper function to get badge style based on transaction type
   const getTransactionBadge = (type: InventoryHistoryItem["type"]) => {
     switch (type) {
       case "restock":
@@ -290,7 +276,6 @@ export default function InventoryHistoryPage() {
     }
   };
 
-  // Helper function to get color for quantity change
   const getChangeColor = (change: number) => {
     if (change > 0) return "text-green-500";
     if (change < 0) return "text-red-500";
@@ -300,14 +285,14 @@ export default function InventoryHistoryPage() {
   return (
     <RestaurantLayout>
       <div className="space-y-6 animate-fade-in">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div>
             <h1 className="text-3xl font-bold tracking-tight">Inventory History</h1>
             <p className="text-muted-foreground">
-              Track all inventory changes, restocks, and usage
+              View detailed inventory movement history
             </p>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center space-x-2">
             <ExportDropdown onExport={handleExport} />
             
             <div className="hidden sm:flex items-center ml-2">
@@ -355,22 +340,21 @@ export default function InventoryHistoryPage() {
         </div>
 
         <Card>
-          <CardHeader className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-            <CardTitle>Transaction History</CardTitle>
-            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
-              <div className="relative w-full sm:w-auto">
-                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+          <CardHeader className="flex flex-col md:flex-row md:items-center justify-between space-y-4 md:space-y-0">
+            <CardTitle>Inventory History</CardTitle>
+            <div className="flex flex-col md:flex-row space-y-4 md:space-y-0 md:space-x-4">
+              <div className="relative w-full md:w-64">
+                <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
                 <Input
-                  type="search"
-                  placeholder="Search history..."
-                  className="w-full sm:w-[250px] pl-8"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
+                  placeholder="Search inventory items..."
+                  className="pl-8"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
                 />
               </div>
-              <DateRangePicker
-                date={dateRange}
-                setDate={setDateRange}
+              <DateRangePicker 
+                value={dateRange}
+                onChange={setDateRange}
               />
             </div>
           </CardHeader>
