@@ -1,4 +1,3 @@
-
 import RestaurantLayout from "@/components/layout/RestaurantLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { 
@@ -12,6 +11,7 @@ import {
   Area, AreaChart
 } from "recharts";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
+import { NotificationDemo } from "@/components/dashboard/NotificationDemo";
 
 // Sample data for charts
 const revenueData = [
@@ -99,6 +99,7 @@ export default function RestaurantDashboard() {
             </p>
           </div>
           <div className="flex items-center gap-2">
+            <NotificationDemo />
             <Button variant="outline" size="sm" className="h-9">
               <Bell className="mr-2 h-4 w-4" />
               Notifications
