@@ -1,3 +1,4 @@
+
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Globe, MapPin, Users } from "lucide-react";
@@ -26,7 +27,7 @@ const LabelText = ({ x, y, value }) => {
       fill="#374151"
       fontSize={12}
       textAnchor="middle"
-      style={{ overflow: 'hidden', textOverflow: 'ellipsis' as any }}
+      style={{ overflow: 'hidden' }}
     >
       {value}
     </text>
@@ -81,7 +82,6 @@ export default function UserActivityMap() {
                 axisLine={false} 
                 width={isMobile ? 50 : 60}
                 tick={{ 
-                  textOverflow: 'ellipsis',
                   overflow: 'hidden',
                   maxWidth: isMobile ? 50 : 60
                 }}

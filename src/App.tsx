@@ -45,10 +45,10 @@ const App = () => {
   return (
     <StrictMode>
       <QueryClientProvider client={queryClient}>
-        <TooltipProvider>
-          <Toaster />
-          <Sonner />
-          <BrowserRouter>
+        <BrowserRouter>
+          <TooltipProvider>
+            <Toaster />
+            <Sonner />
             <Routes>
               {/* Landing/Home Page */}
               <Route path="/" element={<Index />} />
@@ -89,8 +89,8 @@ const App = () => {
               {/* Catch-all route for 404 */}
               <Route path="*" element={<NotFound />} />
             </Routes>
-          </BrowserRouter>
-        </TooltipProvider>
+          </TooltipProvider>
+        </BrowserRouter>
       </QueryClientProvider>
     </StrictMode>
   );
