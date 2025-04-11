@@ -38,6 +38,7 @@ import ReservationsPage from "./pages/restaurant/ReservationsPage";
 import InventoryPage from "./pages/restaurant/InventoryPage";
 import RestaurantReportsPage from "./pages/restaurant/ReportsPage";
 import RestaurantSettingsPage from "./pages/restaurant/SettingsPage";
+import InventoryHistoryPage from "./pages/restaurant/InventoryHistoryPage";
 
 const queryClient = new QueryClient();
 
@@ -83,6 +84,7 @@ const App = () => {
               <Route path="/restaurant/employees" element={<EmployeesPage />} />
               <Route path="/restaurant/reservations" element={<ReservationsPage />} />
               <Route path="/restaurant/inventory" element={<InventoryPage />} />
+              <Route path="/restaurant/inventory/history" element={<InventoryHistoryPage />} />
               <Route path="/restaurant/reports" element={<RestaurantReportsPage />} />
               <Route path="/restaurant/settings" element={<RestaurantSettingsPage />} />
               
