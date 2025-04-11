@@ -60,6 +60,7 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { FilterMenu, FilterOption } from "@/components/filters/FilterMenu";
 
 interface OrderItem {
   id: string;
@@ -221,28 +222,37 @@ export default function OrdersPage() {
     from: new Date(2023, 3, 10),
     to: new Date(),
   });
+  const [appliedFilters, setAppliedFilters] = useState<Record<string, any>>({});
 
   const filteredOrders = orders.filter((order) => {
     const matchesSearch =
-      searchTerm === "" ||
-      order.orderNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      order.customer.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (order.customer.phone && order.customer.phone.includes(searchTerm)) ||
-      (order.customer.email && order.customer.email.toLowerCase().includes(searchTerm.toLowerCase()));
+      !appliedFilters.search ||
+      order.orderNumber.toLowerCase().includes(appliedFilters.search.toLowerCase()) ||
+      order.customer.name.toLowerCase().includes(appliedFilters.search.toLowerCase()) ||
+      (order.customer.phone && order.customer.phone.includes(appliedFilters.search)) ||
+      (order.customer.email && order.customer.email.toLowerCase().includes(appliedFilters.search.toLowerCase()));
 
-    const matchesTab =
-      activeTab === "all" || order.status === activeTab || 
-      (activeTab === "dine-in" && order.type === "dine-in") ||
-      (activeTab === "takeaway" && order.type === "takeaway") ||
-      (activeTab === "delivery" && order.type === "delivery");
+    const matchesStatus = 
+      !appliedFilters.status ||
+      appliedFilters.status.includes(order.status);
+
+    const matchesType = 
+      !appliedFilters.type ||
+      appliedFilters.type.includes(order.type);
+
+    const matchesPaymentMethod =
+      !appliedFilters.paymentMethod ||
+      appliedFilters.paymentMethod.includes(order.paymentMethod);
 
     const orderDate = new Date(order.createdAt);
     const matchesDateRange =
-      !date ||
-      !date.from ||
-      (date.from && orderDate >= date.from && (!date.to || orderDate <= date.to));
+      !appliedFilters.dateRange ||
+      !appliedFilters.dateRange.from ||
+      (appliedFilters.dateRange.from && 
+       orderDate >= appliedFilters.dateRange.from && 
+       (!appliedFilters.dateRange.to || orderDate <= appliedFilters.dateRange.to));
 
-    return matchesSearch && matchesTab && matchesDateRange;
+    return matchesSearch && matchesStatus && matchesType && matchesPaymentMethod && matchesDateRange;
   });
 
   const handleViewOrderDetails = (order: Order) => {
@@ -363,6 +373,46 @@ export default function OrdersPage() {
     }
   };
 
+  const statusOptions: FilterOption[] = [
+    { id: "new", label: "New", value: "new" },
+    { id: "preparing", label: "Preparing", value: "preparing" },
+    { id: "ready", label: "Ready", value: "ready" },
+    { id: "completed", label: "Completed", value: "completed" },
+    { id: "cancelled", label: "Cancelled", value: "cancelled" }
+  ];
+  
+  const typeOptions: FilterOption[] = [
+    { id: "dine-in", label: "Dine-in", value: "dine-in" },
+    { id: "takeaway", label: "Takeaway", value: "takeaway" },
+    { id: "delivery", label: "Delivery", value: "delivery" }
+  ];
+  
+  const paymentMethodOptions: FilterOption[] = [
+    { id: "cash", label: "Cash", value: "cash" },
+    { id: "card", label: "Card", value: "card" },
+    { id: "online", label: "Online", value: "online" }
+  ];
+
+  const handleFilterChange = (filters: Record<string, any>) => {
+    setAppliedFilters(filters);
+    
+    if ('search' in filters) {
+      setSearchTerm(filters.search || "");
+    }
+    
+    if ('dateRange' in filters) {
+      setDate(filters.dateRange);
+    }
+    
+    if (filters.status && filters.status.length === 1) {
+      setActiveTab(filters.status[0]);
+    } else if (filters.type && filters.type.length === 1) {
+      setActiveTab(filters.type[0]);
+    } else {
+      setActiveTab("all");
+    }
+  };
+
   return (
     <RestaurantLayout>
       <div className="space-y-6 animate-fade-in">
@@ -374,34 +424,6 @@ export default function OrdersPage() {
             </p>
           </div>
           <div className="flex items-center gap-2">
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button variant="outline" className="hover-scale">
-                  <CalendarIcon className="mr-2 h-4 w-4" />
-                  {date?.from ? (
-                    date.to ? (
-                      <>
-                        {format(date.from, "LLL dd, y")} - {format(date.to, "LLL dd, y")}
-                      </>
-                    ) : (
-                      format(date.from, "LLL dd, y")
-                    )
-                  ) : (
-                    "Date Range"
-                  )}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0" align="end">
-                <Calendar
-                  initialFocus
-                  mode="range"
-                  defaultMonth={date?.from}
-                  selected={date}
-                  onSelect={(selectedDate) => setDate(selectedDate)}
-                  numberOfMonths={2}
-                />
-              </PopoverContent>
-            </Popover>
             <Button variant="outline" className="hover-scale" onClick={handleExportData}>
               <FileDown className="mr-2 h-4 w-4" />
               Export
@@ -411,24 +433,26 @@ export default function OrdersPage() {
 
         <div className="flex flex-col sm:flex-row gap-4">
           <div className="w-full sm:w-2/3">
+            <Card className="animate-fade-in [animation-delay:100ms] mb-4">
+              <CardContent className="pt-4">
+                <FilterMenu
+                  options={{
+                    search: true,
+                    status: statusOptions,
+                    types: typeOptions,
+                    dateRange: true,
+                    toggles: [
+                      { id: "paid", label: "Paid Orders Only" }
+                    ]
+                  }}
+                  onFilterChange={handleFilterChange}
+                />
+              </CardContent>
+            </Card>
+            
             <Card className="animate-fade-in [animation-delay:100ms]">
               <CardHeader className="flex flex-row items-center justify-between">
                 <CardTitle>Order History</CardTitle>
-                <div className="flex items-center space-x-2">
-                  <div className="relative">
-                    <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                    <Input
-                      type="search"
-                      placeholder="Search orders..."
-                      className="w-full sm:w-[250px] pl-8"
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                    />
-                  </div>
-                  <Button variant="outline" size="icon">
-                    <Filter className="h-4 w-4" />
-                  </Button>
-                </div>
               </CardHeader>
               <CardContent>
                 <Tabs onValueChange={setActiveTab} value={activeTab}>
