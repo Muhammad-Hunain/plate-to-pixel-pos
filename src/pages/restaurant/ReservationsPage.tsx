@@ -37,7 +37,7 @@ import {
   X,
   MoreVertical,
   Calendar as CalendarFull,
-  ListView,
+  List,
   ChevronLeft,
   ChevronRight,
   Loader2,
@@ -339,7 +339,7 @@ export default function ReservationsPage() {
                 className="rounded-r-none"
                 onClick={() => setView("list")}
               >
-                <ListView className="h-4 w-4" />
+                <List className="h-4 w-4" />
               </Button>
               <Button
                 variant={view === "calendar" ? "default" : "ghost"}
