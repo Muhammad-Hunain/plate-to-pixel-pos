@@ -16,6 +16,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import ExportDropdown from "@/components/common/ExportDropdown";
 
 interface DashboardActionButtonsProps {
   className?: string;
@@ -36,12 +37,12 @@ export default function DashboardActionButtons({ className }: DashboardActionBut
     toast.success(`Viewing data for ${value === 'all' ? 'all regions' : value}`);
   };
   
-  const handleExportData = () => {
-    toast.success("Preparing data export, download will start shortly");
+  const handleExportData = (format: "pdf" | "csv" | "docx") => {
+    toast.success(`Preparing ${format.toUpperCase()} export, download will start shortly`);
     
     // Simulate download delay
     setTimeout(() => {
-      toast.success("Data successfully exported");
+      toast.success(`Data successfully exported as ${format.toUpperCase()}`);
     }, 1500);
   };
   
@@ -100,15 +101,10 @@ export default function DashboardActionButtons({ className }: DashboardActionBut
         Generate Report
       </Button>
       
-      <Button 
-        variant="outline" 
-        size="sm" 
-        className="animate-fade-in [animation-delay:200ms]"
-        onClick={handleExportData}
-      >
-        <Download className="mr-2 h-4 w-4" />
-        Export Data
-      </Button>
+      <ExportDropdown 
+        onExport={handleExportData}
+        buttonText="Export Data"
+      />
       
       <Popover>
         <PopoverTrigger asChild>

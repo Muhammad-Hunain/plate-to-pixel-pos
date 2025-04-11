@@ -6,10 +6,10 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu";
-import { Download, FileDown } from "lucide-react";
+import { Download, FileDown, FilePdf, FileSpreadsheet, FileText } from "lucide-react";
 
 interface ExportDropdownProps {
-  onExport: (format: "pdf" | "csv") => void;
+  onExport: (format: "pdf" | "csv" | "docx") => void;
   buttonText?: string;
 }
 
@@ -24,12 +24,16 @@ export default function ExportDropdown({ onExport, buttonText = "Export" }: Expo
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
         <DropdownMenuItem onClick={() => onExport("pdf")}>
-          <Download className="h-4 w-4 mr-2" /> 
+          <FilePdf className="h-4 w-4 mr-2" /> 
           Export as PDF
         </DropdownMenuItem>
         <DropdownMenuItem onClick={() => onExport("csv")}>
-          <Download className="h-4 w-4 mr-2" /> 
+          <FileSpreadsheet className="h-4 w-4 mr-2" /> 
           Export as CSV
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={() => onExport("docx")}>
+          <FileText className="h-4 w-4 mr-2" /> 
+          Export as DOCX
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
