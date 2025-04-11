@@ -1,840 +1,636 @@
 import { useState } from "react";
 import RestaurantLayout from "@/components/layout/RestaurantLayout";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { DateRangePicker } from "@/components/ui/date-range-picker";
 import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { 
-  BarChart, Bar, LineChart, Line, PieChart, Pie, ResponsiveContainer, 
-  XAxis, YAxis, CartesianGrid, Tooltip, Legend, Cell 
-} from "recharts";
-import { 
-  MapPin, Users, ShoppingBag, Clock, AlertTriangle,
-  Plus, Edit, Trash2, BarChart3, Calendar, Clock8, ChefHat,
-  Package, DollarSign, TrendingUp, Bell, Eye, ArrowUpRight, Settings
-} from "lucide-react";
-import { Badge } from "@/components/ui/badge";
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Textarea } from "@/components/ui/textarea";
+import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
-import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import AddBranchForm from "@/components/branches/AddBranchForm";
-import BranchDetailsView from "@/components/branches/BranchDetailsView";
+import { MoreVertical, FileDown, Printer, Eye, RefreshCcw, X, Copy, Plus, Pencil, Trash2 } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Badge } from "@/components/ui/badge";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
-// Sample branch data
-const initialBranchData = {
-  name: "",
-  address: "",
-  manager: "",
-  contact: "",
-  status: "active" as "active" | "maintenance" | "closed", // Type assertion to match the expected type
-  openingTime: "08:00",
-  closingTime: "22:00",
-  taxRate: 8.5,
-  notes: "",
-};
+// Define the Branch interface
+interface Branch {
+  id: string;
+  name: string;
+  address: string;
+  city: string;
+  state: string;
+  zipCode: string;
+  phone: string;
+  email: string;
+  status: "active" | "maintenance" | "closed";
+  createdAt: string;
+  notes?: string;
+}
 
-const branches = [
+// Mock data for branches
+const mockBranches: Branch[] = [
   {
-    id: 1,
+    id: "1",
     name: "Downtown Branch",
-    address: "123 Main St, Downtown",
-    manager: "John Smith",
-    contact: "+1 (555) 123-4567",
+    address: "123 Main St",
+    city: "Anytown",
+    state: "CA",
+    zipCode: "91234",
+    phone: "(555) 123-4567",
+    email: "downtown@example.com",
     status: "active",
-    openHours: "8:00 AM - 10:00 PM",
-    employees: 24,
-    todayOrders: 142,
-    todayRevenue: 3245.75,
-    lowStockItems: 5,
+    createdAt: "2023-01-01T00:00:00",
+    notes: "Flagship location",
   },
   {
-    id: 2,
+    id: "2",
     name: "Uptown Branch",
-    address: "456 High St, Uptown",
-    manager: "Emily Johnson",
-    contact: "+1 (555) 987-6543",
+    address: "456 Elm St",
+    city: "Anytown",
+    state: "CA",
+    zipCode: "91235",
+    phone: "(555) 234-5678",
+    email: "uptown@example.com",
     status: "active",
-    openHours: "9:00 AM - 11:00 PM",
-    employees: 18,
-    todayOrders: 98,
-    todayRevenue: 2187.50,
-    lowStockItems: 3,
+    createdAt: "2023-02-15T00:00:00",
+    notes: "Near the park",
   },
   {
-    id: 3,
+    id: "3",
     name: "Westside Branch",
-    address: "789 West Blvd, Westside",
-    manager: "Michael Chen",
-    contact: "+1 (555) 456-7890",
-    status: "active",
-    openHours: "10:00 AM - 9:00 PM",
-    employees: 15,
-    todayOrders: 75,
-    todayRevenue: 1823.25,
-    lowStockItems: 8,
-  },
-  {
-    id: 4,
-    name: "Eastside Branch",
-    address: "321 East Ave, Eastside",
-    manager: "Sarah Rodriguez",
-    contact: "+1 (555) 789-0123",
+    address: "789 Oak St",
+    city: "Anytown",
+    state: "CA",
+    zipCode: "91236",
+    phone: "(555) 345-6789",
+    email: "westside@example.com",
     status: "maintenance",
-    openHours: "Closed for renovation",
-    employees: 0,
-    todayOrders: 0,
-    todayRevenue: 0,
-    lowStockItems: 0,
-  },
-  {
-    id: 5,
-    name: "Northside Branch",
-    address: "654 North Rd, Northside",
-    manager: "David Kim",
-    contact: "+1 (555) 321-6547",
-    status: "active",
-    openHours: "8:30 AM - 10:30 PM",
-    employees: 21,
-    todayOrders: 112,
-    todayRevenue: 2756.80,
-    lowStockItems: 2,
+    createdAt: "2023-03-20T00:00:00",
+    notes: "Under renovation",
   },
 ];
 
-// Sample performance data for charts
-const performanceData = [
-  { name: "Mon", downtown: 2400, uptown: 1800, westside: 1600, northside: 2200 },
-  { name: "Tue", downtown: 1800, uptown: 1600, westside: 1400, northside: 2000 },
-  { name: "Wed", downtown: 2800, uptown: 2200, westside: 1800, northside: 2400 },
-  { name: "Thu", downtown: 3600, uptown: 2800, westside: 2400, northside: 3000 },
-  { name: "Fri", downtown: 4200, uptown: 3600, westside: 2800, northside: 3800 },
-  { name: "Sat", downtown: 5000, uptown: 4200, westside: 3200, northside: 4400 },
-  { name: "Sun", downtown: 4300, uptown: 3800, westside: 2600, northside: 3600 },
-];
+// Define the Zod schema for branch validation
+const branchSchema = z.object({
+  name: z.string().min(3, { message: "Branch name must be at least 3 characters." }),
+  address: z.string().min(5, { message: "Address must be at least 5 characters." }),
+  city: z.string().min(3, { message: "City must be at least 3 characters." }),
+  state: z.string().length(2, { message: "State must be exactly 2 characters." }),
+  zipCode: z.string().regex(/^\d{5}(?:-\d{4})?$/, { message: "Invalid ZIP code." }),
+  phone: z.string().regex(/^\(\d{3}\) \d{3}-\d{4}$/, { message: "Invalid phone number. Use format (555) 123-4567." }),
+  email: z.string().email({ message: "Invalid email address." }),
+  status: z.enum(["active", "maintenance", "closed"], {
+    required_error: "Please select a branch status.",
+  }),
+  notes: z.string().optional(),
+});
 
-// Sample active orders data
-const activeOrdersData = [
-  { 
-    id: "ORD-001", 
-    branch: "Downtown Branch", 
-    table: "Table 5", 
-    items: 4, 
-    status: "Preparing", 
-    time: "10:15 AM", 
-    total: "$52.50" 
-  },
-  { 
-    id: "ORD-002", 
-    branch: "Downtown Branch", 
-    table: "Takeaway", 
-    items: 2, 
-    status: "Ready", 
-    time: "10:20 AM", 
-    total: "$27.25" 
-  },
-  { 
-    id: "ORD-003", 
-    branch: "Uptown Branch", 
-    table: "Table 3", 
-    items: 6, 
-    status: "Served", 
-    time: "10:05 AM", 
-    total: "$68.75" 
-  },
-  { 
-    id: "ORD-004", 
-    branch: "Northside Branch", 
-    table: "Table 7", 
-    items: 3, 
-    status: "New", 
-    time: "10:25 AM", 
-    total: "$41.30" 
-  },
-];
-
-// Sample staff attendance data
-const staffAttendanceData = [
-  { id: 1, name: "John Smith", branch: "Downtown Branch", role: "Manager", status: "Present", checkIn: "08:45 AM" },
-  { id: 2, name: "Sarah Lee", branch: "Downtown Branch", role: "Chef", status: "Present", checkIn: "09:00 AM" },
-  { id: 3, name: "Mike Johnson", branch: "Uptown Branch", role: "Waiter", status: "Late", checkIn: "09:30 AM" },
-  { id: 4, name: "Emily Davis", branch: "Westside Branch", role: "Cashier", status: "Present", checkIn: "08:50 AM" },
-  { id: 5, name: "Robert Chen", branch: "Northside Branch", role: "Chef", status: "Absent", checkIn: "-" },
-];
-
-// Low stock items
-const lowStockItems = [
-  { id: 1, name: "Tomatoes", branch: "Downtown Branch", current: 5, minimum: 10 },
-  { id: 2, name: "Chicken Breast", branch: "Downtown Branch", current: 3, minimum: 8 },
-  { id: 3, name: "Olive Oil", branch: "Uptown Branch", current: 2, minimum: 5 },
-  { id: 4, name: "Napkins", branch: "Westside Branch", current: 10, minimum: 25 },
-  { id: 5, name: "Coffee Beans", branch: "Northside Branch", current: 4, minimum: 10 },
-];
-
-// Sales distribution
-const salesDistribution = [
-  { name: "Downtown", value: 35 },
-  { name: "Uptown", value: 25 },
-  { name: "Westside", value: 20 },
-  { name: "Northside", value: 20 },
-];
-
-const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042"];
+// Define the BranchForm type based on the schema
+type BranchFormValues = z.infer<typeof branchSchema>;
 
 export default function BranchesPage() {
-  const [branchList, setBranchList] = useState(branches);
-  const [selectedBranch, setSelectedBranch] = useState<number | null>(null);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [viewMode, setViewMode] = useState("grid");
-  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
-  const [isViewingBranch, setIsViewingBranch] = useState(false);
-  const [isEditingBranch, setIsEditingBranch] = useState(false);
-  const [currentBranchId, setCurrentBranchId] = useState<number | null>(null);
-  const [selectedBranchFilter, setSelectedBranchFilter] = useState<string>("all");
-  
-  const handleBranchSelect = (branchId: number) => {
-    setSelectedBranch(branchId === selectedBranch ? null : branchId);
-  };
-  
-  const filteredBranches = branchList.filter(branch => 
-    branch.name.toLowerCase().includes(searchQuery.toLowerCase())
-  );
-  
-  const getStatusColor = (status: string) => {
-    switch(status) {
-      case "active":
-        return "bg-green-100 text-green-800";
-      case "maintenance":
-        return "bg-amber-100 text-amber-800";
-      case "closed":
-        return "bg-red-100 text-red-800";
-      default:
-        return "bg-gray-100 text-gray-800";
-    }
-  };
+  const [branches, setBranches] = useState<Branch[]>(mockBranches);
+  const [isAddBranchDialogOpen, setIsAddBranchDialogOpen] = useState(false);
+  const [isEditBranchDialogOpen, setIsEditBranchDialogOpen] = useState(false);
+  const [selectedBranch, setSelectedBranch] = useState<Branch | null>(null);
+  const [searchTerm, setSearchTerm] = useState("");
 
-  const handleAddBranch = () => {
-    setCurrentBranchId(null);
-    setIsAddDialogOpen(true);
-  };
+  // Initialize the form with useForm hook
+  const form = useForm<BranchFormValues>({
+    resolver: zodResolver(branchSchema),
+    defaultValues: {
+      name: "",
+      address: "",
+      city: "",
+      state: "",
+      zipCode: "",
+      phone: "",
+      email: "",
+      status: "active",
+      notes: "",
+    },
+  });
 
-  const handleEditBranch = (id: number) => {
-    setCurrentBranchId(id);
-    setIsEditingBranch(true);
-    setIsAddDialogOpen(true);
-  };
-
-  const handleViewBranchDetails = (id: number) => {
-    setCurrentBranchId(id);
-    setIsViewingBranch(true);
-  };
-
-  const handleDeleteBranch = (id: number) => {
-    setBranchList(branchList.filter(branch => branch.id !== id));
-    toast.success("Branch deleted successfully");
-  };
-
-  const handleBranchFormSubmit = (data: any) => {
-    if (currentBranchId) {
-      // Edit existing branch
-      setBranchList(branchList.map(branch => 
-        branch.id === currentBranchId ? { 
-          ...branch, 
-          name: data.name,
-          address: data.address,
-          manager: data.manager,
-          contact: data.contact,
-          status: data.status as "active" | "maintenance" | "closed",
-          openHours: `${data.openingTime} - ${data.closingTime}`,
-          notes: data.notes
-        } : branch
-      ));
-      toast.success(`Branch "${data.name}" updated successfully!`);
-    } else {
-      // Add new branch
-      const newBranch = {
-        id: branchList.length + 1,
-        name: data.name,
-        address: data.address,
-        manager: data.manager,
-        contact: data.contact,
-        status: data.status as "active" | "maintenance" | "closed",
-        openHours: `${data.openingTime} - ${data.closingTime}`,
-        employees: 0,
-        todayOrders: 0,
-        todayRevenue: 0,
-        lowStockItems: 0
-      };
-      
-      setBranchList([...branchList, newBranch]);
-      toast.success(`Branch "${data.name}" added successfully!`);
-    }
+  // Function to handle adding a new branch
+  const addBranch = (data: any) => {
+    const newBranch = {
+      ...data,
+      id: String(branches.length + 1),
+      status: data.status as "active" | "maintenance" | "closed", // Ensure status is properly typed
+      createdAt: new Date().toISOString(),
+    };
     
-    setIsAddDialogOpen(false);
-    setIsEditingBranch(false);
-    setCurrentBranchId(null);
+    setBranches([...branches, newBranch]);
+    setIsAddBranchDialogOpen(false);
+    toast.success("New branch added successfully!");
   };
 
-  const getCurrentBranch = () => {
-    return branchList.find(branch => branch.id === currentBranchId) || null;
+  // Function to handle editing an existing branch
+  const editBranch = (data: any) => {
+    if (!selectedBranch) return;
+
+    const updatedBranches = branches.map((branch) =>
+      branch.id === selectedBranch.id ? { ...branch, ...data } : branch
+    );
+
+    setBranches(updatedBranches);
+    setIsEditBranchDialogOpen(false);
+    setSelectedBranch(null);
+    toast.success("Branch updated successfully!");
   };
+
+  // Function to handle deleting a branch
+  const deleteBranch = (branchId: string) => {
+    setBranches(branches.filter((branch) => branch.id !== branchId));
+    toast.success("Branch deleted successfully!");
+  };
+
+  // Function to open the edit branch dialog
+  const openEditBranchDialog = (branch: Branch) => {
+    setSelectedBranch(branch);
+    form.reset(branch);
+    setIsEditBranchDialogOpen(true);
+  };
+
+  // Function to close the add branch dialog
+  const closeAddBranchDialog = () => {
+    setIsAddBranchDialogOpen(false);
+    form.reset();
+  };
+
+  // Function to close the edit branch dialog
+  const closeEditBranchDialog = () => {
+    setIsEditBranchDialogOpen(false);
+    setSelectedBranch(null);
+    form.reset();
+  };
+
+  // Function to handle copying branch details
+  const copyBranchDetails = (branch: Branch) => {
+    const details = `
+      Branch Name: ${branch.name}
+      Address: ${branch.address}, ${branch.city}, ${branch.state} ${branch.zipCode}
+      Phone: ${branch.phone}
+      Email: ${branch.email}
+    `;
+    navigator.clipboard.writeText(details);
+    toast.success("Branch details copied to clipboard!");
+  };
+
+  // Function to handle printing branch details
+  const printBranchDetails = (branch: Branch) => {
+    toast.success(`Printing details for ${branch.name}...`);
+  };
+
+  // Function to handle exporting branch data
+  const exportBranchData = () => {
+    toast.success("Branch data exported successfully!");
+  };
+
+  // Filter branches based on search term
+  const filteredBranches = branches.filter((branch) =>
+    branch.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    branch.address.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    branch.city.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    branch.phone.includes(searchTerm) ||
+    branch.email.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   return (
     <RestaurantLayout>
-      <div className="space-y-8 p-8">
+      <div className="container space-y-6 animate-fade-in">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight mb-2">Branch Management</h1>
+            <h1 className="text-3xl font-bold tracking-tight">Branch Management</h1>
             <p className="text-muted-foreground">
-              Monitor and manage all your restaurant branches
+              Manage restaurant branches and locations
             </p>
           </div>
           <div className="flex items-center gap-2">
-            <Button onClick={handleAddBranch} className="hover-scale">
+            <Button onClick={() => setIsAddBranchDialogOpen(true)}>
               <Plus className="mr-2 h-4 w-4" />
               Add Branch
+            </Button>
+            <Button variant="outline" className="hover-scale" onClick={exportBranchData}>
+              <FileDown className="mr-2 h-4 w-4" />
+              Export
             </Button>
           </div>
         </div>
 
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-4">
-          <div className="relative w-full sm:w-64">
-            <Input
-              type="search"
-              placeholder="Search branches..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10"
-            />
-            <MapPin className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-          </div>
-
-          <div className="flex gap-2 items-center">
-            <DateRangePicker
-              initialDateFrom={new Date()}
-              initialDateTo={new Date()}
-              className="w-full sm:w-auto"
-            />
-            <div className="border rounded-md p-1">
-              <Button
-                variant={viewMode === "grid" ? "default" : "ghost"}
-                size="icon"
-                className="h-8 w-8"
-                onClick={() => setViewMode("grid")}
-              >
-                <BarChart3 className="h-4 w-4" />
-              </Button>
-              <Button
-                variant={viewMode === "list" ? "default" : "ghost"}
-                size="icon"
-                className="h-8 w-8"
-                onClick={() => setViewMode("list")}
-              >
-                <Users className="h-4 w-4" />
-              </Button>
+        <Card>
+          <CardHeader className="flex items-center justify-between">
+            <CardTitle>Branch List</CardTitle>
+            <div className="relative">
+              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Input
+                type="search"
+                placeholder="Search branches..."
+                className="pl-8"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
             </div>
-          </div>
-        </div>
-
-        {/* Branch Grid View */}
-        {viewMode === "grid" && (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredBranches.map((branch) => (
-              <Card 
-                key={branch.id} 
-                className={`branch-card animate-fade-in hover-scale transition-all ${selectedBranch === branch.id ? 'ring-2 ring-primary' : ''}`}
-                onClick={() => handleBranchSelect(branch.id)}
-              >
-                <CardHeader className="pb-2">
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <CardTitle className="text-lg">{branch.name}</CardTitle>
-                      <CardDescription>{branch.address}</CardDescription>
-                    </div>
-                    <div>
-                      <Badge className={getStatusColor(branch.status)}>
-                        {branch.status.charAt(0).toUpperCase() + branch.status.slice(1)}
+          </CardHeader>
+          <CardContent>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Name</TableHead>
+                  <TableHead>Address</TableHead>
+                  <TableHead>Contact</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filteredBranches.map((branch) => (
+                  <TableRow key={branch.id} className="hover-scale-subtle">
+                    <TableCell className="font-medium">{branch.name}</TableCell>
+                    <TableCell>
+                      {branch.address}, {branch.city}, {branch.state} {branch.zipCode}
+                    </TableCell>
+                    <TableCell>
+                      {branch.phone}
+                      <br />
+                      {branch.email}
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant={branch.status === "active" ? "default" : branch.status === "maintenance" ? "outline" : "destructive"}>
+                        {branch.status}
                       </Badge>
-                    </div>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-6">
-                    <div className="text-sm">
-                      <div className="flex justify-between py-1">
-                        <span className="text-muted-foreground">Manager:</span>
-                        <span className="font-medium">{branch.manager}</span>
-                      </div>
-                      <div className="flex justify-between py-1">
-                        <span className="text-muted-foreground">Contact:</span>
-                        <span className="font-medium">{branch.contact}</span>
-                      </div>
-                      <div className="flex justify-between py-1">
-                        <span className="text-muted-foreground">Hours:</span>
-                        <span className="font-medium">{branch.openHours}</span>
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-4 pt-2">
-                      <div className="flex flex-col items-center justify-center bg-primary/10 p-3 rounded-lg">
-                        <Users className="h-5 w-5 text-primary mb-1" />
-                        <span className="text-xs text-muted-foreground">Staff</span>
-                        <span className="font-bold">{branch.employees}</span>
-                      </div>
-                      <div className="flex flex-col items-center justify-center bg-green-100/50 p-3 rounded-lg">
-                        <ShoppingBag className="h-5 w-5 text-green-600 mb-1" />
-                        <span className="text-xs text-muted-foreground">Orders</span>
-                        <span className="font-bold">{branch.todayOrders}</span>
-                      </div>
-                      <div className="flex flex-col items-center justify-center bg-blue-100/50 p-3 rounded-lg">
-                        <DollarSign className="h-5 w-5 text-blue-600 mb-1" />
-                        <span className="text-xs text-muted-foreground">Revenue</span>
-                        <span className="font-bold">${branch.todayRevenue.toFixed(2)}</span>
-                      </div>
-                      <div className="flex flex-col items-center justify-center bg-amber-100/50 p-3 rounded-lg">
-                        <AlertTriangle className="h-5 w-5 text-amber-600 mb-1" />
-                        <span className="text-xs text-muted-foreground">Low Stock</span>
-                        <span className="font-bold">{branch.lowStockItems}</span>
-                      </div>
-                    </div>
-
-                    <div className="flex justify-between pt-2">
-                      <Button variant="outline" size="sm" onClick={(e) => {e.stopPropagation(); handleEditBranch(branch.id);}}>
-                        <Edit className="h-4 w-4 mr-1" />
-                        Edit
-                      </Button>
-                      <Button 
-                        variant="outline" 
-                        size="sm" 
-                        className="text-destructive hover:bg-destructive/10"
-                        onClick={(e) => {e.stopPropagation(); handleDeleteBranch(branch.id);}}
-                      >
-                        <Trash2 className="h-4 w-4 mr-1" />
-                        Delete
-                      </Button>
-                      <Button 
-                        variant="outline" 
-                        size="sm"
-                        onClick={(e) => {e.stopPropagation(); handleViewBranchDetails(branch.id);}}
-                      >
-                        <Eye className="h-4 w-4 mr-1" />
-                        View
-                      </Button>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        )}
-
-        {/* Branch List View */}
-        {viewMode === "list" && (
-          <Card>
-            <CardContent className="p-0">
-              <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead>
-                    <tr className="border-b">
-                      <th className="px-6 py-3 text-left text-sm font-medium text-muted-foreground">Branch Name</th>
-                      <th className="px-4 py-3 text-left text-sm font-medium text-muted-foreground">Manager</th>
-                      <th className="px-4 py-3 text-left text-sm font-medium text-muted-foreground">Status</th>
-                      <th className="px-4 py-3 text-left text-sm font-medium text-muted-foreground">Staff</th>
-                      <th className="px-4 py-3 text-left text-sm font-medium text-muted-foreground">Orders Today</th>
-                      <th className="px-4 py-3 text-left text-sm font-medium text-muted-foreground">Revenue Today</th>
-                      <th className="px-6 py-3 text-right text-sm font-medium text-muted-foreground">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {filteredBranches.map((branch) => (
-                      <tr key={branch.id} className="border-b hover:bg-muted/50">
-                        <td className="px-6 py-3 text-sm font-medium">
-                          <div>
-                            <div>{branch.name}</div>
-                            <div className="text-xs text-muted-foreground">{branch.address}</div>
-                          </div>
-                        </td>
-                        <td className="px-4 py-3 text-sm">{branch.manager}</td>
-                        <td className="px-4 py-3 text-sm">
-                          <Badge className={getStatusColor(branch.status)}>
-                            {branch.status.charAt(0).toUpperCase() + branch.status.slice(1)}
-                          </Badge>
-                        </td>
-                        <td className="px-4 py-3 text-sm">{branch.employees}</td>
-                        <td className="px-4 py-3 text-sm">{branch.todayOrders}</td>
-                        <td className="px-4 py-3 text-sm">${branch.todayRevenue.toFixed(2)}</td>
-                        <td className="px-6 py-3 text-sm text-right">
-                          <div className="flex justify-end gap-2">
-                            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleEditBranch(branch.id)}>
-                              <Edit className="h-4 w-4" />
-                            </Button>
-                            <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => handleDeleteBranch(branch.id)}>
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleViewBranchDetails(branch.id)}>
-                              <Eye className="h-4 w-4" />
-                            </Button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </CardContent>
-          </Card>
-        )}
-
-        {/* Performance Analytics */}
-        <Card className="animate-slide-in">
-          <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle>Branch Performance Comparison</CardTitle>
-            <Select 
-              defaultValue="all"
-              onValueChange={setSelectedBranchFilter}
-            >
-              <SelectTrigger className="w-[180px]">
-                <SelectValue placeholder="All Branches" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Branches</SelectItem>
-                <SelectItem value="downtown">Downtown</SelectItem>
-                <SelectItem value="uptown">Uptown</SelectItem>
-                <SelectItem value="westside">Westside</SelectItem>
-                <SelectItem value="northside">Northside</SelectItem>
-              </SelectContent>
-            </Select>
-          </CardHeader>
-          <CardContent>
-            <ResponsiveContainer width="100%" height={300}>
-              <LineChart data={performanceData}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" />
-                <XAxis dataKey="name" />
-                <YAxis />
-                <Tooltip />
-                <Legend />
-                {(selectedBranchFilter === "all" || selectedBranchFilter === "downtown") && (
-                  <Line type="monotone" dataKey="downtown" stroke="#0088FE" activeDot={{ r: 8 }} />
-                )}
-                {(selectedBranchFilter === "all" || selectedBranchFilter === "uptown") && (
-                  <Line type="monotone" dataKey="uptown" stroke="#00C49F" />
-                )}
-                {(selectedBranchFilter === "all" || selectedBranchFilter === "westside") && (
-                  <Line type="monotone" dataKey="westside" stroke="#FFBB28" />
-                )}
-                {(selectedBranchFilter === "all" || selectedBranchFilter === "northside") && (
-                  <Line type="monotone" dataKey="northside" stroke="#FF8042" />
-                )}
-              </LineChart>
-            </ResponsiveContainer>
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                            <MoreVertical className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem onClick={() => openEditBranchDialog(branch)}>
+                            <Pencil className="mr-2 h-4 w-4" />
+                            Edit Branch
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => copyBranchDetails(branch)}>
+                            <Copy className="mr-2 h-4 w-4" />
+                            Copy Details
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => printBranchDetails(branch)}>
+                            <Printer className="mr-2 h-4 w-4" />
+                            Print Details
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => deleteBranch(branch.id)}>
+                            <Trash2 className="mr-2 h-4 w-4" />
+                            Delete Branch
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
           </CardContent>
         </Card>
 
-        {/* Branch Details Tabs */}
-        <Card className="animate-slide-in">
-          <CardHeader>
-            <CardTitle>Branch Insights</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <Tabs defaultValue="active-orders" className="w-full">
-              <TabsList className="grid grid-cols-4 mb-4">
-                <TabsTrigger value="active-orders">Active Orders</TabsTrigger>
-                <TabsTrigger value="staff-attendance">Staff Attendance</TabsTrigger>
-                <TabsTrigger value="inventory-alerts">Inventory Alerts</TabsTrigger>
-                <TabsTrigger value="sales">Sales Distribution</TabsTrigger>
-              </TabsList>
-              
-              <TabsContent value="active-orders" className="space-y-4">
-                <div className="overflow-x-auto">
-                  <table className="w-full">
-                    <thead>
-                      <tr className="border-b">
-                        <th className="px-4 py-3 text-left text-sm font-medium text-muted-foreground">Order ID</th>
-                        <th className="px-4 py-3 text-left text-sm font-medium text-muted-foreground">Branch</th>
-                        <th className="px-4 py-3 text-left text-sm font-medium text-muted-foreground">Table</th>
-                        <th className="px-4 py-3 text-left text-sm font-medium text-muted-foreground">Items</th>
-                        <th className="px-4 py-3 text-left text-sm font-medium text-muted-foreground">Status</th>
-                        <th className="px-4 py-3 text-left text-sm font-medium text-muted-foreground">Time</th>
-                        <th className="px-4 py-3 text-right text-sm font-medium text-muted-foreground">Total</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {activeOrdersData.map((order) => (
-                        <tr key={order.id} className="border-b hover:bg-muted/50">
-                          <td className="px-4 py-3 text-sm font-medium">{order.id}</td>
-                          <td className="px-4 py-3 text-sm">{order.branch}</td>
-                          <td className="px-4 py-3 text-sm">{order.table}</td>
-                          <td className="px-4 py-3 text-sm">{order.items} items</td>
-                          <td className="px-4 py-3 text-sm">
-                            <Badge className={
-                              order.status === "New" ? "bg-blue-100 text-blue-800" :
-                              order.status === "Preparing" ? "bg-yellow-100 text-yellow-800" :
-                              order.status === "Ready" ? "bg-green-100 text-green-800" :
-                              "bg-gray-100 text-gray-800"
-                            }>
-                              {order.status}
-                            </Badge>
-                          </td>
-                          <td className="px-4 py-3 text-sm">{order.time}</td>
-                          <td className="px-4 py-3 text-sm text-right">{order.total}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </TabsContent>
-              
-              <TabsContent value="staff-attendance" className="space-y-4">
-                <div className="overflow-x-auto">
-                  <table className="w-full">
-                    <thead>
-                      <tr className="border-b">
-                        <th className="px-4 py-3 text-left text-sm font-medium text-muted-foreground">Name</th>
-                        <th className="px-4 py-3 text-left text-sm font-medium text-muted-foreground">Branch</th>
-                        <th className="px-4 py-3 text-left text-sm font-medium text-muted-foreground">Role</th>
-                        <th className="px-4 py-3 text-left text-sm font-medium text-muted-foreground">Status</th>
-                        <th className="px-4 py-3 text-left text-sm font-medium text-muted-foreground">Check In</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {staffAttendanceData.map((staff) => (
-                        <tr key={staff.id} className="border-b hover:bg-muted/50">
-                          <td className="px-4 py-3 text-sm font-medium">{staff.name}</td>
-                          <td className="px-4 py-3 text-sm">{staff.branch}</td>
-                          <td className="px-4 py-3 text-sm">{staff.role}</td>
-                          <td className="px-4 py-3 text-sm">
-                            <Badge className={
-                              staff.status === "Present" ? "bg-green-100 text-green-800" :
-                              staff.status === "Late" ? "bg-yellow-100 text-yellow-800" :
-                              "bg-red-100 text-red-800"
-                            }>
-                              {staff.status}
-                            </Badge>
-                          </td>
-                          <td className="px-4 py-3 text-sm">{staff.checkIn}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </TabsContent>
-              
-              <TabsContent value="inventory-alerts" className="space-y-4">
-                <div className="overflow-x-auto">
-                  <table className="w-full">
-                    <thead>
-                      <tr className="border-b">
-                        <th className="px-4 py-3 text-left text-sm font-medium text-muted-foreground">Item</th>
-                        <th className="px-4 py-3 text-left text-sm font-medium text-muted-foreground">Branch</th>
-                        <th className="px-4 py-3 text-left text-sm font-medium text-muted-foreground">Current Stock</th>
-                        <th className="px-4 py-3 text-left text-sm font-medium text-muted-foreground">Minimum Required</th>
-                        <th className="px-4 py-3 text-left text-sm font-medium text-muted-foreground">Status</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {lowStockItems.map((item) => (
-                        <tr key={item.id} className="border-b hover:bg-muted/50">
-                          <td className="px-4 py-3 text-sm font-medium">{item.name}</td>
-                          <td className="px-4 py-3 text-sm">{item.branch}</td>
-                          <td className="px-4 py-3 text-sm">{item.current} units</td>
-                          <td className="px-4 py-3 text-sm">{item.minimum} units</td>
-                          <td className="px-4 py-3 text-sm">
-                            <Badge className={
-                              item.current <= item.minimum * 0.3 ? "bg-red-100 text-red-800" :
-                              item.current <= item.minimum * 0.7 ? "bg-yellow-100 text-yellow-800" :
-                              "bg-amber-100 text-amber-800"
-                            }>
-                              {item.current <= item.minimum * 0.3 ? "Critical" :
-                               item.current <= item.minimum * 0.7 ? "Low" : "Warning"}
-                            </Badge>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </TabsContent>
-              
-              <TabsContent value="sales" className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <ResponsiveContainer width="100%" height={300}>
-                      <PieChart>
-                        <Pie
-                          data={salesDistribution}
-                          cx="50%"
-                          cy="50%"
-                          labelLine={false}
-                          outerRadius={80}
-                          fill="#8884d8"
-                          dataKey="value"
-                          label={({name, percent}) => `${name}: ${(percent * 100).toFixed(0)}%`}
-                        >
-                          {salesDistribution.map((entry, index) => (
-                            <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                          ))}
-                        </Pie>
-                        <Tooltip />
-                        <Legend />
-                      </PieChart>
-                    </ResponsiveContainer>
-                  </div>
-                  <div>
-                    <h3 className="text-lg font-semibold mb-2">Sales Summary</h3>
-                    <div className="space-y-2">
-                      {salesDistribution.map((branch, index) => (
-                        <div key={index} className="flex justify-between items-center">
-                          <div className="flex items-center">
-                            <div className="w-3 h-3 rounded-full mr-2" style={{ backgroundColor: COLORS[index % COLORS.length] }}></div>
-                            <span>{branch.name}</span>
-                          </div>
-                          <div className="flex items-center">
-                            <span className="font-medium">{branch.value}%</span>
-                            <ArrowUpRight className="h-4 w-4 ml-1 text-green-500" />
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                    
-                    <div className="mt-6 p-4 bg-muted/50 rounded-lg">
-                      <h4 className="text-sm font-medium mb-2">Branch Control Actions</h4>
-                      <div className="grid grid-cols-2 gap-2">
-                        <Button variant="outline" size="sm" className="text-blue-600">
-                          <Settings className="h-4 w-4 mr-1" />
-                          Modify Hours
-                        </Button>
-                        <Button variant="outline" size="sm" className="text-purple-600">
-                          <Users className="h-4 w-4 mr-1" />
-                          Assign Staff
-                        </Button>
-                        <Button variant="outline" size="sm" className="text-orange-600">
-                          <Package className="h-4 w-4 mr-1" />
-                          Stock Transfer
-                        </Button>
-                        <Button variant="outline" size="sm" className="text-green-600">
-                          <BarChart3 className="h-4 w-4 mr-1" />
-                          Full Report
-                        </Button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </TabsContent>
-            </Tabs>
-          </CardContent>
-        </Card>
-
-        {/* Quick Insight Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          <Card className="stat-card animate-fade-in hover-scale">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Total Branches</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{branchList.length}</div>
-              <div className="flex items-center text-xs text-success mt-1">
-                <TrendingUp className="h-3 w-3 mr-1" />
-                <span>1 new in last month</span>
-              </div>
-            </CardContent>
-          </Card>
-          
-          <Card className="stat-card animate-fade-in [animation-delay:100ms] hover-scale">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Total Staff</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">78</div>
-              <div className="flex items-center text-xs text-success mt-1">
-                <TrendingUp className="h-3 w-3 mr-1" />
-                <span>5 new hires this month</span>
-              </div>
-            </CardContent>
-          </Card>
-          
-          <Card className="stat-card animate-fade-in [animation-delay:200ms] hover-scale">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Average Daily Orders</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">427</div>
-              <div className="flex items-center text-xs text-success mt-1">
-                <TrendingUp className="h-3 w-3 mr-1" />
-                <span>12% from last month</span>
-              </div>
-            </CardContent>
-          </Card>
-          
-          <Card className="stat-card animate-fade-in [animation-delay:300ms] hover-scale">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Operation Success Rate</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">96.7%</div>
-              <div className="flex items-center text-xs text-success mt-1">
-                <TrendingUp className="h-3 w-3 mr-1" />
-                <span>1.2% from last month</span>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Add/Edit Branch Dialog */}
-        <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+        {/* Add Branch Dialog */}
+        <Dialog open={isAddBranchDialogOpen} onOpenChange={setIsAddBranchDialogOpen}>
+          <DialogContent className="sm:max-w-[625px]">
             <DialogHeader>
-              <DialogTitle>
-                {isEditingBranch ? "Edit Branch" : "Add New Branch"}
-              </DialogTitle>
+              <DialogTitle>Add New Branch</DialogTitle>
               <DialogDescription>
-                {isEditingBranch 
-                  ? "Update information for this branch location" 
-                  : "Fill in the details to add a new branch to your restaurant chain"}
+                Create a new restaurant branch to expand your business.
               </DialogDescription>
             </DialogHeader>
-            
-            <AddBranchForm 
-              onSubmit={handleBranchFormSubmit} 
-              defaultValues={
-                isEditingBranch && currentBranchId ? {
-                  name: getCurrentBranch()?.name || "",
-                  address: getCurrentBranch()?.address || "",
-                  manager: getCurrentBranch()?.manager || "",
-                  contact: getCurrentBranch()?.contact || "",
-                  status: getCurrentBranch()?.status || "active",
-                  openingTime: getCurrentBranch()?.openHours.split(" - ")[0] || "08:00",
-                  closingTime: getCurrentBranch()?.openHours.split(" - ")[1] || "22:00",
-                  taxRate: 8.5, // Default value
-                  notes: ""
-                } : undefined
-              } 
-              title={isEditingBranch ? "Edit Branch Details" : "Add New Branch"}
-              submitLabel={isEditingBranch ? "Update Branch" : "Create Branch"}
-            />
+            <Form {...form}>
+              <form onSubmit={form.handleSubmit(addBranch)} className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <FormField
+                    control={form.control}
+                    name="name"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Branch Name</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Enter branch name" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="phone"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Phone Number</FormLabel>
+                        <FormControl>
+                          <Input placeholder="(555) 123-4567" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="email"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Email Address</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Enter email address" type="email" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="status"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Status</FormLabel>
+                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select status" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="active">Active</SelectItem>
+                            <SelectItem value="maintenance">Maintenance</SelectItem>
+                            <SelectItem value="closed">Closed</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="address"
+                    render={({ field }) => (
+                      <FormItem className="md:col-span-2">
+                        <FormLabel>Address</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Enter street address" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <div className="grid grid-cols-3 gap-4 md:col-span-2">
+                    <FormField
+                      control={form.control}
+                      name="city"
+                      render={({ field }) => (
+                        <FormItem className="col-span-3 sm:col-span-1">
+                          <FormLabel>City</FormLabel>
+                          <FormControl>
+                            <Input placeholder="Enter city" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="state"
+                      render={({ field }) => (
+                        <FormItem className="col-span-3 sm:col-span-1">
+                          <FormLabel>State</FormLabel>
+                          <FormControl>
+                            <Input placeholder="CA" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="zipCode"
+                      render={({ field }) => (
+                        <FormItem className="col-span-3 sm:col-span-1">
+                          <FormLabel>ZIP Code</FormLabel>
+                          <FormControl>
+                            <Input placeholder="90210" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                  <FormField
+                    control={form.control}
+                    name="notes"
+                    render={({ field }) => (
+                      <FormItem className="md:col-span-2">
+                        <FormLabel>Notes</FormLabel>
+                        <FormControl>
+                          <Textarea
+                            placeholder="Additional notes or information about the branch"
+                            className="resize-none"
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+                <div className="flex justify-end gap-2">
+                  <Button type="button" variant="secondary" onClick={closeAddBranchDialog}>
+                    Cancel
+                  </Button>
+                  <Button type="submit">Add Branch</Button>
+                </div>
+              </form>
+            </Form>
           </DialogContent>
         </Dialog>
 
-        {/* Branch Details View Dialog */}
-        <Dialog open={isViewingBranch} onOpenChange={setIsViewingBranch}>
-          <DialogContent className="max-w-3xl max-h-[90vh] p-0">
-            {currentBranchId && getCurrentBranch() && (
-              <BranchDetailsView 
-                branch={getCurrentBranch()!}
-                onClose={() => setIsViewingBranch(false)} 
-                onEdit={(id) => {
-                  setIsViewingBranch(false);
-                  handleEditBranch(id);
-                }} 
-              />
-            )}
+        {/* Edit Branch Dialog */}
+        <Dialog open={isEditBranchDialogOpen} onOpenChange={setIsEditBranchDialogOpen}>
+          <DialogContent className="sm:max-w-[625px]">
+            <DialogHeader>
+              <DialogTitle>Edit Branch</DialogTitle>
+              <DialogDescription>
+                Edit an existing restaurant branch to update its information.
+              </DialogDescription>
+            </DialogHeader>
+            <Form {...form}>
+              <form onSubmit={form.handleSubmit(editBranch)} className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <FormField
+                    control={form.control}
+                    name="name"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Branch Name</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Enter branch name" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="phone"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Phone Number</FormLabel>
+                        <FormControl>
+                          <Input placeholder="(555) 123-4567" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="email"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Email Address</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Enter email address" type="email" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="status"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Status</FormLabel>
+                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select status" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="active">Active</SelectItem>
+                            <SelectItem value="maintenance">Maintenance</SelectItem>
+                            <SelectItem value="closed">Closed</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="address"
+                    render={({ field }) => (
+                      <FormItem className="md:col-span-2">
+                        <FormLabel>Address</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Enter street address" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <div className="grid grid-cols-3 gap-4 md:col-span-2">
+                    <FormField
+                      control={form.control}
+                      name="city"
+                      render={({ field }) => (
+                        <FormItem className="col-span-3 sm:col-span-1">
+                          <FormLabel>City</FormLabel>
+                          <FormControl>
+                            <Input placeholder="Enter city" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="state"
+                      render={({ field }) => (
+                        <FormItem className="col-span-3 sm:col-span-1">
+                          <FormLabel>State</FormLabel>
+                          <FormControl>
+                            <Input placeholder="CA" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="zipCode"
+                      render={({ field }) => (
+                        <FormItem className="col-span-3 sm:col-span-1">
+                          <FormLabel>ZIP Code</FormLabel>
+                          <FormControl>
+                            <Input placeholder="90210" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                  <FormField
+                    control={form.control}
+                    name="notes"
+                    render={({ field }) => (
+                      <FormItem className="md:col-span-2">
+                        <FormLabel>Notes</FormLabel>
+                        <FormControl>
+                          <Textarea
+                            placeholder="Additional notes or information about the branch"
+                            className="resize-none"
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+                <div className="flex justify-end gap-2">
+                  <Button type="button" variant="secondary" onClick={closeEditBranchDialog}>
+                    Cancel
+                  </Button>
+                  <Button type="submit">Update Branch</Button>
+                </div>
+              </form>
+            </Form>
           </DialogContent>
         </Dialog>
       </div>

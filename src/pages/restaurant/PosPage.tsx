@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useRef } from "react";
 import RestaurantLayout from "@/components/layout/RestaurantLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -84,10 +85,9 @@ export default function PosPage() {
   const componentRef = useRef(null);
 
   // Function to handle printing the order receipt
-  const { ref: printRef, handlePrint } = useReactToPrint({
-    // Remove the 'content' property and use documentTitle instead
+  const handlePrint = useReactToPrint({
+    content: () => componentRef.current,
     documentTitle: "Order Receipt",
-    // We'll handle providing the content in the component ref
   });
 
   useEffect(() => {
@@ -305,7 +305,10 @@ export default function PosPage() {
                     onChange={(e) => setSearchTerm(e.target.value)}
                   />
                 </div>
-                <Select onValueChange={setSelectedCategory} defaultValue={selectedCategory}>
+                <Select
+                  defaultValue={selectedCategory}
+                  onValueChange={setSelectedCategory}
+                >
                   <SelectTrigger>
                     <SelectValue placeholder="Category" />
                   </SelectTrigger>
@@ -490,12 +493,10 @@ export default function PosPage() {
                     Payment Method
                   </Label>
                   <Select
-                    id="payment-method"
                     defaultValue={paymentMethod}
                     onValueChange={setPaymentMethod}
-                    className="col-span-2"
                   >
-                    <SelectTrigger>
+                    <SelectTrigger className="col-span-2">
                       <SelectValue placeholder="Select payment method" />
                     </SelectTrigger>
                     <SelectContent>
@@ -537,7 +538,7 @@ export default function PosPage() {
                   variant="outline" 
                   size="sm" 
                   className="ml-2" 
-                  onClick={handlePrint} // Use handlePrint directly, without passing the event
+                  onClick={handlePrint} 
                 >
                   <Printer className="h-4 w-4 mr-1" />
                   Print
@@ -626,7 +627,7 @@ export default function PosPage() {
         
         {/* Receipt Component (Hidden) */}
         <div style={{ display: 'none' }}>
-          <div ref={printRef} className="p-4">
+          <div ref={componentRef} className="p-4">
             <div className="text-center mb-4">
               <h2 className="text-2xl font-bold">Restaurant Name</h2>
               <p>123 Main Street, City, State</p>
