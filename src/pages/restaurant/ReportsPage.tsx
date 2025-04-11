@@ -58,6 +58,7 @@ import AreaChart from '@/components/charts/AreaChart';
 import PieChart from '@/components/charts/PieChart';
 import CustomerAnalyticsCharts from "@/components/reports/admin/CustomerAnalyticsCharts";
 import AdvancedCustomerAnalytics from "@/components/reports/admin/AdvancedCustomerAnalytics";
+import { useNavigate } from "react-router-dom";
 
 const salesTrendData = [
   { date: "Jan", Downtown: 4000, Uptown: 2400, Westside: 1800 },
@@ -306,6 +307,7 @@ const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042", "#8884d8", "#82ca9d"
 export default function ReportsPage() {
   const [dateRange, setDateRange] = useState("today");
   const [reportType, setReportType] = useState("sales");
+  const navigate = useNavigate();
 
   return (
     <RestaurantLayout>
@@ -500,7 +502,11 @@ export default function ReportsPage() {
                     <CardTitle>Recent Transactions</CardTitle>
                     <CardDescription>Latest orders and payments</CardDescription>
                   </div>
-                  <Button variant="outline" size="sm">
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => navigate('/restaurant/transactions')}
+                  >
                     <FileText className="mr-2 h-4 w-4" />
                     View All
                   </Button>

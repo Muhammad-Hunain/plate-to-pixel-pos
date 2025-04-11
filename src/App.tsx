@@ -39,6 +39,7 @@ import InventoryPage from "./pages/restaurant/InventoryPage";
 import InventoryHistoryPage from "./pages/restaurant/InventoryHistoryPage";
 import RestaurantReportsPage from "./pages/restaurant/ReportsPage";
 import RestaurantSettingsPage from "./pages/restaurant/SettingsPage";
+import TransactionsPage from "./pages/restaurant/TransactionsPage";
 
 const queryClient = new QueryClient();
 
@@ -86,6 +87,7 @@ const App = () => {
               <Route path="/restaurant/inventory" element={<InventoryPage />} />
               <Route path="/restaurant/inventory/history" element={<InventoryHistoryPage />} />
               <Route path="/restaurant/reports" element={<RestaurantReportsPage />} />
+              <Route path="/restaurant/transactions" element={<TransactionsPage />} />
               <Route path="/restaurant/settings" element={<RestaurantSettingsPage />} />
               
               {/* Catch-all route for 404 */}
