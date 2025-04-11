@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import RestaurantLayout from "@/components/layout/RestaurantLayout";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -31,7 +32,6 @@ import { useForm } from "react-hook-form";
 import * as z from "zod";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import AddMenuItemForm from "@/components/menu/AddMenuItemForm";
-import { FilterMenu, FilterOption } from "@/components/filters/FilterMenu";
 
 const initialCategories = [
   { id: "1", name: "Main Course", description: "Primary dishes", itemCount: 12, isActive: true },
@@ -216,8 +216,7 @@ export default function MenuPage() {
   const [showNewItemDialog, setShowNewItemDialog] = useState(false);
   const [editingItem, setEditingItem] = useState<any>(null);
   const [editingCategory, setEditingCategory] = useState<any>(null);
-  const [appliedFilters, setAppliedFilters] = useState<Record<string, any>>({});
-
+  
   const categoryForm = useForm<z.infer<typeof categoryFormSchema>>({
     resolver: zodResolver(categoryFormSchema),
     defaultValues: {
@@ -277,22 +276,12 @@ export default function MenuPage() {
   }, [editingItem, menuItemForm]);
 
   const filteredItems = menuItems.filter(item => {
-    const matchesSearch = (appliedFilters.search ? 
-      item.name.toLowerCase().includes(appliedFilters.search.toLowerCase()) || 
-      item.description.toLowerCase().includes(appliedFilters.search.toLowerCase())
-      : true);
+    const matchesSearch = item.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
+                          item.description.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesCategory = !filterCategory || item.category === filterCategory;
+    const matchesActiveState = showInactive || item.isActive;
     
-    const matchesCategory = (!appliedFilters.category || 
-      appliedFilters.category.includes(item.category));
-    
-    const matchesActiveState = (appliedFilters.showInactive ? true : item.isActive);
-    
-    const matchesFeatured = (appliedFilters.onlyFeatured ? item.isFeatured : true);
-    
-    const matchesPriceRange = (!appliedFilters.priceRange || 
-      (item.price >= appliedFilters.priceRange.min && item.price <= appliedFilters.priceRange.max));
-    
-    return matchesSearch && matchesCategory && matchesActiveState && matchesFeatured && matchesPriceRange;
+    return matchesSearch && matchesCategory && matchesActiveState;
   });
 
   const handleCategorySubmit = (values: z.infer<typeof categoryFormSchema>) => {
@@ -381,27 +370,6 @@ export default function MenuPage() {
     toast.success("Menu item deleted successfully!");
   };
 
-  const categoryFilterOptions: FilterOption[] = categories.map(cat => ({
-    id: cat.id,
-    label: cat.name,
-    value: cat.id
-  }));
-
-  const handleFilterChange = (filters: Record<string, any>) => {
-    setAppliedFilters(filters);
-    if ('showInactive' in filters) {
-      setShowInactive(!!filters.showInactive);
-    }
-    if (filters.category && filters.category.length > 0) {
-      setFilterCategory(filters.category[0]);
-    } else {
-      setFilterCategory(null);
-    }
-    if ('search' in filters) {
-      setSearchQuery(filters.search || "");
-    }
-  };
-
   return (
     <RestaurantLayout>
       <div className="space-y-6 animate-fade-in">
@@ -437,7 +405,66 @@ export default function MenuPage() {
               </TabsTrigger>
             </TabsList>
             
-            <div className="flex items-center gap-2">
+            <div className="flex flex-col sm:flex-row items-center gap-2">
+              <div className="relative w-full sm:w-auto">
+                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Search menu items..."
+                  className="pl-9 w-full md:w-72"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
+              </div>
+              
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" size="icon">
+                    <Filter className="h-4 w-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <div className="p-2">
+                    <div className="mb-2 font-medium">Filter by Category:</div>
+                    <div className="flex flex-col gap-2">
+                      <div className="flex items-center space-x-2">
+                        <input 
+                          type="radio" 
+                          id="all-categories" 
+                          name="category-filter"
+                          checked={filterCategory === null}
+                          onChange={() => setFilterCategory(null)}
+                        />
+                        <Label htmlFor="all-categories">All Categories</Label>
+                      </div>
+                      
+                      {categories.map(category => (
+                        <div key={category.id} className="flex items-center space-x-2">
+                          <input 
+                            type="radio" 
+                            id={`category-${category.id}`} 
+                            name="category-filter"
+                            checked={filterCategory === category.id}
+                            onChange={() => setFilterCategory(category.id)}
+                          />
+                          <Label htmlFor={`category-${category.id}`}>{category.name}</Label>
+                        </div>
+                      ))}
+                    </div>
+                    
+                    <DropdownMenuSeparator className="my-2" />
+                    
+                    <div className="flex items-center space-x-2">
+                      <Switch 
+                        id="show-inactive" 
+                        checked={showInactive}
+                        onCheckedChange={setShowInactive} 
+                      />
+                      <Label htmlFor="show-inactive">Show Inactive Items</Label>
+                    </div>
+                  </div>
+                </DropdownMenuContent>
+              </DropdownMenu>
+              
               <div className="flex border rounded-md">
                 <Button
                   variant={viewMode === "grid" ? "default" : "ghost"}
@@ -458,24 +485,6 @@ export default function MenuPage() {
               </div>
             </div>
           </div>
-
-          {activeTab === "items" && (
-            <Card className="mb-4">
-              <CardContent className="pt-4">
-                <FilterMenu 
-                  options={{
-                    search: true,
-                    categories: categoryFilterOptions,
-                    toggles: [
-                      { id: 'showInactive', label: 'Show Inactive Items' },
-                      { id: 'onlyFeatured', label: 'Featured Items Only' }
-                    ]
-                  }}
-                  onFilterChange={handleFilterChange}
-                />
-              </CardContent>
-            </Card>
-          )}
 
           <TabsContent value="items" className="mt-6">
             {filteredItems.length === 0 ? (
