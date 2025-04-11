@@ -1,8 +1,9 @@
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import AppSidebar from "./AppSidebar";
 import AppHeader from "./AppHeader";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 type AdminLayoutProps = {
   children: React.ReactNode;
@@ -10,6 +11,8 @@ type AdminLayoutProps = {
 
 export default function AdminLayout({ children }: AdminLayoutProps) {
   const navigate = useNavigate();
+  const isMobile = useIsMobile();
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   // Simple auth check - in a real app, this would be more sophisticated
   useEffect(() => {
@@ -19,13 +22,25 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
     }
   }, [navigate]);
 
+  const toggleSidebar = () => {
+    setSidebarOpen(!sidebarOpen);
+  };
+
   return (
     <div className="min-h-screen bg-background">
-      <AppSidebar role="admin" />
-      <div className="pl-64">
-        <AppHeader role="admin" />
-        <main className="pt-16 min-h-screen">
-          <div className="px-6 py-6">
+      <AppSidebar 
+        role="admin" 
+        isOpen={isMobile ? sidebarOpen : true} 
+        onToggle={toggleSidebar} 
+      />
+      <div className={`${isMobile ? 'pl-0' : 'pl-0 md:pl-64'} transition-all duration-300`}>
+        <AppHeader 
+          role="admin" 
+          showMenuButton={isMobile} 
+          onMenuButtonClick={toggleSidebar}
+        />
+        <main className={`pt-16 min-h-screen transition-all duration-300`}>
+          <div className="px-3 py-3 sm:px-4 sm:py-4 md:px-6 md:py-6">
             {children}
           </div>
         </main>

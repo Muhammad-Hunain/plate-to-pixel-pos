@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -20,6 +19,7 @@ import {
 import RestaurantLayout from "@/components/layout/RestaurantLayout";
 import { useToast } from "@/hooks/use-toast";
 import { useReactToPrint } from "react-to-print";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 // Menu items data
 const menuItems = [
@@ -109,6 +109,7 @@ interface CartItem extends MenuItem {
 
 const PosPage = () => {
   const { toast } = useToast();
+  const isMobile = useIsMobile();
   const [cart, setCart] = useState<CartItem[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [orderType, setOrderType] = useState("dine-in");
@@ -117,14 +118,14 @@ const PosPage = () => {
   const receiptRef = useRef<HTMLDivElement>(null);
 
   const handlePrint = useReactToPrint({
-    content: () => receiptRef.current,
     documentTitle: "Order Receipt",
     onAfterPrint: () => {
       toast({
         title: "Receipt printed",
         description: "The order receipt has been sent to the printer.",
       });
-    }
+    },
+    content: () => receiptRef.current,
   });
 
   const handleAddToCart = (item: MenuItem) => {
@@ -220,7 +221,6 @@ const PosPage = () => {
     });
   }, [searchQuery]);
 
-  // Group items by category
   const itemsByCategory = useMemo(() => {
     const groups: Record<string, MenuItem[]> = {};
     filteredItems.forEach(item => {
@@ -232,7 +232,6 @@ const PosPage = () => {
     return groups;
   }, [filteredItems]);
 
-  // Group cart items by category
   const cartByCategory = useMemo(() => {
     const groups: Record<string, CartItem[]> = {};
     cart.forEach(item => {
@@ -244,7 +243,6 @@ const PosPage = () => {
     return groups;
   }, [cart]);
 
-  // Transform categories for display
   const categories = useMemo(() => {
     return Object.keys(itemsByCategory).map(category => ({
       id: category,
@@ -254,13 +252,12 @@ const PosPage = () => {
 
   return (
     <RestaurantLayout>
-      <div className="p-6 h-full">
-        <div className="flex flex-col lg:flex-row h-full gap-6">
-          {/* Left side - Menu Items */}
+      <div className="p-2 sm:p-4 md:p-6 h-full">
+        <div className="flex flex-col lg:flex-row h-full gap-4 md:gap-6">
           <div className="w-full lg:w-2/3 flex flex-col">
-            <div className="flex flex-col md:flex-row justify-between mb-4 gap-4">
+            <div className="flex flex-col md:flex-row justify-between mb-4 gap-3">
               <div className="flex items-center space-x-2">
-                <h1 className="text-2xl font-bold">Point of Sale</h1>
+                <h1 className="text-xl md:text-2xl font-bold">Point of Sale</h1>
                 {tableNumber && (
                   <Badge variant="outline" className="ml-2">
                     Table {tableNumber}
@@ -268,25 +265,24 @@ const PosPage = () => {
                 )}
               </div>
 
-              <div className="flex gap-2">
+              <div className="flex gap-2 w-full md:w-auto">
                 <div className="relative flex-grow">
                   <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
                   <Input
                     type="search"
                     placeholder="Search items..."
-                    className="pl-8 w-full md:w-[200px]"
+                    className="pl-8 w-full"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                   />
                 </div>
-                <Button variant="outline" size="icon">
+                <Button variant="outline" size="icon" className="flex-shrink-0">
                   <Filter className="h-4 w-4" />
                 </Button>
               </div>
             </div>
 
-            {/* Scrollable menu */}
-            <div className="overflow-y-auto pr-2" style={{ maxHeight: "calc(100vh - 220px)" }}>
+            <div className="overflow-y-auto pr-1 md:pr-2" style={{ maxHeight: isMobile ? "calc(40vh)" : "calc(100vh - 220px)" }}>
               <div className="space-y-6">
                 {categories.map((category) => (
                   <div key={category.id} className="space-y-3">
@@ -326,20 +322,18 @@ const PosPage = () => {
             </div>
           </div>
 
-          {/* Right side - Cart */}
-          <div className="w-full lg:w-1/3 h-full flex flex-col border rounded-lg p-4 bg-card text-card-foreground shadow-sm">
-            <div className="flex justify-between items-center mb-4">
+          <div className="w-full lg:w-1/3 h-full flex flex-col border rounded-lg p-3 md:p-4 bg-card text-card-foreground shadow-sm">
+            <div className="flex justify-between items-center mb-3 md:mb-4">
               <div className="flex items-center">
                 <ShoppingCart className="h-5 w-5 mr-2" />
-                <h2 className="text-xl font-bold">Current Order</h2>
+                <h2 className="text-lg md:text-xl font-bold">Current Order</h2>
               </div>
               <Button variant="ghost" size="icon">
                 <MoreVertical className="h-4 w-4" />
               </Button>
             </div>
             
-            {/* Order type tabs */}
-            <Tabs value={orderType} onValueChange={setOrderType} className="mb-4">
+            <Tabs value={orderType} onValueChange={setOrderType} className="mb-3 md:mb-4">
               <TabsList className="grid grid-cols-3 w-full">
                 <TabsTrigger value="dine-in">Dine In</TabsTrigger>
                 <TabsTrigger value="takeout">Takeout</TabsTrigger>
@@ -347,9 +341,8 @@ const PosPage = () => {
               </TabsList>
             </Tabs>
             
-            {/* Order type specific inputs */}
             {orderType === "dine-in" && (
-              <div className="mb-4">
+              <div className="mb-3 md:mb-4">
                 <div className="flex items-center gap-2">
                   <MapPin className="h-4 w-4 text-muted-foreground" />
                   <Input 
@@ -362,7 +355,7 @@ const PosPage = () => {
             )}
             
             {orderType === "delivery" && (
-              <div className="mb-4">
+              <div className="mb-3 md:mb-4">
                 <div className="flex flex-col gap-2">
                   <div className="flex items-center gap-2">
                     <MapPin className="h-4 w-4 text-muted-foreground flex-shrink-0" />
@@ -378,7 +371,7 @@ const PosPage = () => {
               </div>
             )}
 
-            <div className="flex-grow overflow-y-auto mb-4">
+            <div className="flex-grow overflow-y-auto mb-3 md:mb-4" style={{ maxHeight: isMobile ? "30vh" : "inherit" }}>
               {cart.length === 0 ? (
                 <div className="text-center py-12 text-muted-foreground">
                   <Utensils className="mx-auto h-12 w-12 mb-4 opacity-20" />
@@ -387,7 +380,6 @@ const PosPage = () => {
                 </div>
               ) : (
                 <div className="space-y-4">
-                  {/* Group cart items by category */}
                   {Object.entries(cartByCategory).map(([category, items]) => (
                     <div key={category} className="space-y-2">
                       <h3 className="text-sm font-medium text-muted-foreground capitalize">
@@ -448,7 +440,7 @@ const PosPage = () => {
               )}
             </div>
 
-            <div className="border-t pt-4">
+            <div className="border-t pt-3 md:pt-4">
               <div className="space-y-2">
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Subtotal</span>
@@ -464,28 +456,27 @@ const PosPage = () => {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-3 mt-4">
+              <div className="grid grid-cols-2 gap-2 md:gap-3 mt-3 md:mt-4">
                 <Button 
                   variant="outline" 
-                  className="gap-1" 
+                  className="gap-1 text-xs md:text-sm" 
                   disabled={cart.length === 0}
                   onClick={handlePrint}
                 >
-                  <Printer className="h-4 w-4 mr-1" />
+                  <Printer className="h-3 w-3 md:h-4 md:w-4 mr-1" />
                   Print Receipt
                 </Button>
                 <Button 
-                  className="gap-1"
+                  className="gap-1 text-xs md:text-sm"
                   onClick={handlePlaceOrder}
                   disabled={cart.length === 0}
                 >
-                  <ShoppingCart className="h-4 w-4 mr-1" />
+                  <ShoppingCart className="h-3 w-3 md:h-4 md:w-4 mr-1" />
                   Place Order
                 </Button>
               </div>
             </div>
 
-            {/* Hidden Receipt for printing */}
             <div className="hidden">
               <div ref={receiptRef} className="p-6 max-w-[300px]">
                 <div className="text-center mb-4">
